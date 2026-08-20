@@ -7,17 +7,22 @@
   const Cards = global.Cards;
 
   const PLAYER_COUNT = 4;
-  const HAND_SIZE = 13;      // cards dealt to each player
-  const BID_CARDS = 3;       // set aside face down as the bid
-  const TRICKS_PER_HAND = HAND_SIZE - BID_CARDS; // 10
-  const TARGET_SCORE = 30;
+  const HAND_SIZE = 15;      // cards dealt to each noble
+  const BID_CARDS = 4;       // agents sent out on errands, face down
+  const TRICKS_PER_HAND = HAND_SIZE - BID_CARDS; // 11 audiences
+  const TARGET_SCORE = 40;   // favour needed to win the season
 
-  // How many players made their bid last hand -> trump for this hand.
-  const TRUMP_LADDER = ['C', 'D', 'H', 'S', null];
+  // How many nobles kept their pledge last session -> who holds sway this one.
+  const SWAY_LADDER = ['C', 'D', 'H', 'S', null];
 
-  /** Bid = sum of the suit values of the three face-down cards (ranks ignored). */
+  /**
+   * A pledge is the sum of the four face-down agents, ranks ignored. Four
+   * Assassins would come to twelve, so a pledge is capped at the number of
+   * audiences the session actually has: you cannot promise the court more
+   * than it can give.
+   */
   function bidFromCards(cards) {
-    return Cards.bidValueOf(cards);
+    return Math.min(Cards.bidValueOf(cards), TRICKS_PER_HAND);
   }
 
   /** Cards a player is allowed to play: must follow the led suit when able. */
@@ -68,13 +73,13 @@
     return bid === tricksWon;
   }
 
-  /** Trump for the next hand, from the number of players who made their bid. */
+  /** Who holds sway next session, from the number of nobles who kept their pledge. */
   function trumpForNextHand(madeCount) {
-    return TRUMP_LADDER[Math.max(0, Math.min(PLAYER_COUNT, madeCount))];
+    return SWAY_LADDER[Math.max(0, Math.min(PLAYER_COUNT, madeCount))];
   }
 
   function trumpLabel(trump) {
-    return trump === null ? 'No Trump' : Cards.SUIT_NAME[trump];
+    return trump === null ? 'No Sway' : Cards.SUIT_ROLE_PLURAL[trump];
   }
 
   /** Seat to the left (clockwise) of the given seat. */
@@ -137,7 +142,7 @@
     BID_CARDS: BID_CARDS,
     TRICKS_PER_HAND: TRICKS_PER_HAND,
     TARGET_SCORE: TARGET_SCORE,
-    TRUMP_LADDER: TRUMP_LADDER,
+    SWAY_LADDER: SWAY_LADDER,
     bidFromCards: bidFromCards,
     legalPlays: legalPlays,
     trickWinner: trickWinner,

@@ -1,7 +1,7 @@
 {
   "name": "ians-game",
   "version": "1.0.0",
-  "description": "A four-player trick-taking card game where you bid with three face-down cards and trump is set by how the last hand went.",
+  "description": "The Fool's Court: four nobles compete for the monarch's ear, pledging audiences with four face-down agents while sway passes to whoever the court failed.",
   "private": true,
   "scripts": {
     "start": "node serve.js",

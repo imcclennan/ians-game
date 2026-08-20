@@ -1,22 +1,22 @@
-/* Ian's Game — table, cards and panel styling. */
+/* The Fool's Court — the table, the agents and the side panel. */
 
 :root {
-  --bg: #12161b;
-  --bg-raised: #1c232b;
-  --bg-sunken: #10151a;
-  --line: #2c3742;
-  --ink: #e9eef4;
-  --ink-dim: #93a3b2;
-  --ink-faint: #6b7986;
-  --accent: #e2b155;
-  --accent-ink: #2a2005;
-  --felt: #17654c;
-  --felt-dark: #0d4433;
-  --good: #63c496;
-  --bad: #e8776d;
-  --card-face: #fbfaf7;
-  --card-black: #1d2126;
-  --card-red: #c8382f;
+  --bg: #17110f;
+  --bg-raised: #241b18;
+  --bg-sunken: #1a1310;
+  --line: #3d302a;
+  --ink: #f2e8dc;
+  --ink-dim: #b39c8a;
+  --ink-faint: #836f61;
+  --accent: #d9a441;
+  --accent-ink: #2b1d05;
+  --felt: #6a2333;
+  --felt-dark: #34101c;
+  --good: #7fb886;
+  --bad: #d9705f;
+  --card-face: #f3ead7;
+  --card-black: #241c14;
+  --card-red: #a8302c;
   --radius: 12px;
   --shadow: 0 10px 30px rgba(0, 0, 0, .35);
   --pace: 180ms;
@@ -30,6 +30,8 @@ html, body {
   background: var(--bg);
   color: var(--ink);
   font: 15px/1.5 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  background-image:
+    radial-gradient(ellipse at 50% -10%, rgba(217, 164, 65, .07) 0%, transparent 60%);
 }
 
 h1, h2 { margin: 0; font-weight: 650; letter-spacing: .01em; }
@@ -151,7 +153,7 @@ button, select { font: inherit; }
   padding: 18px;
   border-radius: 20px;
   background: radial-gradient(ellipse at 50% 42%, var(--felt) 0%, var(--felt-dark) 78%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07), var(--shadow);
+  box-shadow: inset 0 0 0 1px rgba(217, 164, 65, .22), var(--shadow);
 }
 
 .seat-north { grid-area: north; justify-self: center; }
@@ -177,8 +179,8 @@ button, select { font: inherit; }
   padding: 10px 12px;
   min-width: 132px;
   border-radius: var(--radius);
-  background: rgba(4, 20, 15, .42);
-  border: 1px solid rgba(255, 255, 255, .09);
+  background: rgba(22, 6, 12, .45);
+  border: 1px solid rgba(217, 164, 65, .18);
   transition: border-color var(--pace), box-shadow var(--pace);
 }
 
@@ -249,7 +251,8 @@ button, select { font: inherit; }
   align-items: center;
   line-height: 1;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
 }
 
 .card .corner i { font-style: normal; font-size: 11px; }
@@ -267,8 +270,8 @@ button, select { font: inherit; }
 
 .card.back {
   background:
-    repeating-linear-gradient(45deg, #2c4f74 0 5px, #24415f 5px 10px);
-  box-shadow: inset 0 0 0 2px #f4f1e8, 0 2px 6px rgba(0, 0, 0, .4);
+    repeating-linear-gradient(45deg, #4a2331 0 5px, #391a26 5px 10px);
+  box-shadow: inset 0 0 0 2px #d9c9a4, 0 2px 6px rgba(0, 0, 0, .45);
 }
 
 .card.sm { width: 26px; height: 37px; border-radius: 4px; }
@@ -276,7 +279,7 @@ button, select { font: inherit; }
 .card.sm .corner i { font-size: 8px; }
 .card.sm .corner.br { display: none; }
 .card.sm .face { font-size: 14px; }
-.card.sm.back { box-shadow: inset 0 0 0 1.5px #f4f1e8, 0 1px 4px rgba(0, 0, 0, .4); }
+.card.sm.back { box-shadow: inset 0 0 0 1.5px #d9c9a4, 0 1px 4px rgba(0, 0, 0, .45); }
 
 /* --- trick area ----------------------------------------------------------- */
 
@@ -287,7 +290,7 @@ button, select { font: inherit; }
   transform: translate(-50%, -50%);
   font-size: 132px;
   line-height: 1;
-  color: rgba(255, 255, 255, .07);
+  color: rgba(243, 234, 215, .08);
   pointer-events: none;
 }
 
@@ -352,7 +355,7 @@ button, select { font: inherit; }
 .hand {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 4px 0;
   min-height: 100px;
   padding: 10px 12px;
   border-radius: var(--radius);
@@ -366,8 +369,13 @@ button, select { font: inherit; }
   transition: transform var(--pace), box-shadow var(--pace), opacity var(--pace);
 }
 
+/* Fifteen agents will not sit side by side, so the hand fans instead. The rank
+   and pip live in the top-left corner, which the overlap always leaves clear. */
+.hand .card + .card { margin-left: -14px; }
+.hand .card:hover, .hand .card.selected { z-index: 4; }
+
 .hand .card.playable { cursor: pointer; }
-.hand .card.playable:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0, 0, 0, .5); }
+.hand .card.playable:hover { transform: translateY(-12px); box-shadow: 0 10px 20px rgba(0, 0, 0, .55); }
 
 .hand .card.selected {
   transform: translateY(-16px);
@@ -473,7 +481,7 @@ button, select { font: inherit; }
 
 .pip { font-size: 15px; }
 .pip.red { color: var(--card-red); }
-.pip.black { color: #cdd7e0; }
+.pip.black { color: #e0d4c2; }
 
 /* --- scoreboard ----------------------------------------------------------- */
 
@@ -604,9 +612,9 @@ button, select { font: inherit; }
   z-index: 30;
   padding: 10px 18px;
   border-radius: 999px;
-  background: #33241f;
-  border: 1px solid #7a4f3c;
-  color: #ffd9c9;
+  background: #3a2118;
+  border: 1px solid #8a5334;
+  color: #ffe0c4;
   font-size: 13.5px;
   box-shadow: var(--shadow);
   animation: rise 160ms ease-out;

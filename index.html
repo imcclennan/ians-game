@@ -3,26 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ian's Game — a bidding trick-taking card game</title>
-<meta name="description" content="A four-player trick-taking card game where you bid with three face-down cards and trump is decided by how the last hand went.">
+<title>The Fool's Court — a card game of promises kept and broken</title>
+<meta name="description" content="Four nobles compete for the monarch's ear. Send agents out on secret errands to pledge how many audiences you will win, and whoever fails hands the court to the Fool.">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#9824;</text></svg>">
 </head>
 <body>
 
 <header class="topbar">
-  <h1>Ian's Game</h1>
+  <h1>The Fool's Court</h1>
   <div class="topbar-meta" id="topbar-meta"></div>
   <div class="topbar-actions">
     <label class="speed">
-      Speed
+      Pace
       <select id="speed">
-        <option value="1100">Relaxed</option>
-        <option value="700" selected>Normal</option>
-        <option value="320">Quick</option>
+        <option value="1100">Stately</option>
+        <option value="700" selected>Measured</option>
+        <option value="320">Brisk</option>
       </select>
     </label>
-    <button type="button" class="btn btn-quiet" id="new-game">New game</button>
+    <button type="button" class="btn btn-quiet" id="new-game">New season</button>
   </div>
 </header>
 
@@ -53,51 +53,54 @@
 
   <aside class="panel">
     <section class="card-box">
-      <h2>Score <span class="target" id="target-note"></span></h2>
+      <h2>Favour <span class="target" id="target-note"></span></h2>
       <table class="scoreboard" id="scoreboard"></table>
     </section>
 
     <details class="card-box" open>
-      <summary><h2>How bidding works</h2></summary>
-      <p>Choose <strong>three cards</strong> and lay them face down. Their <em>suits</em> add up to
-        the number of tricks you are bidding — the ranks are ignored.</p>
+      <summary><h2>Making a pledge</h2></summary>
+      <p>Send <strong>four agents</strong> out of the room on secret errands. Which
+        <em>kind</em> you send is your pledge — how many audiences you promise to win.
+        Their standing at court counts for nothing here.</p>
       <ul class="suit-key">
-        <li><span class="pip black">&spades;</span> Spades <b>3</b></li>
-        <li><span class="pip red">&hearts;</span> Hearts <b>2</b></li>
-        <li><span class="pip red">&diams;</span> Diamonds <b>1</b></li>
-        <li><span class="pip black">&clubs;</span> Clubs <b>0</b></li>
+        <li><span class="pip black">&spades;</span> Assassin <b>3</b></li>
+        <li><span class="pip red">&hearts;</span> Lover <b>2</b></li>
+        <li><span class="pip red">&diams;</span> Merchant <b>1</b></li>
+        <li><span class="pip black">&clubs;</span> Fool <b>0</b></li>
       </ul>
-      <p class="fine">Your bid stays secret until the hand ends, and those three cards are out of
-        play — so ten tricks are up for grabs and the highest possible bid is nine.</p>
+      <p class="fine">Nobody sees your pledge until the session ends, and the agents you sent are
+        gone for it — so eleven audiences remain to be won. Four Assassins would come to twelve,
+        but no one may promise the court more than it has: a pledge stops at eleven.</p>
     </details>
 
     <details class="card-box" open>
-      <summary><h2>How trump is chosen</h2></summary>
-      <p>Trump for each hand depends on how many of the four players <strong>made their bid
-        exactly</strong> in the hand before.</p>
+      <summary><h2>Who holds sway</h2></summary>
+      <p>Sway passes according to how many of the four nobles <strong>kept their pledge
+        exactly</strong> in the session before.</p>
       <ul class="trump-key" id="trump-key">
-        <li data-made="0"><b>0</b> players <span class="arrow">&rarr;</span> <span class="pip black">&clubs;</span> Clubs</li>
-        <li data-made="1"><b>1</b> player <span class="arrow">&rarr;</span> <span class="pip red">&diams;</span> Diamonds</li>
-        <li data-made="2"><b>2</b> players <span class="arrow">&rarr;</span> <span class="pip red">&hearts;</span> Hearts</li>
-        <li data-made="3"><b>3</b> players <span class="arrow">&rarr;</span> <span class="pip black">&spades;</span> Spades</li>
-        <li data-made="4"><b>4</b> players <span class="arrow">&rarr;</span> No Trump</li>
+        <li data-made="0"><b>0</b> nobles <span class="arrow">&rarr;</span> <span class="pip black">&clubs;</span> Fools</li>
+        <li data-made="1"><b>1</b> noble <span class="arrow">&rarr;</span> <span class="pip red">&diams;</span> Merchants</li>
+        <li data-made="2"><b>2</b> nobles <span class="arrow">&rarr;</span> <span class="pip red">&hearts;</span> Lovers</li>
+        <li data-made="3"><b>3</b> nobles <span class="arrow">&rarr;</span> <span class="pip black">&spades;</span> Assassins</li>
+        <li data-made="4"><b>4</b> nobles <span class="arrow">&rarr;</span> No Sway</li>
       </ul>
-      <p class="fine">The first hand of every game is played at No Trump.</p>
+      <p class="fine">When every noble breaks their word the Fool rules the court; when all four
+        keep it, no one holds sway at all. The opening session of a season is always No Sway.</p>
     </details>
 
     <details class="card-box" open>
-      <summary><h2>How scoring works</h2></summary>
+      <summary><h2>Winning favour</h2></summary>
       <ul class="rules-key">
-        <li><b>Bid exactly right</b> — 2 points for every trick you won.</li>
-        <li><b>Bid wrong</b> — 1 point per trick won, minus 2 for every trick you were off.</li>
-        <li><b>Bid zero</b> — <b>+3</b> if you take no tricks at all. Take one and it is
-          <b>&minus;5</b>, then <b>&minus;2</b> more for every extra trick.</li>
+        <li><b>Pledge kept exactly</b> — 2 favour for every audience you won.</li>
+        <li><b>Pledge broken</b> — 1 favour per audience won, less 2 for every audience you were off.</li>
+        <li><b>Pledged nothing</b> — <b>+3</b> for taking no audience at all. Take one and it is
+          <b>&minus;5</b>, then <b>&minus;2</b> more for every audience after.</li>
       </ul>
-      <p class="fine">Bid 5 and win 4 &rarr; 4 &minus; 2 = <b>2</b>. Bid 3 and win 6 &rarr; 6 &minus; 6 = <b>0</b>.</p>
+      <p class="fine">Pledge 5, win 4 &rarr; 4 &minus; 2 = <b>2</b>. Pledge 3, win 6 &rarr; 6 &minus; 6 = <b>0</b>.</p>
     </details>
 
     <details class="card-box" id="history-box">
-      <summary><h2>Hand history</h2></summary>
+      <summary><h2>Court record</h2></summary>
       <div id="history"></div>
     </details>
   </aside>

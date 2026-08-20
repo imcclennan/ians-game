@@ -1,5 +1,5 @@
 /*
- * engine.js - game state and the transitions between phases.
+ * engine.js - the state of the court and the transitions between phases.
  * The UI drives it step by step so it can animate between states.
  */
 (function (global) {
@@ -9,12 +9,12 @@
   const Rules = global.Rules;
   const AI = global.AI;
 
-  // Seats run clockwise: you (bottom), then left, across, right.
+  // The four nobles, seated clockwise: you (bottom), then left, across, right.
   const SEATS = [
     { name: 'You', isHuman: true, position: 'south', style: '' },
-    { name: 'Ada', isHuman: false, position: 'west', style: 'steady', aggression: 1.0 },
-    { name: 'Bram', isHuman: false, position: 'north', style: 'bold', aggression: 1.12 },
-    { name: 'Cleo', isHuman: false, position: 'east', style: 'cautious', aggression: 0.9 }
+    { name: 'Verane', isHuman: false, position: 'west', style: 'the patient', aggression: 1.0 },
+    { name: 'Mors', isHuman: false, position: 'north', style: 'the reckless', aggression: 1.12 },
+    { name: 'Ilka', isHuman: false, position: 'east', style: 'the careful', aggression: 0.9 }
   ];
 
   const HUMAN = 0;
@@ -58,7 +58,7 @@
     };
   }
 
-  /** Shuffle, deal thirteen each, and open the bidding. */
+  /** Shuffle, deal fifteen to each noble, and open the pledging. */
   function startHand(state) {
     const deck = Cards.shuffle(Cards.makeDeck(), state.rng);
 
@@ -85,10 +85,10 @@
     return state;
   }
 
-  /** Set the three face-down bid cards for a seat and take them out of the hand. */
+  /** Send a noble's agents out on their errands, taking them out of the hand. */
   function submitBid(state, seat, cards) {
     if (cards.length !== Rules.BID_CARDS) {
-      throw new Error('A bid must be exactly ' + Rules.BID_CARDS + ' cards');
+      throw new Error('A pledge must be exactly ' + Rules.BID_CARDS + ' agents');
     }
     const player = state.players[seat];
     player.bidCards = cards.slice();
@@ -97,7 +97,7 @@
     return player.bid;
   }
 
-  /** Every computer player commits its bid. */
+  /** Every rival noble commits their pledge. */
   function submitComputerBids(state) {
     state.players.forEach((player, seat) => {
       if (player.isHuman) return;
@@ -193,7 +193,7 @@
     return state;
   }
 
-  /** Score the hand, work out the next trump suit, and check for a winner. */
+  /** Score the session, work out who holds sway next, and check for a winner. */
   function finishHand(state) {
     const rows = state.players.map((player) => {
       const points = Rules.scoreHand(player.bid, player.tricksWon);

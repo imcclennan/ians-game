@@ -1,7 +1,10 @@
-# Ian's Game
+# The Fool's Court
 
-A four-player, trick-taking card game for the browser. You play one seat; three computer
-opponents play the rest. No build step, no dependencies, no data storage — open the file and play.
+Four nobles compete for the monarch's ear. You play one seat; three rivals play the rest.
+Runs in the browser with no build step, no dependencies and nothing stored anywhere.
+
+> When every noble breaks their word, the Fool rules the court.
+> When all four keep it, no one holds sway at all.
 
 ## Playing it
 
@@ -15,72 +18,79 @@ npm start
 
 Then visit <http://localhost:8080>.
 
-## The rules
+## The court
 
-A standard 52-card deck. Aces are high. Thirteen cards are dealt to each player, and the deal
-rotates one seat to the left after every hand. First player past **30 points** wins.
+Sixty cards. Four kinds of **agent**, each ranked **1 to 15** by their standing at court — 15 is
+the most influential, 1 the least. The classic pips are kept because they already read as the four
+agents: the blade, the heart, the coin, the jester's bauble.
 
-### Bidding
+| Agent | Pip | Audiences promised |
+| --- | --- | --- |
+| Assassin | ♠ | 3 |
+| Lover | ♥ | 2 |
+| Merchant | ♦ | 1 |
+| Fool | ♣ | 0 |
 
-Before play, each player chooses **three cards** and places them face down. The **suits** of those
-cards add up to the number of tricks that player is bidding — the ranks are ignored entirely:
+Fifteen agents are dealt to each noble. The **steward** — the seat that deals — passes one place to
+the left after every session. First noble past **40 favour** wins the season.
 
-| Suit | Tricks |
+### Making a pledge
+
+Before the court sits, each noble sends **four agents** out of the room on secret errands. Which
+*kinds* they send is their pledge: how many audiences they promise to win. Standing counts for
+nothing here — a Fool of 15 promises exactly as little as a Fool of 1.
+
+Nobody sees a pledge until the session ends, which keeps it secret *and* hides which agents left
+the room. Those four are gone for the session, so **eleven audiences** remain to be won.
+
+Four Assassins would come to twelve, but no noble may promise the court more than it has: **a
+pledge stops at eleven**.
+
+The bite is that the agents who make your promise are the ones you no longer get to send. Promising
+much means spending Assassins; promising nothing is cheap only if your Fools were useless anyway.
+
+### Winning audiences
+
+* Whoever sits left of the steward opens the first audience; after that, whoever took the last
+  audience opens the next.
+* Any agent may be sent to open, including one of the ruling kind.
+* Play goes clockwise. You **must** answer with an agent of the kind that was sent, if you hold
+  one. If you hold none, send anyone at all.
+* The most influential agent of the kind that was sent wins the audience — unless someone sent an
+  agent of the **ruling kind**, in which case the highest of those takes it.
+
+### Winning favour
+
+| Result | Favour |
 | --- | --- |
-| ♠ Spades | 3 |
-| ♥ Hearts | 2 |
-| ♦ Diamonds | 1 |
-| ♣ Clubs | 0 |
+| Pledge kept exactly | 2 per audience won |
+| Pledge broken | 1 per audience won, less 2 for every audience off the pledge |
+| Pledged nothing, took nothing | +3 |
+| Pledged nothing, took audiences | −5 for the first, −2 for each one after |
 
-The bid cards stay face down until the hand is over. That keeps the bid secret *and* hides which
-cards left play. Because those three cards are gone for the hand, each hand is **ten tricks** long
-and the highest reachable bid is nine.
+Pledge 5, win 4 → 4 − 2 = **2**. Pledge 3, win 6 → 6 − 6 = **0**. Pledge 0, win 3 → **−9**.
 
-The catch: the cards that set your bid are cards you no longer get to play. Bidding high means
-spending spades; bidding nothing is cheap only if your clubs were worthless anyway.
+### Who holds sway
 
-### Playing a hand
+The opening session of a season is always **No Sway**. After that, sway passes according to how
+many of the four nobles kept their pledge *exactly* in the session before:
 
-* The player to the dealer's left leads the first trick; afterwards the winner of a trick leads
-  the next one.
-* Any card may be led, trump included.
-* Play proceeds clockwise. You **must** follow the suit that was led if you can. If you cannot,
-  you may play anything, including trump.
-* The highest card of the led suit wins the trick — unless someone played trump, in which case the
-  highest trump wins.
-
-### Scoring
-
-| Result | Points |
+| Nobles who kept their word | Sway next session |
 | --- | --- |
-| Bid exactly right (and bid above zero) | 2 per trick won |
-| Bid wrong | 1 per trick won, minus 2 for every trick off the bid |
-| Bid zero, took no tricks | +3 |
-| Bid zero, took tricks | −5 for the first, −2 for each one after |
+| 0 | ♣ Fools |
+| 1 | ♦ Merchants |
+| 2 | ♥ Lovers |
+| 3 | ♠ Assassins |
+| 4 | No Sway |
 
-Bid 5 and win 4 → 4 − 2 = **2**. Bid 3 and win 6 → 6 − 6 = **0**. Bid 0 and win 3 → **−9**.
+### Winning the season
 
-### Trump
+The season ends the moment a noble reaches 40 favour, and the highest total wins — 41 beats 40. If
+two nobles finish level, the win goes to whoever:
 
-The first hand of a game is always **No Trump**. After that, trump is set by how many of the four
-players made their bid *exactly* in the hand before:
-
-| Players who made their bid | Trump next hand |
-| --- | --- |
-| 0 | ♣ Clubs |
-| 1 | ♦ Diamonds |
-| 2 | ♥ Hearts |
-| 3 | ♠ Spades |
-| 4 | No Trump |
-
-### Winning
-
-The game ends the moment anyone reaches 30 points, and the highest total wins — 31 beats 30. If
-two players finish level, the win goes to whoever:
-
-1. scored more points that hand, failing which
-2. made the higher bid that hand, failing which
-3. laid down the higher-ranked three bid cards that hand.
+1. won more favour that session, failing which
+2. made the bolder pledge that session, failing which
+3. sent out the higher-ranked four agents that session.
 
 ## The code
 
@@ -89,16 +99,16 @@ and the logic files also load under Node, which is how the tests run.
 
 | File | What is in it |
 | --- | --- |
-| [`js/cards.js`](js/cards.js) | Deck, card, shuffling and sorting |
-| [`js/rules.js`](js/rules.js) | Pure rules: legal plays, trick winner, scoring, trump ladder |
-| [`js/ai.js`](js/ai.js) | Hand valuation, bid-card selection, card play |
-| [`js/engine.js`](js/engine.js) | Game state and the transitions between phases |
+| [`js/cards.js`](js/cards.js) | The sixty-card deck, the four agents, shuffling and sorting |
+| [`js/rules.js`](js/rules.js) | Pure rules: legal plays, who takes the audience, favour, the sway ladder |
+| [`js/ai.js`](js/ai.js) | Valuing a hand, choosing which agents to send out, playing them |
+| [`js/engine.js`](js/engine.js) | The state of the court and the transitions between phases |
 | [`js/ui.js`](js/ui.js) | Rendering and input |
 | [`serve.js`](serve.js) | Optional local static server |
 
-The three computer players share one brain with different nerve: Ada plays it straight, Bram bids
-bold, Cleo bids cautious. None of them look at hidden cards — they bid by valuing their own hand
-and play by tracking what has already been seen.
+The three rivals share one brain with different nerve: **Verane the patient** plays it straight,
+**Mors the reckless** pledges bold, **Ilka the careful** pledges shy. None of them look at hidden
+cards — they pledge by valuing their own hand and play by tracking what has already been seen.
 
 ## Tests
 
@@ -106,9 +116,13 @@ and play by tracking what has already been seen.
 npm test
 ```
 
-Around 1,900 assertions: the scoring table, trick resolution under trump and no trump, following
-suit, the trump ladder, the tie-breakers, plus twenty complete games played end to end against
-invariants (every hand is ten tricks, every deal is 52 cards, every score matches the rules).
+Around 2,200 assertions: the favour table, who takes an audience under every sway, answering in
+kind, the pledge cap, the sway ladder, the tie-breakers, plus twenty complete seasons played end to
+end against invariants (every session is eleven audiences, every deal is sixty agents, every score
+matches the rules).
+
+The computer nobles are also checked for calibration: across simulated play the four pledges add up
+to about 11.2 against the 11 audiences actually available.
 
 ## License
 

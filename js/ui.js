@@ -1,5 +1,5 @@
 /*
- * ui.js - draws the table and drives the engine from player input.
+ * ui.js - draws the court and drives the engine from the player's input.
  */
 (function () {
   'use strict';
@@ -30,10 +30,10 @@
     newGame: byId('new-game')
   };
 
-  const MADE_WORDS = ['Nobody', 'One player', 'Two players', 'Three players', 'All four players'];
+  const MADE_WORDS = ['No noble', 'One noble', 'Two nobles', 'Three nobles', 'All four nobles'];
 
   let state = null;
-  let selection = [];       // card ids the human has set aside for the bid
+  let selection = [];       // ids of the agents the player is sending out
   let renderedTrick = [];   // card ids currently drawn in the middle of the table
   let timer = null;
   let toastTimer = null;
@@ -55,21 +55,21 @@
       '<span class="corner tl">' + corner + '</span>' +
       '<span class="face">' + symbol + '</span>' +
       '<span class="corner br">' + corner + '</span>';
-    node.setAttribute('aria-label', card.rank + ' of ' + Cards.SUIT_NAME[card.suit]);
+    node.setAttribute('aria-label', Cards.SUIT_ROLE[card.suit] + ' ' + card.rank);
     return node;
   }
 
   function backEl(extra) {
     const node = document.createElement('div');
     node.className = 'card back' + (extra ? ' ' + extra : '');
-    node.setAttribute('aria-label', 'face-down card');
+    node.setAttribute('aria-label', 'an agent away on an errand');
     return node;
   }
 
   function suitSpan(suit) {
-    if (suit === null) return '<b>No Trump</b>';
+    if (suit === null) return '<b>No Sway</b>';
     return '<span class="pip ' + (Cards.SUIT_COLOR[suit] === 'red' ? 'red' : 'black') + '">' +
-      Cards.SUIT_SYMBOL[suit] + '</span> <b>' + Cards.SUIT_NAME[suit] + '</b>';
+      Cards.SUIT_SYMBOL[suit] + '</span> <b>' + Cards.SUIT_ROLE_PLURAL[suit] + '</b>';
   }
 
   function chip(label, value, extra) {
@@ -81,6 +81,7 @@
     return count + ' ' + word + (count === 1 ? '' : 's');
   }
 
+  /** Errands stay face down until the session is over. */
   function bidsAreOpen() {
     return state.phase === 'handOver' || state.phase === 'gameOver';
   }
@@ -102,12 +103,13 @@
 
   function renderTopbar() {
     const parts = [
-      chip('Hand', state.handNumber),
-      chip('Dealer', state.players[state.dealer].name),
-      '<span class="chip chip-trump">Trump ' + suitSpan(state.trump) + '</span>'
+      chip('Session', state.handNumber),
+      chip('Steward', state.players[state.dealer].name),
+      '<span class="chip chip-trump">' +
+        (state.trump === null ? '<b>No Sway</b>' : 'Sway ' + suitSpan(state.trump)) + '</span>'
     ];
     if (state.phase === 'playing' || state.phase === 'trickComplete') {
-      parts.push(chip('Trick', state.trickNumber + ' of ' + Rules.TRICKS_PER_HAND));
+      parts.push(chip('Audience', state.trickNumber + ' of ' + Rules.TRICKS_PER_HAND));
     }
     dom.meta.innerHTML = parts.join('');
     dom.targetNote.textContent = 'first to ' + state.target;
@@ -127,12 +129,12 @@
     const head = '<div class="seat-head">' +
       '<span class="seat-name">' + player.name + '</span>' +
       (player.style ? '<span class="seat-style">' + player.style + '</span>' : '') +
-      (state.dealer === seat ? '<span class="seat-dealer" title="Dealer">D</span>' : '') +
+      (state.dealer === seat ? '<span class="seat-dealer" title="Steward this session">S</span>' : '') +
       '</div>';
 
     const bidText = player.bid === null ? '&mdash;' : (showBid ? player.bid : '?');
     const stats = '<div class="seat-stats">' +
-      '<span>Bid <b>' + bidText + '</b></span>' +
+      '<span>Pledge <b>' + bidText + '</b></span>' +
       '<span class="' + (made ? 'met' : '') + '">Won <b>' + player.tricksWon + '</b></span>' +
       '</div>';
 
@@ -142,8 +144,8 @@
     const pile = document.createElement('div');
     pile.className = 'bid-pile';
     pile.title = showBid && player.bid !== null
-      ? 'Bid cards worth ' + plural(player.bid, 'trick')
-      : 'Three face-down bid cards';
+      ? 'Errands pledging ' + plural(player.bid, 'audience')
+      : Rules.BID_CARDS + ' agents away on errands';
     for (const card of player.bidCards) {
       pile.appendChild(bidsAreOpen() ? cardEl(card, 'sm') : backEl('sm'));
     }
@@ -152,7 +154,7 @@
     if (!player.isHuman) {
       const count = document.createElement('span');
       count.className = 'hand-count';
-      count.textContent = plural(player.hand.length, 'card');
+      count.textContent = plural(player.hand.length, 'agent');
       foot.appendChild(count);
     }
   }
@@ -188,14 +190,14 @@
     }
 
     dom.medallion.className = 'trump-medallion' + (state.trump === null ? ' nt' : '');
-    dom.medallion.textContent = state.trump === null ? 'NT' : Cards.SUIT_SYMBOL[state.trump];
+    dom.medallion.textContent = state.trump === null ? 'NO SWAY' : Cards.SUIT_SYMBOL[state.trump];
 
     if (state.phase === 'trickComplete') {
       const winner = state.players[state.trickResult.winner];
-      dom.trickNote.innerHTML = '<b>' + winner.name + '</b> takes trick ' + state.trickNumber +
-        ' with the ' + Cards.describe(state.trickResult.card);
+      dom.trickNote.innerHTML = '<b>' + winner.name + '</b> takes audience ' + state.trickNumber +
+        ' with ' + Cards.describe(state.trickResult.card);
     } else if (state.phase === 'playing' && state.trick.length === 0) {
-      dom.trickNote.textContent = state.players[state.leader].name + ' leads';
+      dom.trickNote.textContent = state.players[state.leader].name + ' opens';
     } else {
       dom.trickNote.textContent = '';
     }
@@ -239,15 +241,15 @@
 
       const readout = document.createElement('div');
       readout.className = 'bid-readout';
-      readout.innerHTML = 'Your bid: <span class="total">' + total + '</span>' +
+      readout.innerHTML = 'Your pledge: <span class="total">' + total + '</span>' +
         (breakdown ? ' <span class="sum">(' + breakdown + ')</span>' : '') +
-        ' <span class="sum">&middot; ' + selection.length + ' of ' + Rules.BID_CARDS + ' chosen</span>';
+        ' <span class="sum">&middot; ' + selection.length + ' of ' + Rules.BID_CARDS + ' sent</span>';
       dom.handActions.appendChild(readout);
 
       const confirm = document.createElement('button');
       confirm.type = 'button';
       confirm.className = 'btn';
-      confirm.textContent = 'Place bid of ' + total;
+      confirm.textContent = 'Pledge ' + plural(total, 'audience');
       confirm.disabled = selection.length !== Rules.BID_CARDS;
       confirm.addEventListener('click', placeBid);
       dom.handActions.appendChild(confirm);
@@ -256,7 +258,7 @@
         const clear = document.createElement('button');
         clear.type = 'button';
         clear.className = 'btn btn-quiet';
-        clear.textContent = 'Clear';
+        clear.textContent = 'Recall all';
         clear.addEventListener('click', () => { selection = []; render(); });
         dom.handActions.appendChild(clear);
       }
@@ -266,9 +268,9 @@
     if (state.phase === 'playing' || state.phase === 'trickComplete') {
       const note = document.createElement('div');
       note.className = 'bid-readout';
-      note.innerHTML = 'You bid <span class="total">' + player.bid + '</span>' +
+      note.innerHTML = 'You pledged <span class="total">' + player.bid + '</span>' +
         ' <span class="sum">&middot; won ' + player.tricksWon +
-        ' &middot; ' + plural(player.hand.length, 'card') + ' left</span>';
+        ' &middot; ' + plural(player.hand.length, 'agent') + ' in hand</span>';
       dom.handActions.appendChild(note);
     }
   }
@@ -277,8 +279,8 @@
     const player = state.players[Engine.HUMAN];
 
     if (state.phase === 'bidding' && player.bid === null) {
-      dom.prompt.innerHTML = 'Set aside <b>three cards</b> as your bid. ' +
-        '<span class="hint">Spades 3, hearts 2, diamonds 1, clubs 0 &mdash; and they are out of play for the hand.</span>';
+      dom.prompt.innerHTML = 'Send out <b>four agents</b> to set your pledge. ' +
+        '<span class="hint">Assassin 3, Lover 2, Merchant 1, Fool 0 &mdash; and they are gone for the session.</span>';
       return;
     }
 
@@ -286,24 +288,26 @@
       const led = Engine.ledSuit(state);
       const mustFollow = led && player.hand.some((card) => card.suit === led);
       dom.prompt.innerHTML = 'Your turn. ' + (mustFollow
-        ? '<span class="hint">You must follow ' + Cards.SUIT_SYMBOL[led] + ' ' + Cards.SUIT_NAME[led] + '.</span>'
-        : '<span class="hint">' + (led ? 'You are void &mdash; play anything, trump included.' : 'You lead &mdash; play anything, trump included.') + '</span>');
+        ? '<span class="hint">You must answer with ' + Cards.SUIT_SYMBOL[led] + ' ' + Cards.SUIT_ROLE_PLURAL[led] + '.</span>'
+        : '<span class="hint">' + (led
+            ? 'No ' + Cards.SUIT_ROLE_PLURAL[led] + ' left &mdash; send anyone, sway included.'
+            : 'You open the audience &mdash; send anyone, sway included.') + '</span>');
       return;
     }
 
     if (state.phase === 'playing' || state.phase === 'trickComplete') {
       const waitingOn = state.phase === 'playing' ? state.players[state.turn].name : null;
       dom.prompt.innerHTML = waitingOn
-        ? '<span class="hint">' + waitingOn + ' is thinking&hellip;</span>'
-        : '<span class="hint">Collecting the trick&hellip;</span>';
+        ? '<span class="hint">' + waitingOn + ' is weighing it up&hellip;</span>'
+        : '<span class="hint">The audience is settled&hellip;</span>';
       return;
     }
 
-    dom.prompt.innerHTML = '<span class="hint">Hand over.</span>';
+    dom.prompt.innerHTML = '<span class="hint">The session is over.</span>';
   }
 
   function renderScoreboard() {
-    let html = '<tr><th>Player</th><th>Bid</th><th>Won</th><th>Score</th></tr>';
+    let html = '<tr><th>Noble</th><th>Pledge</th><th>Won</th><th>Favour</th></tr>';
     state.players.forEach((player, seat) => {
       const showBid = player.isHuman || bidsAreOpen();
       const bid = player.bid === null ? '&mdash;' : (showBid ? player.bid : '?');
@@ -320,18 +324,18 @@
 
   function renderHistory() {
     if (!state.history.length) {
-      dom.history.innerHTML = '<p class="history-empty">No hands finished yet.</p>';
+      dom.history.innerHTML = '<p class="history-empty">The court has not yet sat.</p>';
       return;
     }
     let html = '';
     for (const summary of state.history.slice().reverse()) {
-      html += '<div class="history-hand"><h3>Hand ' + summary.handNumber + ' &middot; ' +
+      html += '<div class="history-hand"><h3>Session ' + summary.handNumber + ' &middot; ' +
         Rules.trumpLabel(summary.trump) + '</h3>';
       for (const row of summary.rows) {
         const sign = row.points > 0 ? 'pos' : (row.points < 0 ? 'neg' : '');
         html += '<div class="history-row">' +
           '<span class="who">' + row.name + '</span>' +
-          '<span>bid ' + row.bid + ', won ' + row.tricksWon + '</span>' +
+          '<span>pledged ' + row.bid + ', won ' + row.tricksWon + '</span>' +
           '<span class="pts ' + sign + '">' + (row.points > 0 ? '+' : '') + row.points + '</span>' +
           '</div>';
       }
@@ -352,8 +356,8 @@
 
   function resultTable(summary) {
     let html = '<table class="result-table"><tr>' +
-      '<th class="left">Player</th><th class="left">Bid cards</th>' +
-      '<th>Bid</th><th>Won</th><th>Points</th><th>Total</th></tr>';
+      '<th class="left">Noble</th><th class="left">Errands</th>' +
+      '<th>Pledge</th><th>Won</th><th>Favour</th><th>Total</th></tr>';
     summary.rows.forEach((row, seat) => {
       const sign = row.points > 0 ? 'pos' : (row.points < 0 ? 'neg' : '');
       const cards = row.bidCards
@@ -383,15 +387,16 @@
     let html = '';
 
     if (state.phase === 'handOver') {
-      html += '<h2>Hand ' + summary.handNumber + ' &middot; ' + Rules.trumpLabel(summary.trump) + '</h2>';
-      html += '<p class="lede">' + MADE_WORDS[summary.madeCount] + ' made their bid exactly.</p>';
+      html += '<h2>Session ' + summary.handNumber + ' &middot; ' + Rules.trumpLabel(summary.trump) + '</h2>';
+      html += '<p class="lede">' + MADE_WORDS[summary.madeCount] + ' kept their pledge exactly.</p>';
       html += resultTable(summary);
-      html += '<div class="modal-note">' + MADE_WORDS[summary.madeCount] + ' made the bid, so hand ' +
-        (summary.handNumber + 1) + ' is played ' +
-        (summary.nextTrump === null ? 'at <b>No Trump</b>.' : 'with <b>' + Cards.SUIT_NAME[summary.nextTrump] +
-          '</b> ' + Cards.SUIT_SYMBOL[summary.nextTrump] + ' as trump.') +
-        ' The deal passes to <b>' + state.players[Rules.leftOf(state.dealer)].name + '</b>.</div>';
-      html += '<div class="modal-actions"><button type="button" class="btn" id="deal-next">Deal hand ' +
+      html += '<div class="modal-note">' + MADE_WORDS[summary.madeCount] + ' kept their word, so ' +
+        (summary.nextTrump === null
+          ? 'the court sits at <b>No Sway</b> next session.'
+          : 'the <b>' + Cards.SUIT_ROLE_PLURAL[summary.nextTrump] + '</b> ' +
+            Cards.SUIT_SYMBOL[summary.nextTrump] + ' hold sway next session.') +
+        ' <b>' + state.players[Rules.leftOf(state.dealer)].name + '</b> becomes steward.</div>';
+      html += '<div class="modal-actions"><button type="button" class="btn" id="deal-next">Open session ' +
         (summary.handNumber + 1) + '</button></div>';
     } else {
       const ranked = summary.rows.slice().sort(Rules.compareForWin);
@@ -399,10 +404,10 @@
       html += '<h2>' + (won && state.winners.length === 1
         ? 'You win!'
         : state.winners.join(' and ') + (state.winners.length === 1 ? ' wins' : ' tie')) + '</h2>';
-      html += '<p class="lede">First past ' + state.target + ' points after ' +
-        plural(state.history.length, 'hand') + '.' +
+      html += '<p class="lede">First past ' + state.target + ' favour after ' +
+        plural(state.history.length, 'session') + '.' +
         (state.winReason
-          ? ' Level on points, so it goes to <b>' + state.winReason + '</b>.'
+          ? ' Level on favour, so it goes to <b>' + state.winReason + '</b>.'
           : '') + '</p>';
       html += '<ul class="podium">';
       ranked.forEach((row, index) => {
@@ -413,7 +418,7 @@
       });
       html += '</ul>';
       html += resultTable(summary);
-      html += '<div class="modal-actions"><button type="button" class="btn" id="play-again">Play again</button></div>';
+      html += '<div class="modal-actions"><button type="button" class="btn" id="play-again">New season</button></div>';
     }
 
     dom.modal.innerHTML = html;
@@ -439,7 +444,7 @@
     if (index >= 0) {
       selection.splice(index, 1);
     } else if (selection.length >= Rules.BID_CARDS) {
-      toast('Three cards make a bid — deselect one first.');
+      toast('Only ' + Rules.BID_CARDS + ' agents may go — call one back first.');
       return;
     } else {
       selection.push(id);
@@ -468,7 +473,7 @@
 
     if (!Engine.isLegalPlay(state, Engine.HUMAN, card)) {
       const led = Engine.ledSuit(state);
-      toast('You have to follow ' + Cards.SUIT_NAME[led] + ' ' + Cards.SUIT_SYMBOL[led] + '.');
+      toast('You still hold ' + Cards.SUIT_ROLE_PLURAL[led] + ' ' + Cards.SUIT_SYMBOL[led] + ' and must answer with one.');
       return;
     }
 
@@ -544,7 +549,7 @@
   dom.newGame.addEventListener('click', () => {
     const midGame = state && state.phase !== 'gameOver' &&
       (state.handNumber > 1 || state.players.some((player) => player.tricksWon > 0));
-    if (midGame && !window.confirm('Start a new game? The current scores are lost.')) return;
+    if (midGame && !window.confirm('Begin a new season? The favour won so far is lost.')) return;
     startNewGame();
   });
 

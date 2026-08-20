@@ -1,6 +1,7 @@
 /*
- * ai.js - computer opponents: hand valuation, bid-card selection, card play.
- * Every decision is a heuristic; nothing here peeks at hidden information.
+ * ai.js - the rival nobles: hand valuation, choosing which agents to send out,
+ * and playing for audiences. Every decision is a heuristic and none of them
+ * peek at hidden information.
  */
 (function (global) {
   'use strict';
@@ -8,11 +9,16 @@
   const Cards = global.Cards;
   const Rules = global.Rules;
 
-  const ACE = 14, KING = 13, QUEEN = 12, JACK = 11;
+  // The four most influential ranks in a suit, whatever the deck size.
+  const FIRST = Cards.HIGHEST_VALUE;
+  const SECOND = FIRST - 1;
+  const THIRD = FIRST - 2;
+  const FOURTH = FIRST - 3;
 
   /**
-   * Rough number of tricks a hand is worth. Calibrated for 10-card hands with
-   * 12 cards out of play, so the four players' estimates sum to about 10.
+   * Roughly how many audiences a hand is worth. Calibrated for eleven-card
+   * hands with sixteen agents away on errands, so the four nobles' estimates
+   * sum to about eleven.
    */
   function estimateTricks(hand, trump) {
     const trumpLength = trump ? Cards.cardsOfSuit(hand, trump).length : 0;
@@ -24,57 +30,62 @@
       const has = (value) => cards.some((card) => card.value === value);
 
       if (trump && suit === trump) {
-        if (has(ACE)) total += 1;
-        if (has(KING)) total += length >= 2 ? 0.9 : 0.5;
-        if (has(QUEEN)) total += length >= 3 ? 0.65 : 0.25;
-        if (has(JACK)) total += length >= 4 ? 0.35 : 0.1;
-        total += Math.max(0, length - 4) * 0.55; // long trumps run at the end
+        if (has(FIRST)) total += 1.10;
+        if (has(SECOND)) total += length >= 2 ? 1.00 : 0.53;
+        if (has(THIRD)) total += length >= 3 ? 0.74 : 0.27;
+        if (has(FOURTH)) total += length >= 4 ? 0.40 : 0.11;
+        total += Math.max(0, length - 4) * 0.63; // a long suit of sway runs at the end
         continue;
       }
 
       if (length === 0) {
-        // A void is only worth something if we have trumps to ruff with.
-        total += Math.min(trumpLength, 3) * 0.45;
+        // Being void only helps if we hold agents of the ruling suit.
+        total += Math.min(trumpLength, 3) * 0.48;
         continue;
       }
 
-      if (has(ACE)) total += 0.95;
-      if (has(KING)) total += length >= 2 ? 0.7 : 0.3;
-      if (has(QUEEN)) total += length >= 3 ? 0.4 : 0.1;
-      if (has(JACK)) total += length >= 4 ? 0.18 : 0.03;
+      if (has(FIRST)) total += 1.05;
+      if (has(SECOND)) total += length >= 2 ? 0.76 : 0.32;
+      if (has(THIRD)) total += length >= 3 ? 0.45 : 0.11;
+      if (has(FOURTH)) total += length >= 4 ? 0.20 : 0.03;
 
       if (trump) {
-        if (length === 1) total += Math.min(trumpLength, 2) * 0.3;
+        if (length === 1) total += Math.min(trumpLength, 2) * 0.32;
       } else {
-        total += Math.max(0, length - 4) * 0.3; // long suit runs at No Trump
+        total += Math.max(0, length - 4) * 0.34; // a long suit runs when nobody holds sway
       }
     }
     return total;
   }
 
-  /** Every 3-card combination of a hand (286 of them for 13 cards). */
-  function threeCardCombos(hand) {
+  /** Every combination of the hand that could be sent out as a pledge. */
+  function bidCombos(hand, size) {
     const combos = [];
-    for (let i = 0; i < hand.length - 2; i++) {
-      for (let j = i + 1; j < hand.length - 1; j++) {
-        for (let k = j + 1; k < hand.length; k++) {
-          combos.push([hand[i], hand[j], hand[k]]);
-        }
+    const pick = [];
+    (function walk(start) {
+      if (pick.length === size) {
+        combos.push(pick.slice());
+        return;
       }
-    }
+      for (let i = start; i <= hand.length - (size - pick.length); i++) {
+        pick.push(hand[i]);
+        walk(i + 1);
+        pick.pop();
+      }
+    })(0);
     return combos;
   }
 
   /**
-   * Pick the three face-down bid cards. The suits chosen set the bid, and the
-   * cards leave play, so we look for the combination whose bid best matches the
-   * strength of the ten cards left behind.
+   * Choose the agents to send out. Their suits set the pledge and they leave
+   * play, so we look for the combination whose pledge best matches the strength
+   * of the hand it leaves behind.
    */
   function chooseBidCards(hand, trump, aggression) {
     const bias = aggression || 1;
     let best = null;
 
-    for (const combo of threeCardCombos(hand)) {
+    for (const combo of bidCombos(hand, Rules.BID_CARDS)) {
       const bid = Rules.bidFromCards(combo);
       const kept = Cards.removeCards(hand, combo);
       const estimate = estimateTricks(kept, trump) * bias;
@@ -84,7 +95,7 @@
         return sum + card.value + (trump && card.suit === trump ? 6 : 0);
       }, 0);
 
-      const cost = Math.abs(bid - estimate) + discardCost * 0.004;
+      const cost = Math.abs(bid - estimate) + discardCost * 0.002;
       if (!best || cost < best.cost) best = { cards: combo, bid: bid, cost: cost };
     }
     return best.cards;
@@ -193,7 +204,7 @@
 
   global.AI = {
     estimateTricks: estimateTricks,
-    threeCardCombos: threeCardCombos,
+    bidCombos: bidCombos,
     chooseBidCards: chooseBidCards,
     chooseCard: chooseCard,
     isTopOutstanding: isTopOutstanding
