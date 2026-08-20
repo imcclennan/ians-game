@@ -929,3 +929,23 @@ body.reading { overflow: hidden; }
   .rulebook-nav a { background: var(--bg-sunken); font-size: 12px; padding: 5px 9px; }
   .rulebook-text { padding: 16px 18px 30px; }
 }
+
+/* --- cards of the ruling kind --------------------------------------------- */
+
+/* Gold is the monarch's colour, so the kind that holds sway wears it. */
+.card.is-sway {
+  box-shadow: 0 0 0 2px var(--accent), 0 3px 10px rgba(0, 0, 0, .5);
+}
+
+.card.is-sway::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(155deg, rgba(217, 164, 65, .3), rgba(217, 164, 65, 0) 62%);
+  pointer-events: none;
+}
+
+.hand .card.is-sway { box-shadow: 0 0 0 2px var(--accent), 0 3px 10px rgba(0, 0, 0, .5); }
+.hand .card.is-sway.playable:hover { box-shadow: 0 0 0 2px var(--accent), 0 12px 22px rgba(0, 0, 0, .55); }
+.card.sm.is-sway { box-shadow: 0 0 0 1.5px var(--accent), 0 1px 4px rgba(0, 0, 0, .45); }

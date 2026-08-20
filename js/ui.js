@@ -8,6 +8,7 @@
   const Rules = globalThis.Rules;
   const Engine = globalThis.Engine;
   const Whispers = globalThis.Whispers;
+  const Rulebook = globalThis.Rulebook;
 
   const byId = (id) => document.getElementById(id);
 
@@ -52,7 +53,10 @@
 
   function cardEl(card, extra) {
     const node = document.createElement('div');
-    node.className = 'card' + suitClass(card.suit) + (extra ? ' ' + extra : '');
+    // A card of the ruling kind is marked wherever it appears: it beats
+    // anything outside its kind, and that is worth seeing at a glance.
+    const ruling = state && state.trump === card.suit ? ' is-sway' : '';
+    node.className = 'card' + suitClass(card.suit) + ruling + (extra ? ' ' + extra : '');
     node.dataset.id = card.id;
     const corner = '<b>' + card.rank + '</b>' + Cards.emblem(card.suit, 'nib');
     node.innerHTML =
@@ -499,38 +503,24 @@
   // --- the rulebook ---------------------------------------------------------
 
   /**
-   * Fill in the three tables the rulebook shares with the game itself, so the
-   * written rules cannot drift from the code that enforces them.
+   * Render the rulebook from js/rulebook.js, so the panel behind "Rules", the
+   * printable sheet and the game itself all state the same rules.
    */
   function buildRulebook() {
-    const inks = {
-      S: 'graphite', H: 'crimson', D: 'antique gold', C: 'plum'
-    };
-    const agents = ['S', 'H', 'D', 'C'];
+    const sections = Rulebook.sections();
 
-    byId('rule-agents').innerHTML +=
-      agents.map((suit) => '<tr>' +
-        '<td class="left"><span class="agent agent-' + suit + '"><b>' +
-          Cards.SUIT_ROLE[suit] + '</b></span></td>' +
-        '<td><span class="agent agent-' + suit + ' big">' + Cards.emblem(suit) + '</span></td>' +
-        '<td>' + Cards.BID_VALUE[suit] + '</td>' +
-        '<td class="left">' + inks[suit] + '</td>' +
-        '</tr>').join('');
+    byId('rulebook-nav').innerHTML = sections
+      .map((section) => '<a href="#' + section.id + '">' + section.number + '. ' +
+        section.title + '</a>')
+      .join('');
 
-    byId('rule-sway-table').innerHTML +=
-      Rules.SWAY_LADDER.map((suit, made) => '<tr>' +
-        '<td class="left">' + (made === 1 ? '1 noble' : made + ' nobles') + '</td>' +
-        '<td class="left">' + suitSpan(suit) + '</td>' +
-        '</tr>').join('');
+    byId('rulebook-text').innerHTML = sections
+      .map((section) => '<section id="' + section.id + '">' +
+        '<h3>' + section.number + '. ' + section.title +
+        (section.optional ? '<span class="rule-optional">optional</span>' : '') + '</h3>' +
+        section.html + '</section>')
+      .join('');
 
-    byId('rule-whisper-table').innerHTML +=
-      Whispers.ALL.map((whisper) => '<tr>' +
-        '<td class="left"><b>' + whisper.name + '</b></td>' +
-        '<td class="left">' + whisper.line +
-          '<span class="whisper-flavour">' + whisper.detail + '</span></td>' +
-        '</tr>').join('');
-
-    byId('target-note');
     for (const slot of document.querySelectorAll('#trump-key .slot')) {
       slot.innerHTML = suitSpan(slot.dataset.agent);
     }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Fool's Court — Rules</title>
+<link rel="stylesheet" href="print.css">
+</head>
+<body>
+
+<div class="screen-only">
+  <h1>Rules sheet</h1>
+  <p>The complete rules, set in two columns. Print at <b>100% scale</b>; it runs to a few A4 sheets
+    depending on your printer's margins.</p>
+  <p><a href="index.html">&larr; All printed assets</a></p>
+</div>
+
+<div id="sheets"></div>
+
+<script src="../js/cards.js"></script>
+<script src="../js/rules.js"></script>
+<script src="../js/whispers.js"></script>
+<script src="../js/rulebook.js"></script>
+<script src="print.js"></script>
+<script>PrintEdition.buildRulesSheets(document.getElementById('sheets'));</script>
+</body>
+</html>

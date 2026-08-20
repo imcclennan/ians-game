@@ -1,0 +1,480 @@
+/*
+ * print.css - the printed edition of The Fool's Court.
+ *
+ * Everything here is sized in millimetres and coloured for ink on cream stock,
+ * not for a lit screen. The palette is the game's, pulled up out of the dark:
+ * the four agent inks stay exactly as they are on screen, since those are what
+ * the cards are printed in either way.
+ */
+
+:root {
+  --paper: #f6f0e2;
+  --paper-deep: #ece3cf;
+  --ink: #23201a;
+  --ink-soft: #5c5445;
+  --ink-faint: #8c8271;
+  --rule: #c8bda2;
+  --gold: #9a7526;
+  --gold-soft: #c8a960;
+
+  --assassin: #1e2530;
+  --lover: #7c241e;
+  --merchant: #684d0e;
+  --fool: #492851;
+
+  --face-assassin: #ccd3de;
+  --face-lover: #f0cdc6;
+  --face-merchant: #eeddb0;
+  --face-fool: #ded0e7;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, "Times New Roman", serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #55504a;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 10pt;
+  line-height: 1.5;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* --- sheets --------------------------------------------------------------- */
+
+@page { size: A4; margin: 0; }
+
+.sheet {
+  position: relative;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 8mm auto;
+  padding: 14mm 15mm;
+  background: var(--paper);
+  box-shadow: 0 4mm 12mm rgba(0, 0, 0, .45);
+  overflow: hidden;
+}
+
+.sheet.cards { padding: 15.15mm 9.75mm; }
+
+/* --- shared devices ------------------------------------------------------- */
+
+.emblem { width: 1em; height: 1em; vertical-align: -.14em; }
+
+.agent-S { color: var(--assassin); }
+.agent-H { color: var(--lover); }
+.agent-D { color: var(--merchant); }
+.agent-C { color: var(--fool); }
+
+/* A rule with a lozenge at its centre. Used to break sections without
+   shouting, and repeated at three sizes across the three documents. */
+.flourish {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  margin: 3mm 0;
+  color: var(--gold);
+}
+
+.flourish::before, .flourish::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--rule) 22%, var(--rule) 78%, transparent);
+}
+
+.flourish i {
+  font-style: normal;
+  width: 2.4mm;
+  height: 2.4mm;
+  transform: rotate(45deg);
+  background: var(--gold);
+  flex: 0 0 auto;
+}
+
+.smallcaps {
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 7.4pt;
+  color: var(--ink-faint);
+}
+
+/* --- screen-only chrome --------------------------------------------------- */
+
+.screen-only {
+  max-width: 210mm;
+  margin: 10mm auto 0;
+  padding: 6mm 8mm;
+  border-radius: 3mm;
+  background: #2a2622;
+  color: #e6ddcb;
+  font-size: 10.5pt;
+}
+
+.screen-only h1 { margin: 0 0 2mm; font-size: 15pt; color: var(--gold-soft); }
+.screen-only p { margin: 0 0 2mm; color: #b9ae99; line-height: 1.55; }
+.screen-only a { color: var(--gold-soft); }
+.screen-only b { color: #e6ddcb; }
+
+
+/* --- the seal ------------------------------------------------------------- */
+
+.seal { display: block; color: var(--gold); }
+.seal.sm { width: 7mm; height: 7mm; }
+.seal.lg { width: 15mm; height: 15mm; }
+
+.agent-row { display: inline-flex; gap: .5em; line-height: 1; }
+.agent-row .emblem { width: 1em; height: 1em; }
+
+/* --- cards on a sheet ----------------------------------------------------- */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 63.5mm);
+  grid-template-rows: repeat(3, 88.9mm);
+}
+
+.pcard {
+  width: 63.5mm;
+  height: 88.9mm;
+  padding: 2.6mm;
+  outline: .18mm solid var(--rule);   /* the cut line */
+  outline-offset: -.09mm;
+  background: var(--paper);
+}
+
+/* Every card is a frame within a frame: a hairline rule inside a wider one,
+   which is the oldest trick in card design and still the most legible. */
+.pcard-frame {
+  position: relative;
+  height: 100%;
+  padding: 3.4mm 3.6mm 3mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: .5mm solid var(--gold);
+  border-radius: 1.6mm;
+  background:
+    linear-gradient(160deg, rgba(200, 169, 96, .13), rgba(200, 169, 96, 0) 55%),
+    var(--paper);
+}
+
+.pcard-frame::before {
+  content: "";
+  position: absolute;
+  inset: 1.1mm;
+  border: .16mm solid var(--gold-soft);
+  border-radius: .9mm;
+  pointer-events: none;
+}
+
+.pcard-top { margin-bottom: 1.6mm; }
+
+.pcard-title {
+  margin: 0;
+  font-size: 12.4pt;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: .012em;
+  color: var(--ink);
+}
+
+.whisper-card .flourish { width: 100%; margin: 2.2mm 0; }
+
+.pcard-rule {
+  margin: 0;
+  font-size: 9.3pt;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.pcard-rule b, .pcard-rule strong { font-weight: 600; }
+
+.pcard-flavour {
+  margin: 0;
+  font-size: 8.2pt;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.pcard-foot { margin-top: auto; padding-top: 2mm; }
+.pcard-foot .smallcaps { font-size: 6pt; letter-spacing: .2em; }
+
+/* --- card backs ----------------------------------------------------------- */
+
+.whisper-back { background: var(--paper); }
+
+.pcard-back-frame {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.4mm;
+  border-radius: 1.6mm;
+  color: var(--gold-soft);
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(255, 255, 255, .035) 0 1.6mm, rgba(0, 0, 0, .035) 1.6mm 3.2mm),
+    radial-gradient(circle at 50% 42%, #3d2b46 0%, #241726 78%);
+  box-shadow: inset 0 0 0 .5mm var(--gold), inset 0 0 0 1.1mm #241726,
+    inset 0 0 0 1.26mm var(--gold-soft);
+}
+
+.back-title {
+  font-size: 12pt;
+  letter-spacing: .06em;
+  color: #e8d8ad;
+}
+
+.back-sub {
+  font-size: 6.6pt;
+  text-transform: uppercase;
+  letter-spacing: .24em;
+  color: #b09a63;
+}
+
+/* --- the rules sheet ------------------------------------------------------ */
+
+.rules-sheet { height: 297mm; min-height: 0; padding: 13mm 14mm 12mm; }
+
+.masthead { text-align: center; margin-bottom: 5mm; }
+.masthead .seal { margin: 0 auto 2mm; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: 25pt;
+  font-weight: 500;
+  letter-spacing: .015em;
+}
+
+.masthead-sub {
+  margin: 1mm 0 0;
+  font-size: 9.6pt;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.masthead .flourish { margin: 3mm auto 2mm; max-width: 120mm; }
+
+.masthead-line {
+  margin: 0;
+  font-size: 7.6pt;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  color: var(--ink-faint);
+}
+
+.rules-columns {
+  columns: 2;
+  column-gap: 9mm;
+  column-rule: .16mm solid var(--rule);
+  column-fill: auto;
+}
+
+.rule-section { break-inside: avoid-column; margin-bottom: 4.5mm; }
+
+.rule-section h2 {
+  margin: 0 0 1.6mm;
+  font-size: 10.4pt;
+  font-weight: 600;
+  letter-spacing: .01em;
+  display: flex;
+  align-items: baseline;
+  gap: 2mm;
+}
+
+.rule-number {
+  display: inline-grid;
+  place-items: center;
+  width: 5mm;
+  height: 5mm;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--paper);
+  font-size: 7pt;
+  align-self: center;
+}
+
+.rule-section p { margin: 0 0 1.8mm; font-size: 8.6pt; line-height: 1.5; color: var(--ink-soft); }
+.rule-section p strong, .rule-section li strong, .rule-section li b { color: var(--ink); font-weight: 600; }
+.rule-section em { font-style: italic; color: var(--ink); }
+.rule-section ol, .rule-section ul { margin: 0 0 1.8mm; padding-left: 4.6mm; }
+.rule-section li { font-size: 8.6pt; line-height: 1.45; color: var(--ink-soft); margin-bottom: .8mm; }
+
+.rule-optional {
+  margin-left: auto;
+  padding: .2mm 1.6mm;
+  border: .16mm solid var(--rule);
+  border-radius: 3mm;
+  font-size: 5.8pt;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink-faint);
+}
+
+.rule-note {
+  padding: 1.8mm 2.2mm;
+  border-left: .5mm solid var(--gold-soft);
+  background: var(--paper-deep);
+  font-size: 8pt !important;
+  font-style: italic;
+}
+
+.rule-table { width: 100%; border-collapse: collapse; margin: 0 0 2mm; font-size: 8pt; }
+
+.rule-table th {
+  padding: 0 1.4mm .8mm 0;
+  text-align: right;
+  font-size: 5.9pt;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink-faint);
+  border-bottom: .16mm solid var(--rule);
+}
+
+.rule-table th.left, .rule-table td.left { text-align: left; }
+
+.rule-table td {
+  padding: 1.1mm 1.4mm 1.1mm 0;
+  text-align: right;
+  border-bottom: .12mm solid var(--rule);
+  color: var(--ink-soft);
+  vertical-align: top;
+}
+
+.rule-table td:first-child { color: var(--ink); }
+.whisper-table td:first-child { width: 33%; }
+
+#rule-whispers { break-inside: auto; }
+#rule-whispers .rule-table { break-inside: auto; }
+#rule-whispers .rule-table tr { break-inside: avoid; }
+
+.whisper-flavour {
+  display: block;
+  margin-top: .5mm;
+  font-size: 7.2pt;
+  font-style: italic;
+  color: var(--ink-faint);
+}
+
+.agent .emblem { width: 1em; height: 1em; }
+.agent.big .emblem { width: 1.7em; height: 1.7em; }
+.agent { display: inline-flex; align-items: center; gap: .35em; white-space: nowrap; }
+
+.sheet-foot {
+  position: absolute;
+  left: 14mm;
+  right: 14mm;
+  bottom: 7mm;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 2mm;
+  border-top: .16mm solid var(--rule);
+  color: var(--gold);
+}
+
+.sheet-foot .smallcaps { font-size: 6.2pt; }
+
+/* --- the quick reference card --------------------------------------------- */
+
+.ref-sheet { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ref-slot { display: grid; place-items: center; }
+
+.refcard {
+  width: 105mm;
+  height: 148mm;
+  padding: 2.6mm;
+  outline: .18mm solid var(--rule);
+  outline-offset: -.09mm;
+  background: var(--paper);
+}
+
+.refcard-frame {
+  position: relative;
+  height: 100%;
+  padding: 4.2mm 5.4mm 3.2mm;
+  display: flex;
+  flex-direction: column;
+  border: .6mm solid var(--gold);
+  border-radius: 2mm;
+  background:
+    linear-gradient(165deg, rgba(200, 169, 96, .12), rgba(200, 169, 96, 0) 50%),
+    var(--paper);
+}
+
+.refcard-frame::before {
+  content: "";
+  position: absolute;
+  inset: 1.4mm;
+  border: .16mm solid var(--gold-soft);
+  border-radius: 1.2mm;
+  pointer-events: none;
+}
+
+.ref-head { text-align: center; }
+.ref-head .seal { margin: 0 auto 1mm; width: 6mm; height: 6mm; }
+.ref-head h3 { margin: 0; font-size: 13.6pt; font-weight: 500; letter-spacing: .015em; }
+.ref-head .smallcaps { display: block; margin-top: .5mm; font-size: 5.6pt; }
+
+.refcard .flourish { margin: 1.9mm 0; }
+
+.ref-lede { margin: 0 0 1.6mm; font-size: 8.4pt; line-height: 1.45; color: var(--ink-soft); }
+.ref-lede.tight { margin-bottom: 1.2mm; }
+.ref-lede b { color: var(--ink); font-weight: 600; }
+
+.ref-sub { margin: 0 0 1mm; font-size: 6.4pt !important; letter-spacing: .18em; }
+
+.ref-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+.ref-table td { padding: 1.15mm 0; border-bottom: .12mm solid var(--rule); vertical-align: middle; }
+.ref-table tr:last-child td { border-bottom: 0; }
+
+.pledge-table .mark { width: 8mm; }
+.pledge-table .mark .emblem { width: 5mm; height: 5mm; }
+.pledge-table .name { font-size: 10pt; font-weight: 600; }
+.pledge-table .val { text-align: right; font-size: 13pt; color: var(--gold); font-weight: 600; }
+
+.sway-table .count { width: 7mm; font-size: 11pt; font-weight: 600; color: var(--ink); }
+.sway-table .arrow { width: 6mm; color: var(--ink-faint); }
+.sway-table .name { font-weight: 600; }
+.sway-table .name .emblem { width: 3.8mm; height: 3.8mm; vertical-align: -.7mm; }
+
+.favour-table td { font-size: 8pt; color: var(--ink-soft); }
+.favour-table .score { text-align: right; color: var(--ink); font-weight: 600; white-space: nowrap; }
+
+.ref-list { margin: 0; padding-left: 4.4mm; }
+.ref-list li { font-size: 7.9pt; line-height: 1.42; color: var(--ink-soft); margin-bottom: 1mm; }
+.ref-list b { color: var(--ink); font-weight: 600; }
+
+.ref-fine { margin: 1mm 0 0; font-size: 7.1pt; line-height: 1.4; font-style: italic; color: var(--ink-faint); }
+.ref-fine b { font-style: normal; color: var(--ink); }
+
+.ref-foot { margin-top: auto; padding-top: 1.8mm; text-align: center; color: var(--gold); }
+
+.cut-note { margin: 5mm 0 0; text-align: center; }
+
+/* On the dark back the agents' own inks vanish, so the marks go in gold. */
+.pcard-back-frame .agent-row span { color: var(--gold-soft); }
+
+@media print {
+  html, body { background: #fff; }
+  .screen-only, .cut-note { display: none; }
+  .sheet {
+    margin: 0;
+    box-shadow: none;
+    page-break-after: always;
+    break-after: page;
+  }
+  .sheet:last-child { page-break-after: auto; break-after: auto; }
+}

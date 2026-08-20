@@ -117,22 +117,22 @@ noble who had openly promised the complement, so the inversion itself is free; w
 is a table that sees a bold pledge of eight where the real promise was three. **The Understudy** is
 aiming at a number nobody has shown them, which is why it pays whether or not it lands.
 
-### Who holds sway### Who holds sway
+### Who holds sway
 
 The opening session of a season is always **No Sway**. After that, sway passes according to how
 many of the four nobles kept their pledge *exactly* in the session before:
 
 | Nobles who kept their word | Sway next session |
 | --- | --- |
-| 0 | ♣ Fools |
-| 1 | ♦ Merchants |
-| 2 | ♥ Lovers |
-| 3 | ♠ Assassins |
+| 0 | Fools |
+| 1 | Merchants |
+| 2 | Lovers |
+| 3 | Assassins |
 | 4 | No Sway |
 
 ### Winning the season
 
-The season ends the moment a noble reaches 50 favour, and the highest total wins — 41 beats 40. If
+The season ends the moment a noble reaches 50 favour, and the highest total wins — 51 beats 50. If
 two nobles finish level, the win goes to whoever:
 
 1. won more favour that session, failing which
@@ -148,7 +148,8 @@ and the logic files also load under Node, which is how the tests run.
 | --- | --- |
 | [`js/cards.js`](js/cards.js) | The sixty-card deck, the four agents, shuffling and sorting |
 | [`js/rules.js`](js/rules.js) | Pure rules: legal plays, who takes the audience, favour, the sway ladder |
-| [`js/whispers.js`](js/whispers.js) | The eight Whispers, declared in one table |
+| [`js/whispers.js`](js/whispers.js) | The fifteen Whispers, declared in one table |
+| [`js/rulebook.js`](js/rulebook.js) | The rules in prose, rendered by both the app and the printed edition |
 | [`js/ai.js`](js/ai.js) | Valuing a hand, choosing which agents to send out, playing them |
 | [`js/engine.js`](js/engine.js) | The state of the court and the transitions between phases |
 | [`js/ui.js`](js/ui.js) | Rendering and input |
@@ -157,6 +158,28 @@ and the logic files also load under Node, which is how the tests run.
 The three rivals share one brain with different nerve: **Verane the patient** plays it straight,
 **Mors the reckless** pledges bold, **Ilka the careful** pledges shy. None of them look at hidden
 cards — they pledge by valuing their own hand and play by tracking what has already been seen.
+
+## The printed edition
+
+`print/` holds print-ready sheets for playing this on a table. Open
+[`print/index.html`](print/index.html) and print at 100% scale with margins set to none.
+
+| Sheet | What it is |
+| --- | --- |
+| [`print/rules.html`](print/rules.html) | The full rules, two columns to an A4 sheet, with a masthead and a summary of play |
+| [`print/whispers.html`](print/whispers.html) | All fifteen Whispers at poker size (63.5 × 88.9 mm), nine to a sheet, plus a sheet of backs |
+| [`print/reference.html`](print/reference.html) | A two-sided A6 reference card: making a pledge on one side, sway and favour on the other |
+
+Everything is generated from the same rules files the game runs on, so the printed edition and the
+app cannot disagree. The rules sheets measure themselves against a real A4 height and repack, so no
+page loses its last paragraph off the bottom.
+
+The design is one system across all three: cream stock and a gold double frame, the court's seal —
+a coronet in a beaded ring — on anything the monarch is responsible for, a lozenge flourish
+breaking each rule, and the four agent marks as a footer device. Card backs are plum with a woven
+diagonal and a gold border.
+
+Still to make: the sixty playing cards themselves.
 
 ## Tests
 
