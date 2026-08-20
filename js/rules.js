@@ -17,13 +17,16 @@
 
   /**
    * A pledge is the sum of the four face-down agents, ranks ignored. Four
-   * Assassins would come to twelve, so a pledge is capped at the number of
-   * audiences the session actually has: you cannot promise the court more
-   * than it can give.
+   * Assassins come to twelve, one more than the court has to give: promise
+   * that and you have already broken your word. Overreaching is punished by
+   * the scoring, not forbidden by the rules.
    */
   function bidFromCards(cards) {
-    return Math.min(Cards.bidValueOf(cards), TRICKS_PER_HAND);
+    return Cards.bidValueOf(cards);
   }
+
+  /** The largest pledge that can actually be kept. */
+  const KEEPABLE_MAX = TRICKS_PER_HAND;
 
   /** Cards a player is allowed to play: must follow the led suit when able. */
   function legalPlays(hand, ledSuit) {
@@ -58,13 +61,13 @@
 
   /**
    * Points for one player at the end of a hand.
-   *   bid 0: +3 for taking no tricks; -5 for the first trick taken and -2 for
+   *   bid 0: +5 for taking no tricks; -5 for the first trick taken and -2 for
    *          every trick after that.
    *   exact bid (> 0): 2 points per trick won.
    *   missed bid: 1 point per trick won, minus 2 for every trick off the bid.
    */
   function scoreHand(bid, tricksWon) {
-    if (bid === 0) return tricksWon === 0 ? 3 : -5 - 2 * (tricksWon - 1);
+    if (bid === 0) return tricksWon === 0 ? 5 : -5 - 2 * (tricksWon - 1);
     if (tricksWon === bid) return 2 * tricksWon;
     return tricksWon - 2 * Math.abs(tricksWon - bid);
   }
@@ -141,6 +144,7 @@
     HAND_SIZE: HAND_SIZE,
     BID_CARDS: BID_CARDS,
     TRICKS_PER_HAND: TRICKS_PER_HAND,
+    KEEPABLE_MAX: KEEPABLE_MAX,
     TARGET_SCORE: TARGET_SCORE,
     SWAY_LADDER: SWAY_LADDER,
     bidFromCards: bidFromCards,

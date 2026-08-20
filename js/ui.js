@@ -7,6 +7,7 @@
   const Cards = globalThis.Cards;
   const Rules = globalThis.Rules;
   const Engine = globalThis.Engine;
+  const Whispers = globalThis.Whispers;
 
   const byId = (id) => document.getElementById(id);
 
@@ -22,6 +23,8 @@
     history: byId('history'),
     historyBox: byId('history-box'),
     trumpKey: byId('trump-key'),
+    whisperBox: byId('whisper-box'),
+    whisperList: byId('whisper-list'),
     targetNote: byId('target-note'),
     overlay: byId('overlay'),
     modal: byId('modal'),
@@ -98,6 +101,7 @@
     renderScoreboard();
     renderHistory();
     renderTrumpKey();
+    renderWhisper();
     renderOverlay();
   }
 
@@ -138,7 +142,13 @@
       '<span class="' + (made ? 'met' : '') + '">Won <b>' + player.tricksWon + '</b></span>' +
       '</div>';
 
-    node.innerHTML = head + stats + '<div class="seat-foot"></div>';
+    const whisper = player.whisper;
+    const whisperLine = whisper
+      ? '<div class="seat-whisper' + (bidsAreOpen() || player.isHuman ? ' open' : '') + '">' +
+        (bidsAreOpen() || player.isHuman ? whisper.name : 'sealed') + '</div>'
+      : '';
+
+    node.innerHTML = head + stats + whisperLine + '<div class="seat-foot"></div>';
     const foot = node.querySelector('.seat-foot');
 
     const pile = document.createElement('div');
@@ -211,16 +221,21 @@
       ? new Set(Engine.legalPlaysFor(state, Engine.HUMAN).map((card) => card.id))
       : null;
 
+    const whisper = player.whisper;
+    const bound = bidding && Whispers.canSatisfy(whisper, player.hand);
+
     dom.hand.innerHTML = '';
     for (const card of Cards.sortHand(player.hand, state.trump)) {
       let extra = '';
       if (bidding) {
-        extra = 'playable' + (selection.includes(card.id) ? ' selected' : '');
+        extra = bound && !Whispers.allowsCard(whisper, card)
+          ? 'forbidden'
+          : 'playable' + (selection.includes(card.id) ? ' selected' : '');
       } else if (myTurn) {
         extra = legal.has(card.id) ? 'playable' : 'illegal';
       }
       const node = cardEl(card, extra);
-      if (bidding || myTurn) {
+      if ((bidding && extra !== 'forbidden') || (myTurn && extra !== 'illegal')) {
         node.tabIndex = 0;
         node.setAttribute('role', 'button');
       }
@@ -239,18 +254,26 @@
         ? chosen.map((card) => Cards.SUIT_SYMBOL[card.suit] + Cards.BID_VALUE[card.suit]).join(' + ')
         : '';
 
+      const complete = selection.length === Rules.BID_CARDS;
+      const legal = Whispers.permitsSet(player.whisper, chosen, player.hand);
+      const aim = Whispers.aimFor(player.whisper, total);
+
       const readout = document.createElement('div');
       readout.className = 'bid-readout';
       readout.innerHTML = 'Your pledge: <span class="total">' + total + '</span>' +
         (breakdown ? ' <span class="sum">(' + breakdown + ')</span>' : '') +
-        ' <span class="sum">&middot; ' + selection.length + ' of ' + Rules.BID_CARDS + ' sent</span>';
+        (aim !== total ? ' <span class="sum">&middot; win exactly <b>' + aim + '</b></span>' : '') +
+        ' <span class="sum">&middot; ' + selection.length + ' of ' + Rules.BID_CARDS + ' sent</span>' +
+        (complete && !legal
+          ? ' <span class="warn">&middot; your Whisper says ' + player.whisper.demand + '</span>'
+          : '');
       dom.handActions.appendChild(readout);
 
       const confirm = document.createElement('button');
       confirm.type = 'button';
       confirm.className = 'btn';
       confirm.textContent = 'Pledge ' + plural(total, 'audience');
-      confirm.disabled = selection.length !== Rules.BID_CARDS;
+      confirm.disabled = !complete || !legal;
       confirm.addEventListener('click', placeBid);
       dom.handActions.appendChild(confirm);
 
@@ -268,7 +291,9 @@
     if (state.phase === 'playing' || state.phase === 'trickComplete') {
       const note = document.createElement('div');
       note.className = 'bid-readout';
+      const aim = Whispers.aimFor(player.whisper, player.bid);
       note.innerHTML = 'You pledged <span class="total">' + player.bid + '</span>' +
+        (aim !== player.bid ? ' <span class="sum">(win exactly ' + aim + ')</span>' : '') +
         ' <span class="sum">&middot; won ' + player.tricksWon +
         ' &middot; ' + plural(player.hand.length, 'agent') + ' in hand</span>';
       dom.handActions.appendChild(note);
@@ -344,6 +369,35 @@
     dom.history.innerHTML = html;
   }
 
+  function renderWhisper() {
+    const player = state.players[Engine.HUMAN];
+    const whisper = player.whisper;
+    if (!whisper) {
+      dom.whisperBox.innerHTML = '';
+      return;
+    }
+
+    const bound = Whispers.canSatisfy(whisper, player.hand.concat(player.bidCards));
+    const demand = whisper.demand && bound
+      ? '<p class="whisper-demand">This session, ' + whisper.demand + '.</p>'
+      : '';
+    const waived = whisper.demand && !bound
+      ? '<p class="whisper-demand waived">You hold none, so the demand is waived.</p>'
+      : '';
+
+    dom.whisperBox.innerHTML =
+      '<h2>Your Whisper</h2>' +
+      '<p class="whisper-name">' + whisper.name + '</p>' +
+      '<p class="whisper-line">' + whisper.line + '</p>' +
+      '<p class="fine">' + whisper.detail + '</p>' + demand + waived;
+
+    if (!dom.whisperList.childElementCount) {
+      dom.whisperList.innerHTML = Whispers.ALL
+        .map((one) => '<li><b>' + one.name + '</b> ' + one.line + '</li>')
+        .join('');
+    }
+  }
+
   function renderTrumpKey() {
     const previous = state.history[state.handNumber - 2];
     const active = previous ? previous.madeCount : -1;
@@ -365,7 +419,8 @@
           '<span class="corner tl"><b>' + card.rank + '</b><i>' + Cards.SUIT_SYMBOL[card.suit] + '</i></span></span>')
         .join('');
       html += '<tr class="' + (state.players[seat].isHuman ? 'me' : '') + '">' +
-        '<td>' + row.name + '</td>' +
+        '<td>' + row.name +
+        (row.whisper ? '<span class="row-whisper">' + row.whisper.name + '</span>' : '') + '</td>' +
         '<td class="left"><span class="bid-cards">' + cards + '</span></td>' +
         '<td>' + row.bid + '</td>' +
         '<td class="' + (row.made ? 'made' : 'missed') + '">' + row.tricksWon + '</td>' +
@@ -440,6 +495,14 @@
   }
 
   function toggleSelection(id) {
+    const player = state.players[Engine.HUMAN];
+    const card = player.hand.find((one) => one.id === id);
+    if (card && Whispers.canSatisfy(player.whisper, player.hand) &&
+        !Whispers.allowsCard(player.whisper, card)) {
+      toast('Your Whisper forbids it: ' + player.whisper.demand + '.');
+      return;
+    }
+
     const index = selection.indexOf(id);
     if (index >= 0) {
       selection.splice(index, 1);

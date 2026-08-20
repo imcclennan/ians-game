@@ -8,6 +8,7 @@
   const Cards = global.Cards;
   const Rules = global.Rules;
   const AI = global.AI;
+  const Whispers = global.Whispers;
 
   // The four nobles, seated clockwise: you (bottom), then left, across, right.
   const SEATS = [
@@ -31,6 +32,7 @@
         hand: [],
         bidCards: [],
         bid: null,
+        whisper: null,
         tricksWon: 0,
         score: 0
       })),
@@ -61,6 +63,7 @@
   /** Shuffle, deal fifteen to each noble, and open the pledging. */
   function startHand(state) {
     const deck = Cards.shuffle(Cards.makeDeck(), state.rng);
+    const whispers = Whispers.deal(Rules.PLAYER_COUNT, state.rng);
 
     state.handNumber += 1;
     if (state.handNumber > 1) state.dealer = Rules.leftOf(state.dealer);
@@ -70,6 +73,7 @@
       player.hand = deck.slice(seat * Rules.HAND_SIZE, (seat + 1) * Rules.HAND_SIZE);
       player.bidCards = [];
       player.bid = null;
+      player.whisper = whispers[seat];
       player.tricksWon = 0;
     });
 
@@ -91,6 +95,9 @@
       throw new Error('A pledge must be exactly ' + Rules.BID_CARDS + ' agents');
     }
     const player = state.players[seat];
+    if (!Whispers.permitsSet(player.whisper, cards, player.hand)) {
+      throw new Error('Your Whisper does not permit those errands');
+    }
     player.bidCards = cards.slice();
     player.bid = Rules.bidFromCards(cards);
     player.hand = Cards.removeCards(player.hand, cards);
@@ -101,7 +108,8 @@
   function submitComputerBids(state) {
     state.players.forEach((player, seat) => {
       if (player.isHuman) return;
-      submitBid(state, seat, AI.chooseBidCards(player.hand, state.trump, player.aggression));
+      submitBid(state, seat,
+        AI.chooseBidCards(player.hand, state.trump, player.aggression, player.whisper));
     });
   }
 
@@ -167,7 +175,8 @@
       trump: state.trump,
       bid: player.bid,
       tricksWon: player.tricksWon,
-      seen: seenBy(state, seat)
+      seen: seenBy(state, seat),
+      whisper: player.whisper
     });
     playCard(state, seat, card);
     return card;
@@ -195,19 +204,29 @@
 
   /** Score the session, work out who holds sway next, and check for a winner. */
   function finishHand(state) {
+    // First pass: what each noble's Whisper says their audiences came to, and
+    // therefore whether the pledge was kept at all.
     const rows = state.players.map((player) => {
-      const points = Rules.scoreHand(player.bid, player.tricksWon);
-      const made = Rules.madeBid(player.bid, player.tricksWon);
-      player.score += points;
+      const counted = Whispers.countedTricks(player.whisper, player.tricksWon);
       return {
         name: player.name,
         bid: player.bid,
         tricksWon: player.tricksWon,
-        points: points,
-        made: made,
+        counted: counted,
+        made: Rules.madeBid(player.bid, counted),
+        whisper: player.whisper,
+        base: Rules.scoreHand(player.bid, counted),
         bidCards: player.bidCards.slice(),
-        total: player.score
+        points: 0,
+        total: 0
       };
+    });
+
+    // Second pass: Whispers that read the whole table can only settle up now.
+    rows.forEach((row, seat) => {
+      row.points = Whispers.adjust(row.whisper, row.base, row, rows);
+      state.players[seat].score += row.points;
+      row.total = state.players[seat].score;
     });
 
     const madeCount = rows.filter((row) => row.made).length;

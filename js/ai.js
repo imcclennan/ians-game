@@ -8,6 +8,7 @@
 
   const Cards = global.Cards;
   const Rules = global.Rules;
+  const Whispers = global.Whispers;
 
   // The four most influential ranks in a suit, whatever the deck size.
   const FIRST = Cards.HIGHEST_VALUE;
@@ -81,24 +82,37 @@
    * play, so we look for the combination whose pledge best matches the strength
    * of the hand it leaves behind.
    */
-  function chooseBidCards(hand, trump, aggression) {
+  function chooseBidCards(hand, trump, aggression, whisper) {
     const bias = aggression || 1;
+    const bound = Whispers.canSatisfy(whisper, hand);
     let best = null;
+    let fallback = null;
 
     for (const combo of bidCombos(hand, Rules.BID_CARDS)) {
       const bid = Rules.bidFromCards(combo);
       const kept = Cards.removeCards(hand, combo);
       const estimate = estimateTricks(kept, trump) * bias;
 
-      // Tie-break: among equally sensible bids, throw away the weakest cards.
+      // What this hand wants to promise, once the Whisper has had its say.
+      const wanted = Whispers.pledgeFor(whisper, estimate);
+
+      // Tie-break: among equally sensible pledges, send the weakest agents.
       const discardCost = combo.reduce((sum, card) => {
         return sum + card.value + (trump && card.suit === trump ? 6 : 0);
       }, 0);
 
-      const cost = Math.abs(bid - estimate) + discardCost * 0.002;
-      if (!best || cost < best.cost) best = { cards: combo, bid: bid, cost: cost };
+      // Promising more than the court can give is never worth it.
+      const overreach = Math.max(0, bid - Rules.KEEPABLE_MAX) * 3;
+
+      const cost = Math.abs(bid - wanted) + overreach +
+        Whispers.pledgeCost(whisper, bid) + discardCost * 0.002;
+
+      const candidate = { cards: combo, bid: bid, cost: cost };
+      if (!fallback || cost < fallback.cost) fallback = candidate;
+      if (bound && !Whispers.permitsSet(whisper, combo)) continue;
+      if (!best || cost < best.cost) best = candidate;
     }
-    return best.cards;
+    return (best || fallback).cards;
   }
 
   // --- card play -----------------------------------------------------------
@@ -189,8 +203,8 @@
   }
 
   /**
-   * ctx: { hand, trick, trump, bid, tricksWon, seen }
-   *   trick - plays so far this trick, [] if we are leading
+   * ctx: { hand, trick, trump, bid, tricksWon, seen, whisper }
+   *   trick - plays so far this audience, [] if we are opening
    *   seen  - Set of card ids we know are gone (our hand + everything played)
    */
   function chooseCard(ctx) {
@@ -198,7 +212,10 @@
     const legal = Rules.legalPlays(ctx.hand, ledSuit);
     if (legal.length === 1) return legal[0];
 
-    const enriched = Object.assign({}, ctx, { wantsTrick: ctx.tricksWon < ctx.bid });
+    // A Contrarian is chasing the audiences it does not win, so what it is
+    // actually aiming at may be nothing like its pledge.
+    const target = Whispers.aimFor(ctx.whisper, ctx.bid);
+    const enriched = Object.assign({}, ctx, { wantsTrick: ctx.tricksWon < target });
     return ledSuit ? chooseFollow(legal, enriched) : chooseLead(legal, enriched);
   }
 
