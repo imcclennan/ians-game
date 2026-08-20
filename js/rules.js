@@ -10,7 +10,7 @@
   const HAND_SIZE = 13;      // cards dealt to each player
   const BID_CARDS = 3;       // set aside face down as the bid
   const TRICKS_PER_HAND = HAND_SIZE - BID_CARDS; // 10
-  const TARGET_SCORE = 50;
+  const TARGET_SCORE = 30;
 
   // How many players made their bid last hand -> trump for this hand.
   const TRUMP_LADDER = ['C', 'D', 'H', 'S', null];
@@ -53,12 +53,13 @@
 
   /**
    * Points for one player at the end of a hand.
-   *   bid 0: +5 for taking no tricks, -5 for taking any.
+   *   bid 0: +3 for taking no tricks; -5 for the first trick taken and -2 for
+   *          every trick after that.
    *   exact bid (> 0): 2 points per trick won.
    *   missed bid: 1 point per trick won, minus 2 for every trick off the bid.
    */
   function scoreHand(bid, tricksWon) {
-    if (bid === 0) return tricksWon === 0 ? 5 : -5;
+    if (bid === 0) return tricksWon === 0 ? 3 : -5 - 2 * (tricksWon - 1);
     if (tricksWon === bid) return 2 * tricksWon;
     return tricksWon - 2 * Math.abs(tricksWon - bid);
   }
@@ -81,6 +82,55 @@
     return (seat + 1) % PLAYER_COUNT;
   }
 
+  /** Combined rank value of the three face-down bid cards. */
+  function bidCardValue(row) {
+    return row.bidCards.reduce((total, card) => total + card.value, 0);
+  }
+
+  // Applied in order when two players finish the last hand on the same total.
+  const TIE_BREAKERS = [
+    { label: 'more points that hand', value: (row) => row.points },
+    { label: 'the higher bid', value: (row) => row.bid },
+    { label: 'higher-ranked bid cards', value: bidCardValue }
+  ];
+
+  /** Ranking used for the final standings: total first, then the tie-breakers. */
+  function compareForWin(a, b) {
+    if (b.total !== a.total) return b.total - a.total;
+    for (const breaker of TIE_BREAKERS) {
+      const difference = breaker.value(b) - breaker.value(a);
+      if (difference !== 0) return difference;
+    }
+    return 0;
+  }
+
+  /**
+   * Decide the game from the rows of the final hand. The highest total wins.
+   * If two players end level, the winner is the one who scored more points that
+   * hand; failing that the higher bid; failing that the higher combined rank of
+   * their three bid cards.
+   */
+  function decideWinner(rows) {
+    const bestTotal = Math.max.apply(null, rows.map((row) => row.total));
+    let pool = rows.filter((row) => row.total === bestTotal);
+    const wasTied = pool.length > 1;
+    let reason = null;
+
+    for (const breaker of TIE_BREAKERS) {
+      if (pool.length === 1) break;
+      const best = Math.max.apply(null, pool.map((row) => breaker.value(row)));
+      const narrowed = pool.filter((row) => breaker.value(row) === best);
+      if (narrowed.length < pool.length) reason = breaker.label;
+      pool = narrowed;
+    }
+
+    return {
+      winners: pool.map((row) => row.name),
+      wasTied: wasTied,
+      reason: pool.length === 1 ? reason : null
+    };
+  }
+
   global.Rules = {
     PLAYER_COUNT: PLAYER_COUNT,
     HAND_SIZE: HAND_SIZE,
@@ -95,6 +145,10 @@
     madeBid: madeBid,
     trumpForNextHand: trumpForNextHand,
     trumpLabel: trumpLabel,
-    leftOf: leftOf
+    leftOf: leftOf,
+    bidCardValue: bidCardValue,
+    TIE_BREAKERS: TIE_BREAKERS,
+    compareForWin: compareForWin,
+    decideWinner: decideWinner
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

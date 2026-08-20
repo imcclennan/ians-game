@@ -18,7 +18,7 @@ Then visit <http://localhost:8080>.
 ## The rules
 
 A standard 52-card deck. Aces are high. Thirteen cards are dealt to each player, and the deal
-rotates one seat to the left after every hand. First player past **50 points** wins.
+rotates one seat to the left after every hand. First player past **30 points** wins.
 
 ### Bidding
 
@@ -55,10 +55,10 @@ spending spades; bidding nothing is cheap only if your clubs were worthless anyw
 | --- | --- |
 | Bid exactly right (and bid above zero) | 2 per trick won |
 | Bid wrong | 1 per trick won, minus 2 for every trick off the bid |
-| Bid zero, took no tricks | +5 |
-| Bid zero, took any tricks | −5 |
+| Bid zero, took no tricks | +3 |
+| Bid zero, took tricks | −5 for the first, −2 for each one after |
 
-Bid 5 and win 4 → 4 − 2 = **2**. Bid 3 and win 6 → 6 − 6 = **0**.
+Bid 5 and win 4 → 4 − 2 = **2**. Bid 3 and win 6 → 6 − 6 = **0**. Bid 0 and win 3 → **−9**.
 
 ### Trump
 
@@ -72,6 +72,15 @@ players made their bid *exactly* in the hand before:
 | 2 | ♥ Hearts |
 | 3 | ♠ Spades |
 | 4 | No Trump |
+
+### Winning
+
+The game ends the moment anyone reaches 30 points, and the highest total wins — 31 beats 30. If
+two players finish level, the win goes to whoever:
+
+1. scored more points that hand, failing which
+2. made the higher bid that hand, failing which
+3. laid down the higher-ranked three bid cards that hand.
 
 ## The code
 
@@ -97,9 +106,9 @@ and play by tracking what has already been seen.
 npm test
 ```
 
-Around 3,000 assertions: the scoring table, trick resolution under trump and no trump, following
-suit, the trump ladder, plus twenty complete games played end to end against invariants (every
-hand is ten tricks, every deal is 52 cards, every score matches the rules).
+Around 1,900 assertions: the scoring table, trick resolution under trump and no trump, following
+suit, the trump ladder, the tie-breakers, plus twenty complete games played end to end against
+invariants (every hand is ten tricks, every deal is 52 cards, every score matches the rules).
 
 ## License
 

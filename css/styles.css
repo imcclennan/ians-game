@@ -545,6 +545,7 @@ button, select { font: inherit; }
 
 .modal h2 { font-size: 20px; }
 .modal .lede { margin: 8px 0 0; color: var(--ink-dim); font-size: 14px; }
+.modal .lede b { color: var(--accent); }
 
 .result-table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 14px; }
 .result-table th {

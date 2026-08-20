@@ -52,6 +52,7 @@
       handSummary: null,
       history: [],
       winners: [],
+      winReason: null,
       target: settings.target || Rules.TARGET_SCORE,
       rng: settings.rng || Math.random
     };
@@ -222,12 +223,13 @@
 
     const best = Math.max.apply(null, state.players.map((player) => player.score));
     if (best >= state.target) {
-      state.winners = state.players
-        .filter((player) => player.score === best)
-        .map((player) => player.name);
+      const decision = Rules.decideWinner(rows);
+      state.winners = decision.winners;
+      state.winReason = decision.wasTied ? decision.reason : null;
       state.phase = 'gameOver';
     } else {
       state.winners = [];
+      state.winReason = null;
       state.phase = 'handOver';
     }
     return state;

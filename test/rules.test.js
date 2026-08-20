@@ -81,9 +81,11 @@ check('four tricks on a bid of five', Rules.scoreHand(5, 4), 2);
 check('six tricks on a bid of three', Rules.scoreHand(3, 6), 0);
 check('two tricks on a bid of five', Rules.scoreHand(5, 2), -4);
 check('no tricks on a bid of two', Rules.scoreHand(2, 0), -4);
-check('a made nil is worth five', Rules.scoreHand(0, 0), 5);
-check('a broken nil costs five', Rules.scoreHand(0, 1), -5);
-check('a badly broken nil still costs exactly five', Rules.scoreHand(0, 7), -5);
+check('a made nil is worth three', Rules.scoreHand(0, 0), 3);
+check('one trick breaks a nil for five', Rules.scoreHand(0, 1), -5);
+check('a second trick costs two more', Rules.scoreHand(0, 2), -7);
+check('a third trick costs two more again', Rules.scoreHand(0, 3), -9);
+check('a thoroughly broken nil', Rules.scoreHand(0, 7), -17);
 
 // --- trump ladder ----------------------------------------------------------
 
@@ -93,6 +95,66 @@ check('two made it', Rules.trumpForNextHand(2), 'H');
 check('three made it', Rules.trumpForNextHand(3), 'S');
 check('everybody made it', Rules.trumpForNextHand(4), null);
 check('no trump reads as No Trump', Rules.trumpLabel(null), 'No Trump');
+
+// --- deciding the game -----------------------------------------------------
+
+check('the target is thirty', Rules.TARGET_SCORE, 30);
+
+function finalRow(name, total, points, bid, bidIds) {
+  return { name: name, total: total, points: points, bid: bid, bidCards: hand.apply(null, bidIds) };
+}
+
+check('a clear lead wins outright',
+  Rules.decideWinner([
+    finalRow('You', 31, 6, 3, ['2S', '2C', '2C']),
+    finalRow('Ada', 30, 4, 2, ['AS', 'AH', 'AD'])
+  ]),
+  { winners: ['You'], wasTied: false, reason: null });
+
+check('level totals go to the better hand',
+  Rules.decideWinner([
+    finalRow('You', 30, 2, 1, ['AS', 'AH', 'AD']),
+    finalRow('Ada', 30, 8, 4, ['2C', '2C', '2C'])
+  ]),
+  { winners: ['Ada'], wasTied: true, reason: 'more points that hand' });
+
+check('still level goes to the higher bid',
+  Rules.decideWinner([
+    finalRow('You', 30, 4, 4, ['2C', '3C', '4C']),
+    finalRow('Ada', 30, 4, 2, ['AS', 'AH', 'AD'])
+  ]),
+  { winners: ['You'], wasTied: true, reason: 'the higher bid' });
+
+check('still level goes to the bid cards',
+  Rules.decideWinner([
+    finalRow('You', 30, 4, 2, ['2H', '3C', '4C']),
+    finalRow('Ada', 30, 4, 2, ['AH', 'KC', 'QC'])
+  ]),
+  { winners: ['Ada'], wasTied: true, reason: 'higher-ranked bid cards' });
+
+check('three-way ties resolve to one winner',
+  Rules.decideWinner([
+    finalRow('You', 32, 4, 2, ['2H', '3C', '4C']),
+    finalRow('Ada', 32, 4, 2, ['AH', 'KC', 'QC']),
+    finalRow('Bram', 32, 4, 2, ['9H', '9C', '9C']),
+    finalRow('Cleo', 12, 0, 1, ['2D', '2C', '3C'])
+  ]),
+  { winners: ['Ada'], wasTied: true, reason: 'higher-ranked bid cards' });
+
+check('an identical finish is left as a shared win',
+  Rules.decideWinner([
+    finalRow('You', 30, 4, 2, ['AH', 'KC', 'QC']),
+    finalRow('Ada', 30, 4, 2, ['AH', 'KC', 'QC'])
+  ]),
+  { winners: ['You', 'Ada'], wasTied: true, reason: null });
+
+check('the standings sort by the same order',
+  [
+    finalRow('You', 30, 4, 2, ['2H', '3C', '4C']),
+    finalRow('Ada', 31, 4, 2, ['AH', 'KC', 'QC']),
+    finalRow('Bram', 30, 9, 2, ['9H', '9C', '9C'])
+  ].sort(Rules.compareForWin).map((row) => row.name),
+  ['Ada', 'Bram', 'You']);
 
 // --- seating ---------------------------------------------------------------
 
@@ -151,6 +213,7 @@ const game = playWholeGame(20260820);
 ok('a full game reaches a winner', game.state.phase === 'gameOver', 'phase=' + game.state.phase);
 ok('the winner is at or past the target',
   Math.max(...game.state.players.map((p) => p.score)) >= game.state.target);
+check('a finished game names exactly one winner', game.state.winners.length, 1);
 check('the first hand is played at No Trump', game.trumpsSeen[0], null);
 ok('the dealer rotated left every hand',
   game.state.dealer === (game.state.history.length - 1) % 4,

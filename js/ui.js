@@ -394,17 +394,22 @@
       html += '<div class="modal-actions"><button type="button" class="btn" id="deal-next">Deal hand ' +
         (summary.handNumber + 1) + '</button></div>';
     } else {
-      const ranked = state.players.slice().sort((a, b) => b.score - a.score);
+      const ranked = summary.rows.slice().sort(Rules.compareForWin);
       const won = state.winners.includes(state.players[Engine.HUMAN].name);
-      html += '<h2>' + (won && state.winners.length === 1 ? 'You win!' : state.winners.join(' and ') + ' wins') + '</h2>';
+      html += '<h2>' + (won && state.winners.length === 1
+        ? 'You win!'
+        : state.winners.join(' and ') + (state.winners.length === 1 ? ' wins' : ' tie')) + '</h2>';
       html += '<p class="lede">First past ' + state.target + ' points after ' +
-        plural(state.history.length, 'hand') + '.</p>';
+        plural(state.history.length, 'hand') + '.' +
+        (state.winReason
+          ? ' Level on points, so it goes to <b>' + state.winReason + '</b>.'
+          : '') + '</p>';
       html += '<ul class="podium">';
-      ranked.forEach((player, index) => {
+      ranked.forEach((row, index) => {
         html += '<li class="' + (index === 0 ? 'first' : '') + '">' +
           '<span class="rank">' + (index + 1) + '</span>' +
-          '<span class="who">' + player.name + '</span>' +
-          '<span class="pts">' + player.score + '</span></li>';
+          '<span class="who">' + row.name + '</span>' +
+          '<span class="pts">' + row.total + '</span></li>';
       });
       html += '</ul>';
       html += resultTable(summary);
