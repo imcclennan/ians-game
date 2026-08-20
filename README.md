@@ -8,7 +8,8 @@ Runs in the browser with no build step, no dependencies and nothing stored anywh
 
 ## Playing it
 
-Open `index.html` in a browser. That's it.
+Open `index.html` in a browser. That's it. The full rules are in the app itself, behind
+**Rules** in the top bar.
 
 If your browser is strict about `file://` pages, serve it instead:
 
@@ -21,20 +22,20 @@ Then visit <http://localhost:8080>.
 ## The court
 
 Sixty cards. Four kinds of **agent**, each ranked **1 to 15** by their standing at court — 15 is
-the most influential, 1 the least. The classic pips are kept because they already read as the four
-agents: the blade, the heart, the coin, the jester's bauble.
+the most influential, 1 the least. The familiar pips are gone: each kind is known by its own mark,
+printed on its own face, in its own ink.
 
-Every kind carries its own mark behind the face and its own ink — a **dagger** in graphite for the
-Assassin, a **rose** in crimson for the Lover, a **balance** in antique gold for the Merchant, a
-**cap and bells** in plum for the Fool. Four inks rather than the usual two also means the two dark
-kinds and the two light kinds stop looking alike in a fanned hand.
+| Agent | Mark | Audiences promised | Face | Ink |
+| --- | --- | --- | --- | --- |
+| Assassin | a dagger | 3 | pale slate | graphite |
+| Lover | a rose | 2 | pale rose | crimson |
+| Merchant | a balance | 1 | pale gold | antique gold |
+| Fool | a cap and bells | 0 | pale lilac | plum |
 
-| Agent | Pip | Audiences promised |
-| --- | --- | --- |
-| Assassin | ♠ | 3 |
-| Lover | ♥ | 2 |
-| Merchant | ♦ | 1 |
-| Fool | ♣ | 0 |
+Four faces rather than the usual two colours means every kind is legible from the corner alone,
+which matters in a fanned hand of fifteen overlapping cards. The marks are drawn as inline SVG, so
+there is still nothing to fetch. The table itself takes the colour and mark of whichever kind holds
+sway, so the room tells you what is dangerous before you have looked at anything else.
 
 Fifteen agents are dealt to each noble. The **steward** — the seat that deals — passes one place to
 the left after every session. First noble past **50 favour** wins the season.
@@ -95,7 +96,7 @@ Fifteen of them, four dealt each session:
 | **Blackmailed** | At least one Assassin must go out. Keep your pledge for **+5**. |
 | **Sworn to Silence** | No Assassin may go out. Keep your pledge for **+3**. |
 | **The Smitten** | No Lover may go out. Keep your pledge for **+3**. |
-| **The Audited** | Send four Merchants, or every Merchant you hold if that is fewer. Keep your pledge for **+8**. |
+| **The Audited** | Send **two Merchants and two Fools**, which pledges exactly 2. Keep it for **+4**. |
 | **The Debtor** | A kept pledge of 2 or fewer earns nothing; keep 3 or more for **+3**. |
 | **All or Nothing** | Keep your pledge for **double favour**. Break it and lose **3**, whatever else you did. |
 | **The Cautious Clerk** | You cannot lose favour this session, nor gain more than **6**. |
@@ -109,7 +110,7 @@ Fifteen of them, four dealt each session:
 | **The Understudy** | You are scored against the pledge of the noble **on your left**. **+3** for the trouble, **+5** more if you match it. |
 
 A demand that cannot be met is waived rather than enforced — a noble holding no Assassin cannot be
-made to send one. Across simulated play that happens in about **0.04%** of player sessions.
+made to send one. Across simulated play that happens in about **0.7%** of player sessions.
 
 Two of them are worth understanding before you meet them. **The Contrarian** scores exactly as a
 noble who had openly promised the complement, so the inversion itself is free; what it really buys
@@ -171,8 +172,8 @@ pledge obeys the Whisper that was given, every favour follows pledge → counted
 Whisper).
 
 The computer nobles are checked for calibration too. Across roughly 34,000 simulated player
-sessions all fifteen Whispers land between **2.25 and 3.46** average favour against a table average
-of **2.90** — a spread of 1.2 favour, with no outlier in either direction.
+sessions all fifteen Whispers land between **2.36 and 3.50** average favour against a table average
+of **3.04** — a spread of 1.1 favour, with no outlier in either direction.
 
 A season runs a median of **11 sessions** with Whispers in play, **16** without.
 

@@ -17,10 +17,18 @@
   --card-face: #f3ead7;
   --card-black: #241c14;
   --card-red: #a8302c;
-  --agent-assassin: #2b2f38;
-  --agent-lover: #b03a34;
-  --agent-merchant: #96701c;
-  --agent-fool: #6a3d72;
+  /* Each agent has a face it is printed on and an ink it is printed in. The
+     face is the shade the watermark used to be; the ink is several steps
+     darker, so rank and mark stay crisp on it. */
+  --face-assassin: #ccd3de;  --ink-assassin: #1e2530;
+  --face-lover:    #f0cdc6;  --ink-lover:    #7c241e;
+  --face-merchant: #eeddb0;  --ink-merchant: #684d0e;
+  --face-fool:     #ded0e7;  --ink-fool:     #492851;
+  /* lifted versions for marks shown on the dark panels */
+  --agent-assassin: #9aa8bd;
+  --agent-lover: #d9776d;
+  --agent-merchant: #cfa848;
+  --agent-fool: #ac82b6;
   --radius: 12px;
   --shadow: 0 10px 30px rgba(0, 0, 0, .35);
   --pace: 180ms;
@@ -158,7 +166,16 @@ button, select { font: inherit; }
   border-radius: 20px;
   background: radial-gradient(ellipse at 50% 42%, var(--felt) 0%, var(--felt-dark) 78%);
   box-shadow: inset 0 0 0 1px rgba(217, 164, 65, .22), var(--shadow);
+  transition: background 600ms ease;
 }
+
+/* The table itself takes the colour of whoever holds sway, so the room tells
+   you which kind is dangerous before you have looked at anything else. */
+.felt.sway-none { --felt: #463a34; --felt-dark: #201a16; }
+.felt.sway-S    { --felt: #33404f; --felt-dark: #141b25; }
+.felt.sway-H    { --felt: #71232c; --felt-dark: #350f16; }
+.felt.sway-D    { --felt: #63501a; --felt-dark: #2a2208; }
+.felt.sway-C    { --felt: #4d2a58; --felt-dark: #211129; }
 
 .seat-north { grid-area: north; justify-self: center; }
 .seat-west  { grid-area: west;  align-self: center; }
@@ -246,7 +263,11 @@ button, select { font: inherit; }
   user-select: none;
 }
 
-.card.red { color: var(--card-red); }
+/* Every kind is printed on its own face, in its own ink. */
+.card.suit-S { background: var(--face-assassin); color: var(--ink-assassin); }
+.card.suit-H { background: var(--face-lover);    color: var(--ink-lover); }
+.card.suit-D { background: var(--face-merchant); color: var(--ink-merchant); }
+.card.suit-C { background: var(--face-fool);     color: var(--ink-fool); }
 
 .card .corner {
   position: absolute;
@@ -259,7 +280,7 @@ button, select { font: inherit; }
   font-variant-numeric: tabular-nums;
 }
 
-.card .corner i { font-style: normal; font-size: 11px; }
+.card .corner .emblem { width: 13px; height: 13px; margin-top: 1px; }
 .card .corner.tl { top: 5px; left: 5px; }
 .card .corner.br { bottom: 5px; right: 5px; transform: rotate(180deg); }
 
@@ -268,9 +289,9 @@ button, select { font: inherit; }
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: 30px;
-  line-height: 1;
 }
+
+.card .face .emblem { width: 46%; height: 46%; opacity: .92; }
 
 .card.back {
   background:
@@ -280,9 +301,9 @@ button, select { font: inherit; }
 
 .card.sm { width: 26px; height: 37px; border-radius: 4px; }
 .card.sm .corner { font-size: 9px; }
-.card.sm .corner i { font-size: 8px; }
+.card.sm .corner .emblem { width: 9px; height: 9px; }
 .card.sm .corner.br { display: none; }
-.card.sm .face { font-size: 14px; }
+.card.sm .face { display: none; }
 .card.sm.back { box-shadow: inset 0 0 0 1.5px #d9c9a4, 0 1px 4px rgba(0, 0, 0, .45); }
 
 /* --- trick area ----------------------------------------------------------- */
@@ -292,16 +313,21 @@ button, select { font: inherit; }
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 132px;
-  line-height: 1;
-  color: rgba(243, 234, 215, .08);
+  width: 190px;
+  height: 190px;
+  display: grid;
+  place-items: center;
+  color: rgba(243, 234, 215, .1);
   pointer-events: none;
 }
 
+.trump-medallion .emblem { width: 100%; height: 100%; }
+
 .trump-medallion.nt {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: .18em;
+  color: rgba(243, 234, 215, .12);
 }
 
 .trick {
@@ -370,6 +396,7 @@ button, select { font: inherit; }
 .hand .card {
   width: 68px;
   height: 96px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(0, 0, 0, .07);
   transition: transform var(--pace), box-shadow var(--pace), opacity var(--pace);
 }
 
@@ -446,23 +473,16 @@ button, select { font: inherit; }
 
 .target { color: var(--ink-faint); font-size: 12px; text-transform: none; letter-spacing: 0; }
 
-.suit-key, .trump-key, .rules-key { list-style: none; margin: 10px 0 0; padding: 0; }
+.trump-key, .rules-key { list-style: none; margin: 10px 0 0; padding: 0; }
 
-.suit-key {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 10px;
-}
-
-.suit-key li, .trump-key li {
+.trump-key li {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   font-size: 13.5px;
   color: var(--ink-dim);
 }
 
-.suit-key li b { margin-left: auto; color: var(--ink); }
 .trump-key li { padding: 3px 6px; border-radius: 6px; }
 .trump-key li b { color: var(--ink); min-width: 12px; }
 .trump-key .arrow { color: var(--ink-faint); }
@@ -483,13 +503,20 @@ button, select { font: inherit; }
 .rules-key li:last-child { border-bottom: 0; }
 .rules-key b { color: var(--ink); }
 
-.pip { font-size: 15px; }
-.pip.red { color: var(--card-red); }
-.pip.black { color: #e0d4c2; }
-.pip.agent-S { color: #8f9bb0; }
-.pip.agent-H { color: #d4645c; }
-.pip.agent-D { color: #c8a13f; }
-.pip.agent-C { color: #a173a9; }
+.emblem {
+  width: 1em;
+  height: 1em;
+  vertical-align: -.14em;
+  flex: 0 0 auto;
+}
+
+.agent { display: inline-flex; align-items: center; gap: .35em; white-space: nowrap; }
+.agent.big .emblem { width: 1.5em; height: 1.5em; }
+.agent-S { color: var(--agent-assassin); }
+.agent-H { color: var(--agent-lover); }
+.agent-D { color: var(--agent-merchant); }
+.agent-C { color: var(--agent-fool); }
+.agent b { color: inherit; }
 
 /* --- scoreboard ----------------------------------------------------------- */
 
@@ -733,30 +760,172 @@ button, select { font: inherit; }
 .whisper-box[hidden], #whispers-reference[hidden] { display: none; }
 
 
-/* --- agent watermarks ------------------------------------------------------
-   Every kind carries its own mark behind the face, in its own ink: a dagger
-   for the Assassin, a rose for the Lover, a balance for the Merchant, a cap
-   and bells for the Fool. Four inks rather than the usual two also stops the
-   two dark kinds reading alike at a glance. */
+/* --- the rulebook --------------------------------------------------------- */
 
-.card .watermark {
-  position: absolute;
-  inset: 9% 8%;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  opacity: .17;
-  pointer-events: none;
+body.reading { overflow: hidden; }
+
+.rulebook {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(6, 4, 3, .8);
+  backdrop-filter: blur(4px);
 }
 
-.card.sm .watermark { display: none; }
+.rulebook[hidden] { display: none; }
 
-.card.suit-S { color: var(--agent-assassin); }
-.card.suit-H { color: var(--agent-lover); }
-.card.suit-D { color: var(--agent-merchant); }
-.card.suit-C { color: var(--agent-fool); }
+.rulebook-shell {
+  display: flex;
+  flex-direction: column;
+  width: min(1040px, 100%);
+  max-height: 90vh;
+  border-radius: 16px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: rise 220ms ease-out;
+}
 
-.card.suit-S .watermark { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%232b2f38'%3E%3Cpath d='M50 6 L58 32 L58 60 L42 60 L42 32 Z'/%3E%3Crect x='27' y='60' width='46' height='8' rx='2'/%3E%3Crect x='45' y='68' width='10' height='18'/%3E%3Ccircle cx='50' cy='90' r='7'/%3E%3C/g%3E%3C/svg%3E"); }
-.card.suit-H .watermark { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23b03a34'%3E%3Ccircle cx='50' cy='26' r='14'/%3E%3Ccircle cx='72' cy='42' r='14'/%3E%3Ccircle cx='64' cy='66' r='14'/%3E%3Ccircle cx='36' cy='66' r='14'/%3E%3Ccircle cx='28' cy='42' r='14'/%3E%3Ccircle cx='50' cy='48' r='13'/%3E%3Crect x='46' y='66' width='8' height='28'/%3E%3C/g%3E%3C/svg%3E"); }
-.card.suit-D .watermark { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%2396701c'%3E%3Crect x='46' y='14' width='8' height='66'/%3E%3Crect x='16' y='24' width='68' height='7' rx='3'/%3E%3Cpath d='M6 32 L34 32 L20 54 Z'/%3E%3Cpath d='M66 32 L94 32 L80 54 Z'/%3E%3Crect x='28' y='80' width='44' height='8' rx='3'/%3E%3C/g%3E%3C/svg%3E"); }
-.card.suit-C .watermark { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%236a3d72'%3E%3Cpath d='M50 36 C33 36 21 48 21 64 L21 76 L79 76 L79 64 C79 48 67 36 50 36 Z'/%3E%3Crect x='24' y='28' width='7' height='24' transform='rotate(28 27 40)'/%3E%3Ccircle cx='16' cy='20' r='9'/%3E%3Crect x='69' y='28' width='7' height='24' transform='rotate(-28 73 40)'/%3E%3Ccircle cx='84' cy='20' r='9'/%3E%3Crect x='46' y='12' width='8' height='26'/%3E%3Ccircle cx='50' cy='9' r='9'/%3E%3C/g%3E%3C/svg%3E"); }
+.rulebook-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(217, 164, 65, .08), transparent);
+}
+
+.rulebook-head h2 { font-size: 21px; color: var(--accent); }
+.rulebook-sub { margin: 3px 0 0; font-size: 13px; color: var(--ink-faint); }
+
+.rulebook-body { display: flex; min-height: 0; flex: 1; }
+
+.rulebook-nav {
+  flex: 0 0 208px;
+  padding: 18px 12px 18px 18px;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rulebook-nav a {
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  color: var(--ink-dim);
+  text-decoration: none;
+}
+
+.rulebook-nav a:hover { background: var(--bg-sunken); color: var(--ink); }
+
+.rulebook-text {
+  flex: 1;
+  min-width: 0;
+  padding: 20px 30px 40px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.rulebook-text section { padding-top: 8px; margin-bottom: 30px; }
+.rulebook-text section:last-child { margin-bottom: 0; }
+
+.rulebook-text h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--accent);
+  letter-spacing: .01em;
+}
+
+.rulebook-text p { margin: 0 0 11px; font-size: 14px; line-height: 1.65; color: var(--ink-dim); }
+.rulebook-text p strong, .rulebook-text li strong { color: var(--ink); }
+.rulebook-text em { color: var(--ink); font-style: italic; }
+
+.rulebook-text ol, .rulebook-text ul { margin: 0 0 11px; padding-left: 22px; }
+.rulebook-text li { font-size: 14px; line-height: 1.6; color: var(--ink-dim); margin-bottom: 5px; }
+.rulebook-text li b { color: var(--ink); }
+
+.rule-note {
+  margin-top: 14px !important;
+  padding: 11px 14px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--bg-sunken);
+  font-size: 13px !important;
+}
+
+.rule-optional {
+  margin-left: 8px;
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  vertical-align: 2px;
+}
+
+.rule-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4px 0 14px;
+  font-size: 13.5px;
+}
+
+.rule-table th {
+  padding: 0 10px 7px 0;
+  text-align: right;
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--ink-faint);
+}
+
+.rule-table th.left, .rule-table td.left { text-align: left; }
+.rule-table td {
+  padding: 9px 10px 9px 0;
+  text-align: right;
+  border-top: 1px solid var(--line);
+  color: var(--ink-dim);
+  vertical-align: top;
+}
+
+.rule-table td:first-child { color: var(--ink); }
+
+.whisper-table td:first-child { width: 34%; }
+.whisper-flavour {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--ink-faint);
+}
+
+.rule-examples li { font-size: 13.5px; }
+.rule-summary li { margin-bottom: 7px; }
+
+@media (max-width: 760px) {
+  .rulebook { padding: 10px; }
+  .rulebook-body { flex-direction: column; }
+  .rulebook-nav {
+    flex: 0 0 auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .rulebook-nav a { background: var(--bg-sunken); font-size: 12px; padding: 5px 9px; }
+  .rulebook-text { padding: 16px 18px 30px; }
+}

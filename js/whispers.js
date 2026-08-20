@@ -74,18 +74,17 @@
     {
       id: 'audited',
       name: 'The Audited',
-      line: 'Send four Merchants, or every Merchant you hold if that is fewer. ' +
-        'Keep your pledge for +8.',
-      detail: 'The treasury has been through your books. Every purse you own is walking out ' +
-        'that door tonight.',
-      demand: 'every Merchant you hold must go out, up to four',
-      permits: (cards, hand) => {
-        const owed = Math.min(hand ? suitOf(hand, 'D').length : errands(), errands());
-        return suitOf(cards, 'D').length >= owed;
-      },
-      // Emptying a whole kind out of the hand costs more than it looks, and the
-      // pledge it leaves you with was never really your choice.
-      adjust: (favour, row) => (kept(row) ? favour + 8 : favour)
+      line: 'Send two Merchants and two Fools, which pledges exactly 2. ' +
+        'Keep it for +4.',
+      detail: 'The treasury has been through your books and found them wanting. Two purses go ' +
+        'out to be counted, and two Fools go with them to see that the counting is honest. ' +
+        'What you promise the court this session was never really your choice.',
+      demand: 'two Merchants and two Fools must go out',
+      permits: (cards) => suitOf(cards, 'D').length >= 2 && suitOf(cards, 'C').length >= 2,
+      satisfiable: (hand) => suitOf(hand, 'D').length >= 2 && suitOf(hand, 'C').length >= 2,
+      // A pledge of two is an easy one to land, so the reward for being handed
+      // it is modest.
+      adjust: (favour, row) => (kept(row) ? favour + 4 : favour)
     },
 
     // --- how your own result is scored --------------------------------------

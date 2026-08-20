@@ -236,22 +236,35 @@ ok('the Smitten refuses a set containing a Lover',
   !Whispers.permitsSet(smitten, hand('1C', '2C', '3C', '4H')));
 
 const audited = Whispers.BY_ID.audited;
-const fourPurses = hand('1D', '2D', '3D', '4D');
-const richHand = hand('1D', '2D', '3D', '4D', '5D', '1C', '2C', '3C', '4C',
-  '1S', '2S', '3S', '1H', '2H', '3H');
-ok('the Audited must empty four Merchants when it holds five',
-  Whispers.permitsSet(audited, fourPurses, richHand));
-ok('the Audited may not hold three back',
-  !Whispers.permitsSet(audited, hand('1D', '2D', '3D', '1C'), richHand));
-const twoPurses = hand('1D', '2D', '1C', '2C', '3C', '4C', '5C',
-  '1S', '2S', '3S', '4S', '1H', '2H', '3H', '4H');
-ok('the Audited owes only what it holds',
-  Whispers.permitsSet(audited, hand('1D', '2D', '1C', '2C'), twoPurses));
-ok('the Audited still owes every one of them',
-  !Whispers.permitsSet(audited, hand('1D', '1C', '2C', '3C'), twoPurses));
-check('four Merchants make a pledge of four', Rules.bidFromCards(fourPurses), 4);
-check('the Audited pays eight for a pledge kept',
-  Whispers.adjust(audited, 8, row({ bid: 4, tricksWon: 4, counted: 4 }), []), 16);
+const twoAndTwo = hand('7D', '2D', '9C', '3C');
+const balanced = hand('7D', '2D', '5D', '9C', '3C', '1C',
+  '1S', '2S', '3S', '4S', '1H', '2H', '3H', '4H', '5H');
+ok('the Audited accepts two Merchants and two Fools',
+  Whispers.permitsSet(audited, twoAndTwo, balanced));
+ok('the Audited refuses three Merchants and one Fool',
+  !Whispers.permitsSet(audited, hand('7D', '2D', '5D', '9C'), balanced));
+ok('the Audited refuses one Merchant and three Fools',
+  !Whispers.permitsSet(audited, hand('7D', '9C', '3C', '1C'), balanced));
+ok('the Audited refuses errands of any other kind',
+  !Whispers.permitsSet(audited, hand('7D', '2D', '9C', '4S'), balanced));
+check('two Merchants and two Fools pledge exactly two',
+  Rules.bidFromCards(twoAndTwo), 2);
+
+const noPurses = hand('1C', '2C', '3C', '4C', '5C', '6C', '7C', '8C',
+  '1S', '2S', '3S', '4S', '1H', '2H', '3H');
+ok('a hand short of Merchants cannot satisfy the Audited',
+  !Whispers.canSatisfy(audited, noPurses));
+ok('and so the demand is waived for it',
+  Whispers.permitsSet(audited, hand('1C', '2C', '3C', '4C'), noPurses));
+const noFools = hand('1D', '2D', '3D', '4D', '5D', '6D', '7D', '8D',
+  '1S', '2S', '3S', '4S', '1H', '2H', '3H');
+ok('a hand short of Fools cannot satisfy it either',
+  !Whispers.canSatisfy(audited, noFools));
+
+check('the Audited pays four for the pledge it was handed',
+  Whispers.adjust(audited, 4, row({ bid: 2, tricksWon: 2, counted: 2 }), []), 8);
+check('the Audited pays nothing for one broken',
+  Whispers.adjust(audited, -4, row({ bid: 2, made: false }), []), -4);
 
 // -- how your own result is scored
 const debtor = Whispers.BY_ID.debtor;

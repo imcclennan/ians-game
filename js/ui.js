@@ -13,6 +13,7 @@
 
   const dom = {
     meta: byId('topbar-meta'),
+    felt: byId('felt'),
     trick: byId('trick'),
     trickNote: byId('trick-note'),
     medallion: byId('trump-medallion'),
@@ -24,9 +25,8 @@
     historyBox: byId('history-box'),
     trumpKey: byId('trump-key'),
     whisperBox: byId('whisper-box'),
-    whisperList: byId('whisper-list'),
-    whispersReference: byId('whispers-reference'),
     whispersToggle: byId('whispers-toggle'),
+    rulebook: byId('rulebook'),
     targetNote: byId('target-note'),
     overlay: byId('overlay'),
     modal: byId('modal'),
@@ -54,12 +54,10 @@
     const node = document.createElement('div');
     node.className = 'card' + suitClass(card.suit) + (extra ? ' ' + extra : '');
     node.dataset.id = card.id;
-    const symbol = Cards.SUIT_SYMBOL[card.suit];
-    const corner = '<b>' + card.rank + '</b><i>' + symbol + '</i>';
+    const corner = '<b>' + card.rank + '</b>' + Cards.emblem(card.suit, 'nib');
     node.innerHTML =
-      '<span class="watermark"></span>' +
       '<span class="corner tl">' + corner + '</span>' +
-      '<span class="face">' + symbol + '</span>' +
+      '<span class="face">' + Cards.emblem(card.suit) + '</span>' +
       '<span class="corner br">' + corner + '</span>';
     node.setAttribute('aria-label', Cards.SUIT_ROLE[card.suit] + ' ' + card.rank);
     return node;
@@ -72,10 +70,16 @@
     return node;
   }
 
+  /** An agent's mark and name, inline, in that agent's ink. */
   function suitSpan(suit) {
     if (suit === null) return '<b>No Sway</b>';
-    return '<span class="pip agent-' + suit + '">' + Cards.SUIT_SYMBOL[suit] + '</span> <b>' +
-      Cards.SUIT_ROLE_PLURAL[suit] + '</b>';
+    return '<span class="agent agent-' + suit + '">' + Cards.emblem(suit) + ' <b>' +
+      Cards.SUIT_ROLE_PLURAL[suit] + '</b></span>';
+  }
+
+  /** The mark alone, for running text. */
+  function mark(suit) {
+    return '<span class="agent agent-' + suit + '">' + Cards.emblem(suit) + '</span>';
   }
 
   function chip(label, value, extra) {
@@ -202,13 +206,15 @@
       node.classList.toggle('won', won);
     }
 
+    dom.felt.className = 'felt sway-' + (state.trump === null ? 'none' : state.trump);
     dom.medallion.className = 'trump-medallion' + (state.trump === null ? ' nt' : '');
-    dom.medallion.textContent = state.trump === null ? 'NO SWAY' : Cards.SUIT_SYMBOL[state.trump];
+    dom.medallion.innerHTML = state.trump === null ? 'NO SWAY' : Cards.emblem(state.trump);
 
     if (state.phase === 'trickComplete') {
       const winner = state.players[state.trickResult.winner];
+      const took = state.trickResult.card;
       dom.trickNote.innerHTML = '<b>' + winner.name + '</b> takes audience ' + state.trickNumber +
-        ' with ' + Cards.describe(state.trickResult.card);
+        ' with ' + mark(took.suit) + ' ' + Cards.SUIT_ROLE[took.suit] + ' ' + took.rank;
     } else if (state.phase === 'playing' && state.trick.length === 0) {
       dom.trickNote.textContent = state.players[state.leader].name + ' opens';
     } else {
@@ -254,7 +260,7 @@
       const chosen = selection.map((id) => player.hand.find((card) => card.id === id));
       const total = Rules.bidFromCards(chosen);
       const breakdown = chosen.length
-        ? chosen.map((card) => Cards.SUIT_SYMBOL[card.suit] + Cards.BID_VALUE[card.suit]).join(' + ')
+        ? chosen.map((card) => mark(card.suit) + Cards.BID_VALUE[card.suit]).join(' + ')
         : '';
 
       const complete = selection.length === Rules.BID_CARDS;
@@ -308,7 +314,8 @@
 
     if (state.phase === 'bidding' && player.bid === null) {
       dom.prompt.innerHTML = 'Send out <b>four agents</b> to set your pledge. ' +
-        '<span class="hint">Assassin 3, Lover 2, Merchant 1, Fool 0 &mdash; and they are gone for the session.</span>';
+        '<span class="hint">' + mark('S') + ' 3, ' + mark('H') + ' 2, ' + mark('D') + ' 1, ' +
+        mark('C') + ' 0 &mdash; and they are gone for the session.</span>';
       return;
     }
 
@@ -316,7 +323,7 @@
       const led = Engine.ledSuit(state);
       const mustFollow = led && player.hand.some((card) => card.suit === led);
       dom.prompt.innerHTML = 'Your turn. ' + (mustFollow
-        ? '<span class="hint">You must answer with ' + Cards.SUIT_SYMBOL[led] + ' ' + Cards.SUIT_ROLE_PLURAL[led] + '.</span>'
+        ? '<span class="hint">You must answer with ' + mark(led) + ' ' + Cards.SUIT_ROLE_PLURAL[led] + '.</span>'
         : '<span class="hint">' + (led
             ? 'No ' + Cards.SUIT_ROLE_PLURAL[led] + ' left &mdash; send anyone, sway included.'
             : 'You open the audience &mdash; send anyone, sway included.') + '</span>');
@@ -376,10 +383,6 @@
     const player = state.players[Engine.HUMAN];
     const whisper = player.whisper;
 
-    // The reference list is worth keeping up whenever Whispers are in the game,
-    // since reading what a rival might be holding is half of playing them.
-    dom.whispersReference.hidden = !state.whispersOn && !whisper;
-
     if (!whisper) {
       dom.whisperBox.hidden = true;
       dom.whisperBox.innerHTML = '';
@@ -400,12 +403,6 @@
       '<p class="whisper-name">' + whisper.name + '</p>' +
       '<p class="whisper-line">' + whisper.line + '</p>' +
       '<p class="fine">' + whisper.detail + '</p>' + demand + waived;
-
-    if (!dom.whisperList.childElementCount) {
-      dom.whisperList.innerHTML = Whispers.ALL
-        .map((one) => '<li><b>' + one.name + '</b> ' + one.line + '</li>')
-        .join('');
-    }
   }
 
   function renderTrumpKey() {
@@ -425,8 +422,9 @@
     summary.rows.forEach((row, seat) => {
       const sign = row.points > 0 ? 'pos' : (row.points < 0 ? 'neg' : '');
       const cards = row.bidCards
-        .map((card) => '<span class="card sm' + suitClass(card.suit) + '" style="width:22px;height:31px">' +
-          '<span class="corner tl"><b>' + card.rank + '</b><i>' + Cards.SUIT_SYMBOL[card.suit] + '</i></span></span>')
+        .map((card) => '<span class="card sm' + suitClass(card.suit) + '">' +
+          '<span class="corner tl"><b>' + card.rank + '</b>' +
+          Cards.emblem(card.suit, 'nib') + '</span></span>')
         .join('');
       html += '<tr class="' + (state.players[seat].isHuman ? 'me' : '') + '">' +
         '<td>' + row.name +
@@ -451,6 +449,8 @@
     const summary = state.handSummary;
     let html = '';
 
+    const nextSteward = state.players[Rules.leftOf(state.dealer)];
+
     if (state.phase === 'handOver') {
       html += '<h2>Session ' + summary.handNumber + ' &middot; ' + Rules.trumpLabel(summary.trump) + '</h2>';
       html += '<p class="lede">' + MADE_WORDS[summary.madeCount] + ' kept their pledge exactly.</p>';
@@ -458,9 +458,10 @@
       html += '<div class="modal-note">' + MADE_WORDS[summary.madeCount] + ' kept their word, so ' +
         (summary.nextTrump === null
           ? 'the court sits at <b>No Sway</b> next session.'
-          : 'the <b>' + Cards.SUIT_ROLE_PLURAL[summary.nextTrump] + '</b> ' +
-            Cards.SUIT_SYMBOL[summary.nextTrump] + ' hold sway next session.') +
-        ' <b>' + state.players[Rules.leftOf(state.dealer)].name + '</b> becomes steward.</div>';
+          : 'the ' + suitSpan(summary.nextTrump) + ' hold sway next session.') +
+        ' ' + (nextSteward.isHuman
+          ? '<b>You</b> become steward.'
+          : '<b>' + nextSteward.name + '</b> becomes steward.') + '</div>';
       html += '<div class="modal-actions"><button type="button" class="btn" id="deal-next">Open session ' +
         (summary.handNumber + 1) + '</button></div>';
     } else {
@@ -493,6 +494,57 @@
     if (next) next.addEventListener('click', dealNextHand);
     const again = byId('play-again');
     if (again) again.addEventListener('click', startNewGame);
+  }
+
+  // --- the rulebook ---------------------------------------------------------
+
+  /**
+   * Fill in the three tables the rulebook shares with the game itself, so the
+   * written rules cannot drift from the code that enforces them.
+   */
+  function buildRulebook() {
+    const inks = {
+      S: 'graphite', H: 'crimson', D: 'antique gold', C: 'plum'
+    };
+    const agents = ['S', 'H', 'D', 'C'];
+
+    byId('rule-agents').innerHTML +=
+      agents.map((suit) => '<tr>' +
+        '<td class="left"><span class="agent agent-' + suit + '"><b>' +
+          Cards.SUIT_ROLE[suit] + '</b></span></td>' +
+        '<td><span class="agent agent-' + suit + ' big">' + Cards.emblem(suit) + '</span></td>' +
+        '<td>' + Cards.BID_VALUE[suit] + '</td>' +
+        '<td class="left">' + inks[suit] + '</td>' +
+        '</tr>').join('');
+
+    byId('rule-sway-table').innerHTML +=
+      Rules.SWAY_LADDER.map((suit, made) => '<tr>' +
+        '<td class="left">' + (made === 1 ? '1 noble' : made + ' nobles') + '</td>' +
+        '<td class="left">' + suitSpan(suit) + '</td>' +
+        '</tr>').join('');
+
+    byId('rule-whisper-table').innerHTML +=
+      Whispers.ALL.map((whisper) => '<tr>' +
+        '<td class="left"><b>' + whisper.name + '</b></td>' +
+        '<td class="left">' + whisper.line +
+          '<span class="whisper-flavour">' + whisper.detail + '</span></td>' +
+        '</tr>').join('');
+
+    byId('target-note');
+    for (const slot of document.querySelectorAll('#trump-key .slot')) {
+      slot.innerHTML = suitSpan(slot.dataset.agent);
+    }
+  }
+
+  function openRules() {
+    dom.rulebook.hidden = false;
+    document.body.classList.add('reading');
+    byId('close-rules').focus();
+  }
+
+  function closeRules() {
+    dom.rulebook.hidden = true;
+    document.body.classList.remove('reading');
   }
 
   // --- player actions -------------------------------------------------------
@@ -546,7 +598,7 @@
 
     if (!Engine.isLegalPlay(state, Engine.HUMAN, card)) {
       const led = Engine.ledSuit(state);
-      toast('You still hold ' + Cards.SUIT_ROLE_PLURAL[led] + ' ' + Cards.SUIT_SYMBOL[led] + ' and must answer with one.');
+      toast('You still hold ' + Cards.SUIT_ROLE_PLURAL[led] + ' and must answer with one.');
       return;
     }
 
@@ -616,6 +668,15 @@
     onHandActivate(event);
   });
 
+  byId('open-rules').addEventListener('click', openRules);
+  byId('close-rules').addEventListener('click', closeRules);
+  dom.rulebook.addEventListener('click', (event) => {
+    if (event.target === dom.rulebook) closeRules();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !dom.rulebook.hidden) closeRules();
+  });
+
   dom.whispersToggle.addEventListener('change', () => {
     const wanted = dom.whispersToggle.checked;
     state.whispersOn = wanted;
@@ -637,5 +698,6 @@
     startNewGame();
   });
 
+  buildRulebook();
   startNewGame();
 })();
