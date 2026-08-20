@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ian's Game — a bidding trick-taking card game</title>
+<meta name="description" content="A four-player trick-taking card game where you bid with three face-down cards and trump is decided by how the last hand went.">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#9824;</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Ian's Game</h1>
+  <div class="topbar-meta" id="topbar-meta"></div>
+  <div class="topbar-actions">
+    <label class="speed">
+      Speed
+      <select id="speed">
+        <option value="1100">Relaxed</option>
+        <option value="700" selected>Normal</option>
+        <option value="320">Quick</option>
+      </select>
+    </label>
+    <button type="button" class="btn btn-quiet" id="new-game">New game</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <main class="board">
+    <div class="felt">
+      <div class="seat seat-north" id="seat-2"></div>
+      <div class="seat seat-west" id="seat-1"></div>
+      <div class="seat seat-east" id="seat-3"></div>
+
+      <div class="center">
+        <div class="trump-medallion" id="trump-medallion"></div>
+        <div class="trick" id="trick"></div>
+        <div class="trick-note" id="trick-note"></div>
+      </div>
+    </div>
+
+    <div class="you">
+      <div class="seat seat-south" id="seat-0"></div>
+      <div class="hand-block">
+        <p class="prompt" id="prompt"></p>
+        <div class="hand" id="hand"></div>
+        <div class="hand-actions" id="hand-actions"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="panel">
+    <section class="card-box">
+      <h2>Score <span class="target" id="target-note"></span></h2>
+      <table class="scoreboard" id="scoreboard"></table>
+    </section>
+
+    <details class="card-box" open>
+      <summary><h2>How bidding works</h2></summary>
+      <p>Choose <strong>three cards</strong> and lay them face down. Their <em>suits</em> add up to
+        the number of tricks you are bidding — the ranks are ignored.</p>
+      <ul class="suit-key">
+        <li><span class="pip black">&spades;</span> Spades <b>3</b></li>
+        <li><span class="pip red">&hearts;</span> Hearts <b>2</b></li>
+        <li><span class="pip red">&diams;</span> Diamonds <b>1</b></li>
+        <li><span class="pip black">&clubs;</span> Clubs <b>0</b></li>
+      </ul>
+      <p class="fine">Your bid stays secret until the hand ends, and those three cards are out of
+        play — so ten tricks are up for grabs and the highest possible bid is nine.</p>
+    </details>
+
+    <details class="card-box" open>
+      <summary><h2>How trump is chosen</h2></summary>
+      <p>Trump for each hand depends on how many of the four players <strong>made their bid
+        exactly</strong> in the hand before.</p>
+      <ul class="trump-key" id="trump-key">
+        <li data-made="0"><b>0</b> players <span class="arrow">&rarr;</span> <span class="pip black">&clubs;</span> Clubs</li>
+        <li data-made="1"><b>1</b> player <span class="arrow">&rarr;</span> <span class="pip red">&diams;</span> Diamonds</li>
+        <li data-made="2"><b>2</b> players <span class="arrow">&rarr;</span> <span class="pip red">&hearts;</span> Hearts</li>
+        <li data-made="3"><b>3</b> players <span class="arrow">&rarr;</span> <span class="pip black">&spades;</span> Spades</li>
+        <li data-made="4"><b>4</b> players <span class="arrow">&rarr;</span> No Trump</li>
+      </ul>
+      <p class="fine">The first hand of every game is played at No Trump.</p>
+    </details>
+
+    <details class="card-box" open>
+      <summary><h2>How scoring works</h2></summary>
+      <ul class="rules-key">
+        <li><b>Bid exactly right</b> — 2 points for every trick you won.</li>
+        <li><b>Bid wrong</b> — 1 point per trick won, minus 2 for every trick you were off.</li>
+        <li><b>Bid zero</b> — <b>+5</b> if you take no tricks at all, <b>&minus;5</b> if you take any.</li>
+      </ul>
+      <p class="fine">Bid 5 and win 4 &rarr; 4 &minus; 2 = <b>2</b>. Bid 3 and win 6 &rarr; 6 &minus; 6 = <b>0</b>.</p>
+    </details>
+
+    <details class="card-box" id="history-box">
+      <summary><h2>Hand history</h2></summary>
+      <div id="history"></div>
+    </details>
+  </aside>
+
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/cards.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

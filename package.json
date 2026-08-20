@@ -1,0 +1,11 @@
+{
+  "name": "ians-game",
+  "version": "1.0.0",
+  "description": "A four-player trick-taking card game where you bid with three face-down cards and trump is set by how the last hand went.",
+  "private": true,
+  "scripts": {
+    "start": "node serve.js",
+    "test": "node test/rules.test.js"
+  },
+  "license": "MIT"
+}
