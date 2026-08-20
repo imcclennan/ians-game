@@ -123,7 +123,7 @@ check('the ruling suit reads as its agents', Rules.trumpLabel('C'), 'Fools');
 check('fifteen agents are dealt to each noble', Rules.HAND_SIZE, 15);
 check('four go out on errands', Rules.BID_CARDS, 4);
 check('eleven audiences remain', Rules.TRICKS_PER_HAND, 11);
-check('the season is won at forty favour', Rules.TARGET_SCORE, 40);
+check('the season is won at fifty favour', Rules.TARGET_SCORE, 50);
 check('the whole deck is dealt out',
   Rules.HAND_SIZE * Rules.PLAYER_COUNT, Cards.makeDeck().length);
 
@@ -185,100 +185,216 @@ check('the standings sort by the same order',
 
 // --- whispers --------------------------------------------------------------
 
-check('there are eight whispers', Whispers.ALL.length, 8);
+check('there are fifteen whispers', Whispers.ALL.length, 15);
 check('every whisper is uniquely named',
   new Set(Whispers.ALL.map((w) => w.name)).size, Whispers.ALL.length);
+check('every whisper has a unique id',
+  new Set(Whispers.ALL.map((w) => w.id)).size, Whispers.ALL.length);
 for (const whisper of Whispers.ALL) {
   ok(whisper.name + ' explains itself in one line',
     typeof whisper.line === 'string' && whisper.line.length > 0);
-  ok(whisper.name + ' says why it matters', typeof whisper.detail === 'string');
-  ok(whisper.name + ' carries a demand only if it restricts errands',
+  ok(whisper.name + ' says why it matters',
+    typeof whisper.detail === 'string' && whisper.detail.length > 0);
+  ok(whisper.name + ' carries a demand exactly when it restricts errands',
     !whisper.demand === (!whisper.allows && !whisper.permits));
 }
 
-const noWhisperRow = { bid: 3, tricksWon: 3, counted: 3, made: true };
-check('no whisper leaves favour alone', Whispers.adjust(null, 6, noWhisperRow, [noWhisperRow]), 6);
+const plainRow = { seat: 0, bid: 3, tricksWon: 3, counted: 3, made: true, takenWith: [] };
+check('no whisper leaves favour alone', Whispers.adjust(null, 6, plainRow, [plainRow]), 6);
 check('no whisper leaves the count alone', Whispers.countedTricks(null, 4), 4);
 check('no whisper lets any agent go', Whispers.allowsCard(null, card('15S')), true);
+check('no whisper keeps the ordinary test', Whispers.wasKept(null, plainRow, [plainRow]), true);
 
-const contrarian = Whispers.BY_ID.contrarian;
-check('a Contrarian counts what it did not win', Whispers.countedTricks(contrarian, 3), 8);
-check('a Contrarian aims at the complement of its pledge', Whispers.aimFor(contrarian, 8), 3);
-check('a Contrarian pledges the complement of its strength',
-  Whispers.pledgeFor(contrarian, 3), 8);
-check('a Contrarian who pledged eight and won three is paid as a kept three',
-  Whispers.adjust(contrarian, 0, { bid: 8, tricksWon: 3, counted: 8, made: true }, []),
-  Rules.scoreHand(3, 3));
-check('a Contrarian who wins too many is paid as a missed three',
-  Whispers.adjust(contrarian, 0, { bid: 8, tricksWon: 5, counted: 6, made: false }, []),
-  Rules.scoreHand(3, 5));
+function row(fields) {
+  return Object.assign(
+    { seat: 0, bid: 3, tricksWon: 3, counted: 3, made: true, takenWith: [] }, fields);
+}
 
-const ascetic = Whispers.BY_ID.ascetic;
-check('an Ascetic who pledges nothing and keeps it takes twelve',
-  Whispers.adjust(ascetic, 5, { bid: 0, tricksWon: 0, counted: 0, made: true }, []), 12);
-check('an Ascetic who breaks it loses only three',
-  Whispers.adjust(ascetic, -9, { bid: 0, tricksWon: 3, counted: 3, made: false }, []), -3);
-check('an Ascetic who pledged something is scored normally',
-  Whispers.adjust(ascetic, 6, { bid: 3, tricksWon: 3, counted: 3, made: true }, []), 6);
-
-const debtor = Whispers.BY_ID.debtor;
-check('a Debtor earns nothing for a small kept pledge',
-  Whispers.adjust(debtor, 4, { bid: 2, tricksWon: 2, counted: 2, made: true }, []), 0);
-check('a Debtor is paid extra for a real one',
-  Whispers.adjust(debtor, 8, { bid: 4, tricksWon: 4, counted: 4, made: true }, []), 11);
-check('a Debtor who breaks the pledge is scored normally',
-  Whispers.adjust(debtor, -4, { bid: 2, tricksWon: 0, counted: 0, made: false }, []), -4);
-
+// -- what you may send
 const blackmailed = Whispers.BY_ID.blackmailed;
 ok('Blackmailed refuses errands with no Assassin',
   !Whispers.permitsSet(blackmailed, hand('1C', '2C', '3C', '4C'), hand('1C', '2C', '3C', '4S')));
 ok('Blackmailed accepts errands with one',
   Whispers.permitsSet(blackmailed, hand('1C', '2C', '3C', '4S'), hand('1C', '2C', '3C', '4S')));
-ok('Blackmailed is waived on a hand with no Assassin at all',
+ok('Blackmailed is waived on a hand holding no Assassin',
   Whispers.permitsSet(blackmailed, hand('1C', '2C', '3C', '4C'), hand('1C', '2C', '3C', '4C')));
-ok('a hand with no Assassin cannot satisfy Blackmailed',
-  !Whispers.canSatisfy(blackmailed, hand('1C', '2C', '3C', '4C')));
+check('Blackmailed pays five for a pledge kept',
+  Whispers.adjust(blackmailed, 6, row({}), []), 11);
+check('Blackmailed pays nothing for one broken',
+  Whispers.adjust(blackmailed, -2, row({ made: false }), []), -2);
 
 const silenced = Whispers.BY_ID.silenced;
 ok('Sworn to Silence forbids an Assassin', !Whispers.allowsCard(silenced, card('9S')));
-ok('Sworn to Silence permits everyone else', Whispers.allowsCard(silenced, card('9H')));
+ok('Sworn to Silence permits every other kind', Whispers.allowsCard(silenced, card('9H')));
 ok('Sworn to Silence refuses a set containing one',
   !Whispers.permitsSet(silenced, hand('1C', '2C', '3C', '4S')));
 
+const smitten = Whispers.BY_ID.smitten;
+ok('the Smitten will not send a Lover', !Whispers.allowsCard(smitten, card('9H')));
+ok('the Smitten will send anyone else', Whispers.allowsCard(smitten, card('9S')));
+ok('the Smitten refuses a set containing a Lover',
+  !Whispers.permitsSet(smitten, hand('1C', '2C', '3C', '4H')));
+
+const audited = Whispers.BY_ID.audited;
+const fourPurses = hand('1D', '2D', '3D', '4D');
+const richHand = hand('1D', '2D', '3D', '4D', '5D', '1C', '2C', '3C', '4C',
+  '1S', '2S', '3S', '1H', '2H', '3H');
+ok('the Audited must empty four Merchants when it holds five',
+  Whispers.permitsSet(audited, fourPurses, richHand));
+ok('the Audited may not hold three back',
+  !Whispers.permitsSet(audited, hand('1D', '2D', '3D', '1C'), richHand));
+const twoPurses = hand('1D', '2D', '1C', '2C', '3C', '4C', '5C',
+  '1S', '2S', '3S', '4S', '1H', '2H', '3H', '4H');
+ok('the Audited owes only what it holds',
+  Whispers.permitsSet(audited, hand('1D', '2D', '1C', '2C'), twoPurses));
+ok('the Audited still owes every one of them',
+  !Whispers.permitsSet(audited, hand('1D', '1C', '2C', '3C'), twoPurses));
+check('four Merchants make a pledge of four', Rules.bidFromCards(fourPurses), 4);
+check('the Audited pays eight for a pledge kept',
+  Whispers.adjust(audited, 8, row({ bid: 4, tricksWon: 4, counted: 4 }), []), 16);
+
+// -- how your own result is scored
+const debtor = Whispers.BY_ID.debtor;
+check('a Debtor earns nothing for a small kept pledge',
+  Whispers.adjust(debtor, 4, row({ bid: 2, tricksWon: 2, counted: 2 }), []), 0);
+check('a Debtor is paid extra for a real one',
+  Whispers.adjust(debtor, 8, row({ bid: 4, tricksWon: 4, counted: 4 }), []), 11);
+check('a Debtor who breaks the pledge is scored normally',
+  Whispers.adjust(debtor, -4, row({ bid: 2, made: false }), []), -4);
+
+const allOrNothing = Whispers.BY_ID.allOrNothing;
+check('All or Nothing doubles a pledge kept',
+  Whispers.adjust(allOrNothing, 8, row({}), []), 16);
+check('All or Nothing zeroes a pledge broken',
+  Whispers.adjust(allOrNothing, -9, row({ made: false }), []), 0);
+check('All or Nothing cannot turn a loss into a gain',
+  Whispers.adjust(allOrNothing, -20, row({ made: false }), []), 0);
+
+const clerk = Whispers.BY_ID.clerk;
+check('the Clerk cannot lose favour', Whispers.adjust(clerk, -12, row({}), []), 0);
+check('the Clerk is capped at six', Whispers.adjust(clerk, 22, row({}), []), 6);
+check('the Clerk keeps a modest gain', Whispers.adjust(clerk, 4, row({}), []), 4);
+
+// -- how you compare to the table
 const bold = Whispers.BY_ID.bold;
-const boldTable = [{ bid: 6 }, { bid: 4 }, { bid: 2 }, { bid: 1 }];
+const spread = [row({ seat: 0, bid: 6 }), row({ seat: 1, bid: 4 }),
+  row({ seat: 2, bid: 2 }), row({ seat: 3, bid: 1 })];
 check('the Bold are paid for the highest pledge outright',
-  Whispers.adjust(bold, 3, boldTable[0], boldTable), 8);
+  Whispers.adjust(bold, 3, spread[0], spread), 8);
 check('the Bold are paid nothing for a middling pledge',
-  Whispers.adjust(bold, 3, boldTable[1], boldTable), 3);
-const tiedTop = [{ bid: 6 }, { bid: 6 }, { bid: 2 }, { bid: 1 }];
+  Whispers.adjust(bold, 3, spread[1], spread), 3);
+const tiedTop = [row({ bid: 6 }), row({ bid: 6 }), row({ bid: 2 }), row({ bid: 1 })];
 check('a tie at the top pays the Bold nothing',
   Whispers.adjust(bold, 3, tiedTop[0], tiedTop), 3);
 
 const meek = Whispers.BY_ID.meek;
-const meekTable = [{ bid: 6, counted: 6, made: true }, { bid: 4 }, { bid: 1 }, { bid: 1 }];
 check('the Meek are docked for a pledge tied at the floor',
-  Whispers.adjust(meek, 2, meekTable[2], meekTable), -2);
+  Whispers.adjust(meek, 2, row({ bid: 1, made: false }), spread.concat([row({ bid: 1 })])), -2);
 check('the Meek keep their pledge for four',
-  Whispers.adjust(meek, 2, meekTable[0], meekTable), 6);
+  Whispers.adjust(meek, 2, spread[0], spread), 6);
 
 const kingmaker = Whispers.BY_ID.kingmaker;
 const courtInRuins = [
-  { bid: 3, counted: 3, made: true },
-  { bid: 4, counted: 2, made: false },
-  { bid: 2, counted: 5, made: false },
-  { bid: 1, counted: 1, made: true }
+  row({ seat: 0, bid: 3, made: true }),
+  row({ seat: 1, bid: 4, made: false }),
+  row({ seat: 2, bid: 2, made: false }),
+  row({ seat: 3, bid: 1, made: true })
 ];
 check('a Kingmaker profits from every broken word but their own',
   Whispers.adjust(kingmaker, 6, courtInRuins[0], courtInRuins), 10);
 check('a Kingmaker who broke their own word profits from none of it',
   Whispers.adjust(kingmaker, 1, courtInRuins[1], courtInRuins), 1);
 
-// Dealing hands out four at a time should never repeat a whisper.
+const favourite = Whispers.BY_ID.favourite;
+const audienceCount = [row({ tricksWon: 6 }), row({ tricksWon: 3 }),
+  row({ tricksWon: 1 }), row({ tricksWon: 1 })];
+check('the Favourite is paid for taking the most, outright',
+  Whispers.adjust(favourite, 4, audienceCount[0], audienceCount), 10);
+check('the Favourite is paid nothing for second place',
+  Whispers.adjust(favourite, 4, audienceCount[1], audienceCount), 4);
+const tiedMost = [row({ tricksWon: 5 }), row({ tricksWon: 5 }), row({ tricksWon: 1 })];
+check('sharing the lead pays the Favourite nothing',
+  Whispers.adjust(favourite, 4, tiedMost[0], tiedMost), 4);
+
+const wallflower = Whispers.BY_ID.wallflower;
+const quiet = [row({ tricksWon: 6 }), row({ tricksWon: 3 }),
+  row({ tricksWon: 2 }), row({ tricksWon: 0 })];
+check('the Wallflower is paid for taking the fewest, outright',
+  Whispers.adjust(wallflower, 1, quiet[3], quiet), 7);
+check('the Wallflower is paid nothing for second quietest',
+  Whispers.adjust(wallflower, 1, quiet[2], quiet), 1);
+const tiedFewest = [row({ tricksWon: 5 }), row({ tricksWon: 1 }), row({ tricksWon: 1 })];
+check('sharing the silence pays the Wallflower nothing',
+  Whispers.adjust(wallflower, 1, tiedFewest[1], tiedFewest), 1);
+
+// -- how you win audiences
+const swornToFool = Whispers.BY_ID.swornToFool;
+check('Sworn to the Fool pays three an audience taken with one',
+  Whispers.adjust(swornToFool, 4, row({ takenWith: hand('9C', '2C', '15S') }), []), 10);
+check('Sworn to the Fool pays nothing for the others',
+  Whispers.adjust(swornToFool, 4, row({ takenWith: hand('9S', '2H', '15D') }), []), 4);
+check('Sworn to the Fool would rather win with a Fool',
+  Whispers.favouredSuit(swornToFool), 'C');
+check('nobody else has a favoured kind',
+  Whispers.ALL.filter((w) => w.favouredSuit).length, 1);
+
+// -- inversion and misdirection
+const contrarian = Whispers.BY_ID.contrarian;
+check('a Contrarian counts what it did not win', Whispers.countedTricks(contrarian, 3), 8);
+check('a Contrarian aims at the complement of its pledge', Whispers.aimFor(contrarian, 8), 3);
+check('a Contrarian pledges the complement of its strength',
+  Whispers.pledgeFor(contrarian, 3), 8);
+check('a Contrarian who pledged eight and won three is paid as a kept three, plus two',
+  Whispers.adjust(contrarian, 0, row({ bid: 8, tricksWon: 3, counted: 8, made: true }), []),
+  Rules.scoreHand(3, 3) + 2);
+check('a Contrarian who wins too many is paid as a missed three',
+  Whispers.adjust(contrarian, 0, row({ bid: 8, tricksWon: 5, counted: 6, made: false }), []),
+  Rules.scoreHand(3, 5));
+
+const understudy = Whispers.BY_ID.understudy;
+const stage = [
+  row({ seat: 0, bid: 2, tricksWon: 5, counted: 5 }),
+  row({ seat: 1, bid: 5, tricksWon: 3, counted: 3 }),
+  row({ seat: 2, bid: 1, tricksWon: 2, counted: 2 }),
+  row({ seat: 3, bid: 4, tricksWon: 1, counted: 1 })
+];
+check('an Understudy is judged against the noble on their left',
+  Whispers.wasKept(understudy, stage[0], stage), true);
+check('an Understudy who matches their own pledge instead has missed',
+  Whispers.wasKept(understudy, stage[2], stage), false);
+check('an Understudy who hits the borrowed number takes the pair of bonuses',
+  Whispers.adjust(understudy, 0, Object.assign({}, stage[0], { made: true }), stage),
+  Rules.scoreHand(5, 5) + 3 + 5);
+check('an Understudy who misses it takes only the three',
+  Whispers.adjust(understudy, 0, Object.assign({}, stage[2], { made: false }), stage),
+  Rules.scoreHand(4, 2) + 3);
+
+// Dealing four at a time should never repeat a whisper.
 for (let seed = 1; seed <= 50; seed++) {
   const dealt = Whispers.deal(Rules.PLAYER_COUNT, seededRandom(seed));
   check('four whispers are dealt', dealt.length, Rules.PLAYER_COUNT);
   check('no two nobles share a whisper', new Set(dealt.map((w) => w.id)).size, Rules.PLAYER_COUNT);
+}
+
+// Whispers are optional, and the game must be whole without them.
+const plainGame = Engine.createGame({ dealer: 0, rng: seededRandom(4242), whispers: false });
+plainGame.players[0].isHuman = false;
+Engine.startHand(plainGame);
+ok('no whispers are dealt when they are switched off',
+  plainGame.players.every((player) => player.whisper === null));
+Engine.submitComputerBids(plainGame);
+Engine.beginPlay(plainGame);
+while (plainGame.phase === 'playing' || plainGame.phase === 'trickComplete') {
+  if (plainGame.phase === 'playing') Engine.playComputerCard(plainGame);
+  else Engine.completeTrick(plainGame);
+}
+for (const summary of plainGame.history) {
+  for (const plainSession of summary.rows) {
+    check('without whispers the count is simply the audiences won',
+      plainSession.counted, plainSession.tricksWon);
+    check('without whispers favour is exactly the rules',
+      plainSession.points, Rules.scoreHand(plainSession.bid, plainSession.tricksWon));
+  }
 }
 
 // --- seating ---------------------------------------------------------------
@@ -374,8 +490,10 @@ for (let seed = 1; seed <= 20; seed++) {
         row.counted, Whispers.countedTricks(row.whisper, row.tricksWon));
       check('the base favour follows the rules for ' + row.bid + ' / ' + row.counted,
         row.base, Rules.scoreHand(row.bid, row.counted));
-      check('keeping the pledge means counted equals pledged',
-        row.made, row.bid === row.counted);
+      check('the whisper decides whether the pledge was kept',
+        row.made, Whispers.wasKept(row.whisper, row, summary.rows));
+      check('the audiences taken match what they were taken with',
+        row.takenWith.length, row.tricksWon);
     }
   }
 }

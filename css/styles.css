@@ -719,3 +719,7 @@ button, select { font: inherit; }
 .hand .card.forbidden:hover { transform: none; }
 
 .bid-readout .warn { color: var(--accent); }
+
+.speed.toggle { gap: 5px; cursor: pointer; }
+.speed.toggle input { accent-color: var(--accent); cursor: pointer; margin: 0; }
+.whisper-box[hidden], #whispers-reference[hidden] { display: none; }

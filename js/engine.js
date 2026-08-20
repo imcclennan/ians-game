@@ -34,6 +34,7 @@
         bid: null,
         whisper: null,
         tricksWon: 0,
+        takenWith: [],
         score: 0
       })),
       human: HUMAN,
@@ -55,6 +56,7 @@
       history: [],
       winners: [],
       winReason: null,
+      whispersOn: settings.whispers === undefined ? true : !!settings.whispers,
       target: settings.target || Rules.TARGET_SCORE,
       rng: settings.rng || Math.random
     };
@@ -63,7 +65,9 @@
   /** Shuffle, deal fifteen to each noble, and open the pledging. */
   function startHand(state) {
     const deck = Cards.shuffle(Cards.makeDeck(), state.rng);
-    const whispers = Whispers.deal(Rules.PLAYER_COUNT, state.rng);
+    const whispers = state.whispersOn
+      ? Whispers.deal(Rules.PLAYER_COUNT, state.rng)
+      : [];
 
     state.handNumber += 1;
     if (state.handNumber > 1) state.dealer = Rules.leftOf(state.dealer);
@@ -73,8 +77,9 @@
       player.hand = deck.slice(seat * Rules.HAND_SIZE, (seat + 1) * Rules.HAND_SIZE);
       player.bidCards = [];
       player.bid = null;
-      player.whisper = whispers[seat];
+      player.whisper = whispers[seat] || null;
       player.tricksWon = 0;
+      player.takenWith = [];
     });
 
     state.phase = 'bidding';
@@ -187,6 +192,7 @@
     if (state.phase !== 'trickComplete') return state;
     const winner = state.trickResult.winner;
     state.players[winner].tricksWon += 1;
+    state.players[winner].takenWith.push(state.trickResult.card);
     state.lastTrick = { plays: state.trick.slice(), winner: winner, number: state.trickNumber };
     state.trick = [];
     state.trickResult = null;
@@ -204,25 +210,33 @@
 
   /** Score the session, work out who holds sway next, and check for a winner. */
   function finishHand(state) {
-    // First pass: what each noble's Whisper says their audiences came to, and
-    // therefore whether the pledge was kept at all.
-    const rows = state.players.map((player) => {
+    // Pass one: what each noble's Whisper says their audiences came to.
+    const rows = state.players.map((player, seat) => {
       const counted = Whispers.countedTricks(player.whisper, player.tricksWon);
       return {
+        seat: seat,
         name: player.name,
         bid: player.bid,
         tricksWon: player.tricksWon,
         counted: counted,
-        made: Rules.madeBid(player.bid, counted),
+        takenWith: player.takenWith.slice(),
         whisper: player.whisper,
-        base: Rules.scoreHand(player.bid, counted),
         bidCards: player.bidCards.slice(),
+        made: false,
+        base: 0,
         points: 0,
         total: 0
       };
     });
 
-    // Second pass: Whispers that read the whole table can only settle up now.
+    // Pass two: whether each pledge counts as kept. An Understudy is judged
+    // against a promise that is not their own, so this needs the whole table.
+    for (const row of rows) {
+      row.made = Whispers.wasKept(row.whisper, row, rows);
+      row.base = Rules.scoreHand(row.bid, row.counted);
+    }
+
+    // Pass three: Whispers that read the whole table can only settle up now.
     rows.forEach((row, seat) => {
       row.points = Whispers.adjust(row.whisper, row.base, row, rows);
       state.players[seat].score += row.points;
@@ -234,6 +248,7 @@
     state.handSummary = {
       handNumber: state.handNumber,
       trump: state.trump,
+      whispersOn: state.whispersOn,
       madeCount: madeCount,
       nextTrump: state.nextTrump,
       rows: rows

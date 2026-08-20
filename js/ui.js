@@ -25,6 +25,8 @@
     trumpKey: byId('trump-key'),
     whisperBox: byId('whisper-box'),
     whisperList: byId('whisper-list'),
+    whispersReference: byId('whispers-reference'),
+    whispersToggle: byId('whispers-toggle'),
     targetNote: byId('target-note'),
     overlay: byId('overlay'),
     modal: byId('modal'),
@@ -372,10 +374,17 @@
   function renderWhisper() {
     const player = state.players[Engine.HUMAN];
     const whisper = player.whisper;
+
+    // The reference list is worth keeping up whenever Whispers are in the game,
+    // since reading what a rival might be holding is half of playing them.
+    dom.whispersReference.hidden = !state.whispersOn && !whisper;
+
     if (!whisper) {
+      dom.whisperBox.hidden = true;
       dom.whisperBox.innerHTML = '';
       return;
     }
+    dom.whisperBox.hidden = false;
 
     const bound = Whispers.canSatisfy(whisper, player.hand.concat(player.bidCards));
     const demand = whisper.demand && bound
@@ -565,7 +574,7 @@
   function startNewGame() {
     clearTimeout(timer);
     timer = null;
-    state = Engine.createGame();
+    state = Engine.createGame({ whispers: dom.whispersToggle.checked });
     Engine.startHand(state);
     selection = [];
     renderedTrick = [];
@@ -604,6 +613,17 @@
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
     onHandActivate(event);
+  });
+
+  dom.whispersToggle.addEventListener('change', () => {
+    const wanted = dom.whispersToggle.checked;
+    state.whispersOn = wanted;
+    // Whispers are dealt with the cards, so a change lands on the next session
+    // rather than rewriting one already in progress.
+    const midSession = state.phase !== 'handOver' && state.phase !== 'gameOver';
+    toast('Whispers ' + (wanted ? 'on' : 'off') +
+      (midSession ? ' from the next session.' : ' from here.'));
+    render();
   });
 
   dom.speed.addEventListener('change', () => { pace = Number(dom.speed.value); });

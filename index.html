@@ -14,6 +14,10 @@
   <h1>The Fool's Court</h1>
   <div class="topbar-meta" id="topbar-meta"></div>
   <div class="topbar-actions">
+    <label class="speed toggle">
+      <input type="checkbox" id="whispers-toggle" checked>
+      Whispers
+    </label>
     <label class="speed">
       Pace
       <select id="speed">
@@ -101,10 +105,10 @@
       <p class="fine">Pledge 5, win 4 &rarr; 4 &minus; 2 = <b>2</b>. Pledge 3, win 6 &rarr; 6 &minus; 6 = <b>0</b>.</p>
     </details>
 
-    <details class="card-box">
+    <details class="card-box" id="whispers-reference">
       <summary><h2>The Whispers</h2></summary>
       <p>Every session the monarch has a private word with each noble. Yours is shown above; the
-        other three are sealed until the session ends. One of these eight, and no two alike:</p>
+        other three are sealed until the session ends. One of these fifteen, and no two alike:</p>
       <ul class="whisper-list" id="whisper-list"></ul>
     </details>
 

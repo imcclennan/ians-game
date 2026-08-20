@@ -109,7 +109,7 @@
 
       const candidate = { cards: combo, bid: bid, cost: cost };
       if (!fallback || cost < fallback.cost) fallback = candidate;
-      if (bound && !Whispers.permitsSet(whisper, combo)) continue;
+      if (bound && !Whispers.permitsSet(whisper, combo, hand)) continue;
       if (!best || cost < best.cost) best = candidate;
     }
     return (best || fallback).cards;
@@ -152,6 +152,14 @@
 
   function chooseLead(legal, ctx) {
     const { trump, seen, hand, wantsTrick } = ctx;
+    const favoured = Whispers.favouredSuit(ctx.whisper);
+
+    if (wantsTrick && favoured) {
+      // Lead a Fool we can actually win with, if we hold one.
+      const winners = Cards.cardsOfSuit(legal, favoured)
+        .filter((card) => isTopOutstanding(card, seen));
+      if (winners.length) return winners.reduce((a, b) => (b.value > a.value ? b : a));
+    }
 
     if (!wantsTrick) {
       // Bid already filled: lead something small and hope to duck.
@@ -179,6 +187,7 @@
 
   function chooseFollow(legal, ctx) {
     const { trick, trump, seen, wantsTrick } = ctx;
+    const favoured = Whispers.favouredSuit(ctx.whisper);
     const seatsAfterUs = Rules.PLAYER_COUNT - 1 - trick.length;
 
     const wouldWin = (card) => {
@@ -191,10 +200,12 @@
 
     if (wantsTrick) {
       if (!winners.length) return cheapest(losers, trump);
-      if (seatsAfterUs === 0) return cheapest(winners, trump);
-      const safe = winners.filter((card) => isTopOutstanding(card, seen));
+      const wanted = favoured ? winners.filter((card) => card.suit === favoured) : [];
+      const pool = wanted.length ? wanted : winners;
+      if (seatsAfterUs === 0) return cheapest(pool, trump);
+      const safe = pool.filter((card) => isTopOutstanding(card, seen));
       if (safe.length) return cheapest(safe, trump);
-      return seatsAfterUs === 1 ? cheapest(winners, trump) : dearest(winners, trump);
+      return seatsAfterUs === 1 ? cheapest(pool, trump) : dearest(pool, trump);
     }
 
     // Bid already filled: shed the biggest card that cannot win the trick.

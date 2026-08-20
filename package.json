@@ -1,7 +1,7 @@
 {
   "name": "ians-game",
   "version": "1.0.0",
-  "description": "The Fool's Court: four nobles compete for the monarch's ear, pledging audiences with four face-down agents while sway passes to whoever the court failed.",
+  "description": "The Fool's Court: four nobles compete for the monarch's ear, pledging audiences with four face-down agents, under a Whisper only they can read.",
   "private": true,
   "scripts": {
     "start": "node serve.js",

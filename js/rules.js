@@ -10,7 +10,7 @@
   const HAND_SIZE = 15;      // cards dealt to each noble
   const BID_CARDS = 4;       // agents sent out on errands, face down
   const TRICKS_PER_HAND = HAND_SIZE - BID_CARDS; // 11 audiences
-  const TARGET_SCORE = 40;   // favour needed to win the season
+  const TARGET_SCORE = 50;   // favour needed to win the season
 
   // How many nobles kept their pledge last session -> who holds sway this one.
   const SWAY_LADDER = ['C', 'D', 'H', 'S', null];
