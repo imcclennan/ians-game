@@ -32,6 +32,9 @@ printed on its own face, in its own ink.
 | Merchant | a balance | 1 | pale gold | antique gold |
 | Fool | a cap and bells | 0 | pale lilac | plum |
 
+A hand is fanned by what each kind promises — Assassins, then Lovers, Merchants and Fools, high to
+low within each — with whichever kind holds sway pulled to the front of all of them, wearing gold.
+
 Four faces rather than the usual two colours means every kind is legible from the corner alone,
 which matters in a fanned hand of fifteen overlapping cards. The marks are drawn as inline SVG, so
 there is still nothing to fetch. The table itself takes the colour and mark of whichever kind holds

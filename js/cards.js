@@ -62,8 +62,9 @@
 
   const HIGHEST_VALUE = 15;
 
-  // Display order for a fanned hand: alternating colours, sway pulled to the front.
-  const DISPLAY_ORDER = ['S', 'H', 'C', 'D'];
+  // Display order for a fanned hand: by what each kind promises, richest first,
+  // with whoever holds sway pulled to the front of all of them.
+  const DISPLAY_ORDER = ['S', 'H', 'D', 'C'];
 
   function makeCard(suit, rank) {
     return {

@@ -949,3 +949,30 @@ body.reading { overflow: hidden; }
 .hand .card.is-sway { box-shadow: 0 0 0 2px var(--accent), 0 3px 10px rgba(0, 0, 0, .5); }
 .hand .card.is-sway.playable:hover { box-shadow: 0 0 0 2px var(--accent), 0 12px 22px rgba(0, 0, 0, .55); }
 .card.sm.is-sway { box-shadow: 0 0 0 1.5px var(--accent), 0 1px 4px rgba(0, 0, 0, .45); }
+
+
+/* --- the Whispers, spelled out in the session results --------------------- */
+
+.result-table .whisper-row td {
+  padding: 0 0 9px 2px;
+  border-top: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-dim);
+  text-align: left;
+}
+
+.result-table .result-row.has-whisper td { border-bottom: 0; padding-bottom: 3px; }
+
+.result-table .whisper-row .whisper-word {
+  display: inline-block;
+  margin-right: 7px;
+  padding: 1px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.result-table .whisper-row.me td { color: var(--ink); }

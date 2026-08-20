@@ -81,6 +81,18 @@
       Cards.SUIT_ROLE_PLURAL[suit] + '</b></span>';
   }
 
+  /**
+   * The human is addressed in the second person and the rivals in the third,
+   * so a line about a seat needs both forms of its verb: "You take" against
+   * "Ilka takes".
+   */
+  function says(seat, youForm, theyForm) {
+    const player = state.players[seat];
+    return player.isHuman
+      ? '<b>You</b> ' + youForm
+      : '<b>' + player.name + '</b> ' + theyForm;
+  }
+
   /** The mark alone, for running text. */
   function mark(suit) {
     return '<span class="agent agent-' + suit + '">' + Cards.emblem(suit) + '</span>';
@@ -215,12 +227,12 @@
     dom.medallion.innerHTML = state.trump === null ? 'NO SWAY' : Cards.emblem(state.trump);
 
     if (state.phase === 'trickComplete') {
-      const winner = state.players[state.trickResult.winner];
       const took = state.trickResult.card;
-      dom.trickNote.innerHTML = '<b>' + winner.name + '</b> takes audience ' + state.trickNumber +
+      dom.trickNote.innerHTML =
+        says(state.trickResult.winner, 'take', 'takes') + ' audience ' + state.trickNumber +
         ' with ' + mark(took.suit) + ' ' + Cards.SUIT_ROLE[took.suit] + ' ' + took.rank;
     } else if (state.phase === 'playing' && state.trick.length === 0) {
-      dom.trickNote.textContent = state.players[state.leader].name + ' opens';
+      dom.trickNote.innerHTML = says(state.leader, 'open', 'opens');
     } else {
       dom.trickNote.textContent = '';
     }
@@ -430,7 +442,8 @@
           '<span class="corner tl"><b>' + card.rank + '</b>' +
           Cards.emblem(card.suit, 'nib') + '</span></span>')
         .join('');
-      html += '<tr class="' + (state.players[seat].isHuman ? 'me' : '') + '">' +
+      const mine = state.players[seat].isHuman ? ' me' : '';
+      html += '<tr class="result-row' + mine + (row.whisper ? ' has-whisper' : '') + '">' +
         '<td>' + row.name +
         (row.whisper ? '<span class="row-whisper">' + row.whisper.name + '</span>' : '') + '</td>' +
         '<td class="left"><span class="bid-cards">' + cards + '</span></td>' +
@@ -439,6 +452,14 @@
         '<td class="pts ' + sign + '">' + (row.points > 0 ? '+' : '') + row.points + '</td>' +
         '<td class="total">' + row.total + '</td>' +
         '</tr>';
+
+      // What each of them had been told, so the favour column can be read
+      // rather than merely believed.
+      if (row.whisper) {
+        html += '<tr class="whisper-row' + mine + '">' +
+          '<td colspan="6"><span class="whisper-word">' + row.whisper.name + '</span>' +
+          row.whisper.line + '</td></tr>';
+      }
     });
     return html + '</table>';
   }
