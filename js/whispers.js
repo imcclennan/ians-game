@@ -104,10 +104,10 @@
     {
       id: 'allOrNothing',
       name: 'All or Nothing',
-      line: 'Keep your pledge for double favour. Break it and score nothing at all.',
-      detail: 'You have staked your name on this. Either the court remembers it, or you were ' +
-        'never here.',
-      adjust: (favour, row) => (kept(row) ? favour * 2 : 0)
+      line: 'Keep your pledge for double favour. Break it and lose 3, whatever else you did.',
+      detail: 'You have staked your name on this. Either the court remembers it, or it costs ' +
+        'you to have been here at all.',
+      adjust: (favour, row) => (kept(row) ? favour * 2 : -3)
     },
     {
       id: 'clerk',

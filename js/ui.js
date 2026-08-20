@@ -47,7 +47,7 @@
   // --- small builders -------------------------------------------------------
 
   function suitClass(suit) {
-    return Cards.SUIT_COLOR[suit] === 'red' ? ' red' : '';
+    return ' suit-' + suit;
   }
 
   function cardEl(card, extra) {
@@ -57,6 +57,7 @@
     const symbol = Cards.SUIT_SYMBOL[card.suit];
     const corner = '<b>' + card.rank + '</b><i>' + symbol + '</i>';
     node.innerHTML =
+      '<span class="watermark"></span>' +
       '<span class="corner tl">' + corner + '</span>' +
       '<span class="face">' + symbol + '</span>' +
       '<span class="corner br">' + corner + '</span>';
@@ -73,8 +74,8 @@
 
   function suitSpan(suit) {
     if (suit === null) return '<b>No Sway</b>';
-    return '<span class="pip ' + (Cards.SUIT_COLOR[suit] === 'red' ? 'red' : 'black') + '">' +
-      Cards.SUIT_SYMBOL[suit] + '</span> <b>' + Cards.SUIT_ROLE_PLURAL[suit] + '</b>';
+    return '<span class="pip agent-' + suit + '">' + Cards.SUIT_SYMBOL[suit] + '</span> <b>' +
+      Cards.SUIT_ROLE_PLURAL[suit] + '</b>';
   }
 
   function chip(label, value, extra) {

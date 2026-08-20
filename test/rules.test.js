@@ -265,10 +265,12 @@ check('a Debtor who breaks the pledge is scored normally',
 const allOrNothing = Whispers.BY_ID.allOrNothing;
 check('All or Nothing doubles a pledge kept',
   Whispers.adjust(allOrNothing, 8, row({}), []), 16);
-check('All or Nothing zeroes a pledge broken',
-  Whispers.adjust(allOrNothing, -9, row({ made: false }), []), 0);
-check('All or Nothing cannot turn a loss into a gain',
-  Whispers.adjust(allOrNothing, -20, row({ made: false }), []), 0);
+check('All or Nothing costs three for a pledge broken',
+  Whispers.adjust(allOrNothing, -9, row({ made: false }), []), -3);
+check('All or Nothing costs three however badly it went',
+  Whispers.adjust(allOrNothing, -20, row({ made: false }), []), -3);
+check('All or Nothing costs three even when the session went well',
+  Whispers.adjust(allOrNothing, 7, row({ made: false }), []), -3);
 
 const clerk = Whispers.BY_ID.clerk;
 check('the Clerk cannot lose favour', Whispers.adjust(clerk, -12, row({}), []), 0);

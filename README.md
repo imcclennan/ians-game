@@ -24,6 +24,11 @@ Sixty cards. Four kinds of **agent**, each ranked **1 to 15** by their standing 
 the most influential, 1 the least. The classic pips are kept because they already read as the four
 agents: the blade, the heart, the coin, the jester's bauble.
 
+Every kind carries its own mark behind the face and its own ink — a **dagger** in graphite for the
+Assassin, a **rose** in crimson for the Lover, a **balance** in antique gold for the Merchant, a
+**cap and bells** in plum for the Fool. Four inks rather than the usual two also means the two dark
+kinds and the two light kinds stop looking alike in a fanned hand.
+
 | Agent | Pip | Audiences promised |
 | --- | --- | --- |
 | Assassin | ♠ | 3 |
@@ -92,7 +97,7 @@ Fifteen of them, four dealt each session:
 | **The Smitten** | No Lover may go out. Keep your pledge for **+3**. |
 | **The Audited** | Send four Merchants, or every Merchant you hold if that is fewer. Keep your pledge for **+8**. |
 | **The Debtor** | A kept pledge of 2 or fewer earns nothing; keep 3 or more for **+3**. |
-| **All or Nothing** | Keep your pledge for **double favour**. Break it and score nothing at all. |
+| **All or Nothing** | Keep your pledge for **double favour**. Break it and lose **3**, whatever else you did. |
 | **The Cautious Clerk** | You cannot lose favour this session, nor gain more than **6**. |
 | **The Bold** | **+5** if your pledge is the highest at the table, outright. |
 | **The Meek** | **−4** if your pledge is the lowest or tied for lowest. Keep it for **+4**. |
@@ -166,9 +171,8 @@ pledge obeys the Whisper that was given, every favour follows pledge → counted
 Whisper).
 
 The computer nobles are checked for calibration too. Across roughly 34,000 simulated player
-sessions, thirteen of the fifteen Whispers land between **2.25 and 3.46** average favour against a
-table average of **3.02**; All or Nothing is the outlier at **4.26**, since a broken pledge under it
-costs nothing at all.
+sessions all fifteen Whispers land between **2.25 and 3.46** average favour against a table average
+of **2.90** — a spread of 1.2 favour, with no outlier in either direction.
 
 A season runs a median of **11 sessions** with Whispers in play, **16** without.
 
