@@ -134,11 +134,18 @@
         'game.</p>' +
         '<p>The ' + Whispers.ALL.length + ' Whispers are shuffled face down ' +
         'at the start of each night. After the deal, and <strong>before any pledge is made</strong>, ' +
-        'each player may look at their own hand and then choose to <strong>take one Whisper</strong> ' +
-        'or to go without.</p>' +
+        'each eligible player may look at their own hand and then choose to <strong>take one ' +
+        'Whisper</strong> or to go without.</p>' +
+        '<p><strong>The monarch does not confide in whoever is winning.</strong> Only a player ' +
+        'whose favour is <em>strictly less</em> than the highest at the table may take one. On ' +
+        'the first night of a season the whole court is level on nothing, so nobody is offered a ' +
+        'word at all.</p>' +
         '<p>Taking one <strong>costs nothing</strong>, but it is taken ' +
         '<strong>unread</strong>: a player decides on the strength of their hand alone, not on ' +
-        'the word they are about to receive. A Whisper can bind as readily as it can pay.</p>' +
+        'the word they are about to receive. Of the ' + Whispers.ALL.length + ' words, <strong>' +
+        Whispers.ALL.filter((w) => w.burden).length + ' are burdens</strong> that cost rather ' +
+        'than pay, so a word is a gamble taken by a player who needs one — which is the ' +
+        'only sort of player who is offered it.</p>' +
         '<p>A Whisper alters how that player\u2019s favour is counted, or ' +
         'restricts which agents they may send out on errands, or both. Its <strong>contents are ' +
         'private</strong> and are revealed only when the night ends, alongside the errands. That ' +

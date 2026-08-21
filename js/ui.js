@@ -305,24 +305,31 @@
     dom.handActions.innerHTML = '';
 
     if (state.phase === 'whisperOffer') {
+      const allowed = Engine.mayTakeWhisper(state, Engine.HUMAN);
+
       const take = document.createElement('button');
       take.type = 'button';
       take.className = 'btn';
       take.id = 'take-whisper';
       take.textContent = 'Take a Whisper';
+      take.disabled = !allowed;
       dom.handActions.appendChild(take);
 
       const refuse = document.createElement('button');
       refuse.type = 'button';
       refuse.className = 'btn btn-quiet';
       refuse.id = 'refuse-whisper';
-      refuse.textContent = 'Go without';
+      refuse.textContent = allowed ? 'Go without' : 'Continue';
       dom.handActions.appendChild(refuse);
 
       const note = document.createElement('span');
       note.className = 'bid-readout';
-      note.innerHTML = '<span class="sum">' + state.whisperPool.length +
-        ' words sealed &middot; you will not know which you have until you take it</span>';
+      note.innerHTML = allowed
+        ? '<span class="sum">' + state.whisperPool.length +
+          ' words sealed &middot; you will not know which you have until you take it</span>'
+        : '<span class="sum">' + (state.handNumber === 1
+            ? 'The court is level, so the monarch confides in no one tonight.'
+            : 'The monarch does not confide in whoever is winning.') + '</span>';
       dom.handActions.appendChild(note);
       return;
     }
@@ -384,6 +391,12 @@
     const player = state.players[Engine.HUMAN];
 
     if (state.phase === 'whisperOffer') {
+      if (!Engine.mayTakeWhisper(state, Engine.HUMAN)) {
+        dom.prompt.innerHTML = 'No <b>Whisper</b> is offered to you tonight. ' +
+          '<span class="hint">Only a noble who is behind on favour is confided in, and you ' +
+          (state.handNumber === 1 ? 'are level with the table' : 'are not behind') + '.</span>';
+        return;
+      }
       dom.prompt.innerHTML = 'Look at your hand. Will you take a <b>Whisper</b>? ' +
         '<span class="hint">It costs nothing, but you take it unread &mdash; and a word from ' +
         'the monarch can bind you as easily as it can pay.</span>';
@@ -658,8 +671,11 @@
   /** The human decides, then the rivals decide, then everyone pledges. */
   function answerWhisper(take) {
     if (state.phase !== 'whisperOffer') return;
-    if (take) Engine.takeWhisper(state, Engine.HUMAN);
-    else Engine.refuseWhisper(state, Engine.HUMAN);
+    if (take && Engine.mayTakeWhisper(state, Engine.HUMAN)) {
+      Engine.takeWhisper(state, Engine.HUMAN);
+    } else {
+      Engine.refuseWhisper(state, Engine.HUMAN);
+    }
     Engine.resolveComputerWhispers(state);
     Engine.beginBidding(state);
     render();

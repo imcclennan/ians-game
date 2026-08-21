@@ -186,8 +186,8 @@ check('the standings sort by the same order',
 
 // --- whispers --------------------------------------------------------------
 
-check('there are twenty whispers', Whispers.ALL.length, 20);
-check('five of them are burdens', Whispers.ALL.filter((w) => w.burden).length, 5);
+check('there are twenty-two whispers', Whispers.ALL.length, 22);
+check('seven of them are burdens', Whispers.ALL.filter((w) => w.burden).length, 7);
 for (const whisper of Whispers.ALL.filter((w) => w.burden)) {
   ok(whisper.name + ' is marked as a burden', Whispers.isBurden(whisper));
 }
@@ -236,8 +236,8 @@ ok('Blackmailed accepts errands with one',
   Whispers.permitsSet(blackmailed, hand('1C', '2C', '3C', '4S'), hand('1C', '2C', '3C', '4S')));
 ok('Blackmailed is waived on a hand holding no Assassin',
   Whispers.permitsSet(blackmailed, hand('1C', '2C', '3C', '4C'), hand('1C', '2C', '3C', '4C')));
-check('Blackmailed pays five for a pledge kept',
-  Whispers.adjust(blackmailed, 6, row({}), []), 11);
+check('Blackmailed pays six for a pledge kept',
+  Whispers.adjust(blackmailed, 6, row({}), []), 12);
 check('Blackmailed pays nothing for one broken',
   Whispers.adjust(blackmailed, -2, row({ made: false }), []), -2);
 
@@ -305,7 +305,7 @@ check('All or Nothing costs three even when the session went well',
 
 const clerk = Whispers.BY_ID.clerk;
 check('the Clerk cannot lose favour', Whispers.adjust(clerk, -12, row({}), []), 0);
-check('the Clerk is capped at six', Whispers.adjust(clerk, 22, row({}), []), 6);
+check('the Clerk is capped at seven', Whispers.adjust(clerk, 22, row({}), []), 7);
 check('the Clerk keeps a modest gain', Whispers.adjust(clerk, 4, row({}), []), 4);
 
 // -- how you compare to the table
@@ -313,7 +313,7 @@ const bold = Whispers.BY_ID.bold;
 const spread = [row({ seat: 0, bid: 6 }), row({ seat: 1, bid: 4 }),
   row({ seat: 2, bid: 2 }), row({ seat: 3, bid: 1 })];
 check('the Bold are paid for the highest pledge outright',
-  Whispers.adjust(bold, 3, spread[0], spread), 8);
+  Whispers.adjust(bold, 3, spread[0], spread), 9);
 check('the Bold are paid nothing for a middling pledge',
   Whispers.adjust(bold, 3, spread[1], spread), 3);
 const tiedTop = [row({ bid: 6 }), row({ bid: 6 }), row({ bid: 2 }), row({ bid: 1 })];
@@ -322,7 +322,7 @@ check('a tie at the top pays the Bold nothing',
 
 const meek = Whispers.BY_ID.meek;
 check('the Meek are docked for a pledge tied at the floor',
-  Whispers.adjust(meek, 2, row({ bid: 1, made: false }), spread.concat([row({ bid: 1 })])), -2);
+  Whispers.adjust(meek, 2, row({ bid: 1, made: false }), spread.concat([row({ bid: 1 })])), -1);
 check('the Meek keep their pledge for four',
   Whispers.adjust(meek, 2, spread[0], spread), 6);
 
@@ -444,58 +444,95 @@ ok('nobody has decided yet',
   offered.players.every((player) => player.tookWhisper === null));
 check('every whisper is still in the pool', offered.whisperPool.length, Whispers.ALL.length);
 
-const taken = Engine.takeWhisper(offered, 0);
-ok('taking one gives a word', taken && taken.id);
-check('and marks the noble as having taken it', offered.players[0].tookWhisper, true);
-check('and draws it out of the pool', offered.whisperPool.length, Whispers.ALL.length - 1);
+// On the first night the court is level, so nobody is behind and nobody is
+// confided in.
+ok('a level table is offered nothing',
+  offered.players.every((player, seat) => !Engine.mayTakeWhisper(offered, seat)));
+let levelRefusal = false;
+try { Engine.takeWhisper(offered, 0); } catch (error) { levelRefusal = true; }
+ok('and taking one anyway is refused', levelRefusal);
 
-Engine.refuseWhisper(offered, 1);
-check('going without leaves no word', offered.players[1].whisper, null);
-check('but is still a decision', offered.players[1].tookWhisper, false);
-check('and costs the pool nothing', offered.whisperPool.length, Whispers.ALL.length - 1);
+Engine.resolveComputerWhispers(offered);
+ok('the rivals all go without on a level table',
+  offered.players.every((player, seat) =>
+    player.isHuman || player.tookWhisper === false));
+
+// Put the table out of joint and the trailing nobles become eligible.
+const behind = Engine.createGame({ dealer: 0, rng: seededRandom(4242) });
+behind.players[0].score = 2;
+behind.players[1].score = 17;
+behind.players[2].score = 17;
+behind.players[3].score = 9;
+Engine.startHand(behind);
+ok('a noble at the back may take a word', Engine.mayTakeWhisper(behind, 0));
+ok('so may one merely off the pace', Engine.mayTakeWhisper(behind, 3));
+ok('but not the leader', !Engine.mayTakeWhisper(behind, 1));
+ok('nor anyone level with the leader', !Engine.mayTakeWhisper(behind, 2));
+
+const taken = Engine.takeWhisper(behind, 0);
+ok('taking one gives a word', taken && taken.id);
+check('and marks the noble as having taken it', behind.players[0].tookWhisper, true);
+check('and draws it out of the pool', behind.whisperPool.length, Whispers.ALL.length - 1);
+
+Engine.refuseWhisper(behind, 3);
+check('going without leaves no word', behind.players[3].whisper, null);
+check('but is still a decision', behind.players[3].tookWhisper, false);
+check('and costs the pool nothing', behind.whisperPool.length, Whispers.ALL.length - 1);
 
 let refused = false;
-try { Engine.takeWhisper(offered, 1); } catch (error) { refused = true; }
+try { Engine.takeWhisper(behind, 3); } catch (error) { refused = true; }
 ok('a noble may not decide twice', refused);
 
-ok('the night cannot begin until everyone has decided', !Engine.whispersSettled(offered));
-Engine.resolveComputerWhispers(offered);
-ok('the rivals decide for themselves', Engine.whispersSettled(offered));
-Engine.beginBidding(offered);
-check('and then the pledging opens', offered.phase, 'bidding');
+let leaderRefusal = false;
+try { Engine.takeWhisper(behind, 1); } catch (error) { leaderRefusal = true; }
+ok('and the leader is refused outright', leaderRefusal);
 
-// Across many deals the rivals should be doing both, not always one.
+ok('the night cannot begin until everyone has decided', !Engine.whispersSettled(behind));
+Engine.resolveComputerWhispers(behind);
+ok('the rivals decide for themselves', Engine.whispersSettled(behind));
+ok('the leader was given nothing', behind.players[1].tookWhisper === false);
+Engine.beginBidding(behind);
+check('and then the pledging opens', behind.phase, 'bidding');
+
+// Across many deals of an uneven table the rivals should be doing both.
 let asked = 0;
-let deals = 0;
+let eligible = 0;
 for (let seed = 1; seed <= 200; seed++) {
   const table = Engine.createGame({ dealer: 0, rng: seededRandom(seed * 7919) });
+  table.players[0].score = 20;
+  table.players[1].score = 4;
+  table.players[2].score = 11;
+  table.players[3].score = 7;
   Engine.startHand(table);
   Engine.resolveComputerWhispers(table);
-  for (const player of table.players) {
-    if (player.isHuman) continue;
-    deals += 1;
+  table.players.forEach((player, seat) => {
+    if (player.isHuman || !Engine.mayTakeWhisper(table, seat)) return;
+    eligible += 1;
     if (player.tookWhisper) asked += 1;
-  }
+  });
 }
-ok('the rivals sometimes take a word and sometimes go without',
-  asked > deals * 0.2 && asked < deals * 0.95,
-  Math.round((asked / deals) * 100) + '% took one');
+ok('a trailing rival is at least sometimes tempted',
+  asked > eligible * 0.2, Math.round((asked / eligible) * 100) + '% of those able took one');
 
 // With whispers switched off there is nothing to offer.
 const noWords = Engine.createGame({ dealer: 0, rng: seededRandom(99), whispers: false });
+noWords.players[0].score = 5;
+noWords.players[1].score = 30;
 Engine.startHand(noWords);
 check('no offer is made when whispers are off', noWords.phase, 'bidding');
 ok('and nobody is left undecided',
   noWords.players.every((player) => player.tookWhisper === false));
+ok('nor is anyone eligible',
+  noWords.players.every((player, seat) => !Engine.mayTakeWhisper(noWords, seat)));
 
 const watched = Whispers.BY_ID.watched;
 ok('the Watched lays its errands open', Whispers.revealsErrands(watched));
-ok('no other whisper does',
+check('no other whisper does',
   Whispers.ALL.filter((w) => Whispers.revealsErrands(w)).length, 1);
-check('the Watched is paid a token for the indignity',
-  Whispers.adjust(watched, 4, row({}), []), 5);
-check('and is paid it whether the pledge held or not',
-  Whispers.adjust(watched, -6, row({ made: false }), []), -5);
+check('and it is paid nothing for the indignity',
+  Whispers.adjust(watched, 4, row({}), []), 4);
+check('nor charged for it',
+  Whispers.adjust(watched, -6, row({ made: false }), []), -6);
 
 // --- what a rival may not learn ----------------------------------------------
 

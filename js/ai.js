@@ -189,6 +189,16 @@
     const { trump, seen, hand, wantsTrick } = ctx;
     const favoured = Whispers.favouredSuit(ctx.whisper);
 
+    // If a noble has shown us a pledge they have already filled, every further
+    // audience costs them. Opening with a card nobody can beat keeps the lead
+    // in our hands; opening low hands it around, and they may be the one who
+    // has to take it.
+    const sated = (ctx.watched || []).some((other) => other.needs <= 0);
+    if (!wantsTrick && sated) {
+      const throwaway = legal.filter((card) => !isTopOutstanding(card, seen));
+      if (throwaway.length) return cheapest(throwaway, trump);
+    }
+
     if (wantsTrick && favoured) {
       // Lead a Fool we can actually win with, if we hold one.
       const winners = Cards.cardsOfSuit(legal, favoured)
@@ -234,13 +244,19 @@
     const winners = legal.filter(wouldWin);
     const losers = legal.filter((card) => !wouldWin(card));
 
-    // A noble whose pledge is on show can be starved of the audiences they
-    // still need. Worth doing only once our own promise is beyond saving.
-    if (!wantsTrick && ctx.overshot && winners.length && trick.length) {
+    // A noble whose pledge is on show gets played at rather than played with.
+    if (!wantsTrick && winners.length && trick.length) {
       const leading = Rules.trickWinner(trick, trump).player;
-      const starving = (ctx.watched || []).some(
-        (other) => other.seat === leading && other.needs > 0);
-      if (starving) return cheapest(winners, trump);
+      const exposed = (ctx.watched || []).find((other) => other.seat === leading);
+      if (exposed && exposed.needs > 0) {
+        // Free to spoil: our own promise is already broken, so an extra
+        // audience costs us almost nothing.
+        if (ctx.overshot) return cheapest(winners, trump);
+        // Not free, but worth it: this audience would complete a large pledge,
+        // and taking a kept pledge off them costs them far more than breaking
+        // ours costs us.
+        if (exposed.needs === 1 && exposed.bid >= 4) return cheapest(winners, trump);
+      }
     }
 
     if (wantsTrick) {

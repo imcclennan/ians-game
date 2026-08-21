@@ -102,12 +102,26 @@
   }
 
   /**
+   * Whether a noble is entitled to a word at all. The monarch does not confide
+   * in whoever is winning: only a noble who is behind on favour may take one,
+   * and on the first night of a season, when everyone is level, nobody may.
+   */
+  function mayTakeWhisper(state, seat) {
+    if (!state.whispersOn) return false;
+    const best = Math.max.apply(null, state.players.map((player) => player.score));
+    return state.players[seat].score < best;
+  }
+
+  /**
    * Take a Whisper, sight unseen. A noble may look at their own hand first but
    * not at the word they are about to be given, and taking one costs nothing.
    */
   function takeWhisper(state, seat) {
     const player = state.players[seat];
     if (player.tookWhisper !== null) throw new Error('That noble has already decided');
+    if (!mayTakeWhisper(state, seat)) {
+      throw new Error('Only a noble who is behind may be given a word');
+    }
     player.whisper = state.whisperPool.pop() || null;
     player.tookWhisper = !!player.whisper;
     return player.whisper;
@@ -126,7 +140,8 @@
   function resolveComputerWhispers(state) {
     state.players.forEach((player, seat) => {
       if (player.isHuman || player.tookWhisper !== null) return;
-      if (AI.wantsWhisper(player.hand, state.trump, player.aggression)) {
+      if (mayTakeWhisper(state, seat) &&
+          AI.wantsWhisper(player.hand, state.trump, player.aggression)) {
         takeWhisper(state, seat);
       } else {
         refuseWhisper(state, seat);
@@ -216,6 +231,13 @@
     const seen = new Set();
     for (const card of state.playedCards) seen.add(card.id);
     for (const card of state.players[seat].hand) seen.add(card.id);
+    // A noble under The Watched has laid their errands face up. Those four
+    // agents are out of the night, and everyone at the table gets to count
+    // them as gone when working out what can still beat what.
+    state.players.forEach((other, index) => {
+      if (index === seat || !Whispers.revealsErrands(other.whisper)) return;
+      for (const card of other.bidCards) seen.add(card.id);
+    });
     return seen;
   }
 
@@ -290,7 +312,7 @@
     return state;
   }
 
-  /** Score the session, work out who holds sway next, and check for a winner. */
+  /** Score the night, work out who holds sway next, and check for a winner. */
   function finishHand(state) {
     // Pass one: what each noble's Whisper says their audiences came to.
     const rows = state.players.map((player, seat) => {
@@ -355,6 +377,7 @@
     HUMAN: HUMAN,
     createGame: createGame,
     startHand: startHand,
+    mayTakeWhisper: mayTakeWhisper,
     takeWhisper: takeWhisper,
     refuseWhisper: refuseWhisper,
     resolveComputerWhispers: resolveComputerWhispers,

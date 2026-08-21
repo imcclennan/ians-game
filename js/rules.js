@@ -14,7 +14,7 @@
   // the Fool presides and the accounts are settled for good.
   const SEASON_LENGTH = 12;
 
-  // How many nobles kept their pledge last session -> who holds sway this one.
+  // How many nobles kept their pledge last night -> who holds sway this one.
   const SWAY_LADDER = ['C', 'D', 'H', 'S', null];
 
   /**
@@ -79,7 +79,7 @@
     return bid === tricksWon;
   }
 
-  /** Who holds sway next session, from the number of nobles who kept their pledge. */
+  /** Who holds sway next night, from the number of nobles who kept their pledge. */
   function trumpForNextHand(madeCount) {
     return SWAY_LADDER[Math.max(0, Math.min(PLAYER_COUNT, madeCount))];
   }

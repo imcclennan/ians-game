@@ -1,9 +1,9 @@
 /*
  * whispers.js - the monarch's private word to each noble.
  *
- * At the start of every session each noble is handed one Whisper, face down.
+ * At the start of every night each noble is handed one Whisper, face down.
  * It bends how their favour is counted, or what they are permitted to promise,
- * and nobody else learns of it until the session is over. Reading the table --
+ * and nobody else learns of it until the night is over. Reading the table --
  * who pledged oddly, who is ducking audiences they could plainly win -- is the
  * whole point of them. They are an optional part of the game.
  *
@@ -44,13 +44,13 @@
     {
       id: 'blackmailed',
       name: 'Blackmailed',
-      line: 'At least one Assassin must go out. Keep your pledge for +5.',
+      line: 'At least one Assassin must go out. Keep your pledge for +6.',
       detail: 'Someone at court holds a letter in your hand. A blade goes out tonight, or it ' +
         'reaches the monarch by morning.',
       demand: 'at least one Assassin must go out',
       permits: (cards) => cards.some((card) => card.suit === 'S'),
       satisfiable: (hand) => hand.some((card) => card.suit === 'S'),
-      adjust: (favour, row) => (kept(row) ? favour + 5 : favour)
+      adjust: (favour, row) => (kept(row) ? favour + 6 : favour)
     },
     {
       id: 'silenced',
@@ -67,7 +67,7 @@
       id: 'smitten',
       name: 'The Smitten',
       line: 'No Lover may go out. Keep your pledge for +3.',
-      detail: 'You will not send them away. Not this session, not for the monarch, not for ' +
+      detail: 'You will not send them away. Not this night, not for the monarch, not for ' +
         'anything.',
       demand: 'no Lover may go out',
       allows: (card) => card.suit !== 'H',
@@ -81,7 +81,7 @@
         'Keep it for +4.',
       detail: 'The treasury has been through your books and found them wanting. Two purses go ' +
         'out to be counted, and two Fools go with them to see that the counting is honest. ' +
-        'What you promise the court this session was never really your choice.',
+        'What you promise the court this night was never really your choice.',
       demand: 'two Merchants and two Fools must go out',
       permits: (cards) => suitOf(cards, 'D').length >= 2 && suitOf(cards, 'C').length >= 2,
       satisfiable: (hand) => suitOf(hand, 'D').length >= 2 && suitOf(hand, 'C').length >= 2,
@@ -114,9 +114,9 @@
     {
       id: 'clerk',
       name: 'The Cautious Clerk',
-      line: 'You cannot lose favour this session, nor gain more than 6.',
+      line: 'You cannot lose favour this night, nor gain more than 7.',
       detail: 'You have learned that the way to survive a court is to be impossible to blame.',
-      adjust: (favour) => Math.min(6, Math.max(0, favour))
+      adjust: (favour) => Math.min(7, Math.max(0, favour))
     },
 
     // --- how you compare to the table ---------------------------------------
@@ -124,25 +124,25 @@
     {
       id: 'bold',
       name: 'The Bold',
-      line: '+5 if your pledge is the highest at the table, outright.',
+      line: '+6 if your pledge is the highest at the table, outright.',
       detail: 'Promise more than any of them. The monarch has no memory for the second-most ' +
         'ambitious noble in the room.',
       adjust: (favour, row, table) => {
         const highest = Math.max.apply(null, table.map((other) => other.bid));
         const alone = table.filter((other) => other.bid === highest).length === 1;
-        return alone && row.bid === highest ? favour + 5 : favour;
+        return alone && row.bid === highest ? favour + 6 : favour;
       },
       pledgeCost: (bid) => -bid * 0.12
     },
     {
       id: 'meek',
       name: 'The Meek',
-      line: '-4 if your pledge is the lowest or tied for lowest. Keep it for +4.',
+      line: '-3 if your pledge is the lowest or tied for lowest. Keep it for +4.',
       detail: 'The court has no use for a noble who promises least. Nor, it turns out, does ' +
         'the monarch.',
       adjust: (favour, row, table) => {
         const lowest = Math.min.apply(null, table.map((other) => other.bid));
-        const floored = row.bid === lowest ? favour - 4 : favour;
+        const floored = row.bid === lowest ? favour - 3 : favour;
         return kept(row) ? floored + 4 : floored;
       },
       pledgeCost: (bid) => (bid <= 2 ? 1.3 : 0)
@@ -233,19 +233,19 @@
       id: 'condemned',
       name: 'The Condemned',
       burden: true,
-      line: 'Break your pledge and lose a further 4.',
+      line: 'Break your pledge and lose a further 3.',
       detail: 'You are one failure from the block, and the court is watching to see which way ' +
         'you fall.',
-      adjust: (favour, row) => (kept(row) ? favour : favour - 4)
+      adjust: (favour, row) => (kept(row) ? favour : favour - 3)
     },
     {
       id: 'scapegoat',
       name: 'The Scapegoat',
       burden: true,
-      line: '-2 for every other noble who keeps their pledge.',
+      line: '-2 for every other noble who keeps their pledge, to a limit of 4.',
       detail: 'Someone must answer for last season. It has been decided that it will be you.',
       adjust: (favour, row, table) =>
-        favour - 2 * table.filter((other) => other !== row && other.made).length
+        favour - Math.min(4, 2 * table.filter((other) => other !== row && other.made).length)
     },
     {
       id: 'disgrace',
@@ -259,12 +259,11 @@
       id: 'watched',
       name: 'The Watched',
       burden: true,
-      line: 'Your errands are laid face up as soon as they are sent. Take +1 for the trouble.',
+      line: 'Your errands are laid face up as soon as they are sent.',
       detail: 'A clerk has been assigned to your correspondence. Everything you send, the room ' +
-        'sees -- your pledge, and which agents have left your hand. The monarch pays a token ' +
-        'for the indignity, which is not the same as making up for it.',
-      revealsErrands: true,
-      adjust: (favour) => favour + 1
+        'sees -- your pledge, and which four agents have left your hand. They will play ' +
+        'accordingly, and there is nothing you can do about it.',
+      revealsErrands: true
     },
     {
       id: 'marked',
@@ -275,6 +274,28 @@
         'and it will be noticed.',
       shunnedSuit: 'S',
       adjust: (favour, row) => favour - 2 * suitOf(row.takenWith, 'S').length
+    },
+    {
+      id: 'outOfFavour',
+      name: 'Out of Favour',
+      burden: true,
+      line: 'A kept pledge of 4 or more earns you nothing.',
+      detail: 'Whatever you did last season, the monarch has not forgotten it. Succeed quietly ' +
+        'tonight or do not bother succeeding at all.',
+      adjust: (favour, row) => (kept(row) && row.bid >= 4 ? 0 : favour),
+      pledgeCost: (bid) => (bid >= 4 ? 1.4 : 0)
+    },
+    {
+      id: 'duellist',
+      name: 'Called Out',
+      burden: true,
+      line: '-5 if you win more audiences than the noble on your right.',
+      detail: 'A matter of honour is outstanding, and the whole court has agreed to keep score ' +
+        'of it. Whoever plays into your hand tonight had better outshine you.',
+      adjust: (favour, row, table) => {
+        const rival = table[global.Rules.rightOf(row.seat)];
+        return row.tricksWon > rival.tricksWon ? favour - 5 : favour;
+      }
     }
   ];
 
@@ -355,7 +376,7 @@
     return !!(whisper && whisper.burden);
   }
 
-  /** The last word on favour, once every noble's session has been totalled. */
+  /** The last word on favour, once every noble's night has been totalled. */
   function adjust(whisper, favour, row, table) {
     return whisper && whisper.adjust ? whisper.adjust(favour, row, table) : favour;
   }
