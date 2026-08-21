@@ -979,3 +979,13 @@ body.reading { overflow: hidden; }
 
 /* A noble who heard nothing says so; a noble who heard something does not. */
 .seat-whisper.bare { color: var(--ink-faint); font-style: italic; }
+
+
+/* --- your Whisper, laid on the table -------------------------------------- */
+
+.you-side { display: flex; flex-direction: column; gap: 12px; flex: 0 0 auto; }
+.table-whisper:empty { display: none; }
+.table-whisper { animation: rise 260ms ease-out; }
+
+/* A rival whose errands are on show is named for it, in the burden's colour. */
+.seat-whisper.watched { color: var(--bad); border-color: var(--bad); }

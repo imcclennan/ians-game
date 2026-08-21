@@ -113,19 +113,19 @@
       id: 'rule-pledge',
       title: 'Making a pledge',
       html:
-        '<p><strong>4.1</strong> Before any card is played, each player selects <strong>' +
+        '<p>Before any card is played, each player selects <strong>' +
         Rules.BID_CARDS + ' cards</strong> from their hand and places them face down in front of ' +
         'them. These are that player’s <strong>errands</strong>.</p>' +
-        '<p><strong>4.2</strong> A player’s <strong>pledge</strong> is the sum of the errand ' +
+        '<p>A player’s <strong>pledge</strong> is the sum of the errand ' +
         'values of the four cards sent, by kind. <strong>Rank is disregarded entirely</strong>: a ' +
         'Fool of ' + Cards.HIGHEST_VALUE + ' promises exactly as little as a Fool of 1.</p>' +
-        '<p><strong>4.3</strong> Errands remain face down and <strong>out of play</strong> for the ' +
+        '<p>Errands remain face down and <strong>out of play</strong> for the ' +
         'remainder of the night. ' + T + ' cards therefore remain in each hand, and <strong>' +
         T + ' audiences</strong> are contested.</p>' +
-        '<p><strong>4.4</strong> A pledge is <strong>not capped</strong>. Four Assassins constitute ' +
+        '<p>A pledge is <strong>not capped</strong>. Four Assassins constitute ' +
         'a pledge of twelve, which exceeds the ' + T + ' audiences available and cannot be kept ' +
         'under any circumstances. Nothing in the rules forbids it.</p>' +
-        '<p><strong>4.5</strong> All errands are revealed simultaneously when the night ends. ' +
+        '<p>All errands are revealed simultaneously when the night ends. ' +
         'Until then, no player knows another’s pledge, nor which cards have left another’s ' +
         'hand.</p>' +
         '<p class="rule-note">The cards that make your promise are the cards you no longer get to ' +
@@ -136,17 +136,17 @@
       id: 'rule-play',
       title: 'Playing the night',
       html:
-        '<p><strong>5.1</strong> The player to the steward’s left <strong>opens</strong> the ' +
+        '<p>The player to the steward’s left <strong>opens</strong> the ' +
         'first audience by playing any card from their hand, including one of the ruling kind.</p>' +
-        '<p><strong>5.2</strong> Play continues clockwise. Each player in turn must <strong>answer ' +
+        '<p>Play continues clockwise. Each player in turn must <strong>answer ' +
         'in kind</strong> — that is, play a card of the same kind as the one that opened the ' +
         'audience — if they hold one. A player holding none may play any card at all.</p>' +
-        '<p><strong>5.3</strong> The audience is won by the <strong>highest-ranked card of the kind ' +
+        '<p>The audience is won by the <strong>highest-ranked card of the kind ' +
         'that opened it</strong>, unless one or more cards of the <strong>ruling kind</strong> ' +
         '(section 7) were played, in which case the highest-ranked of those wins instead.</p>' +
-        '<p><strong>5.4</strong> A card of neither the opening kind nor the ruling kind can never ' +
+        '<p>A card of neither the opening kind nor the ruling kind can never ' +
         'win an audience, whatever its rank.</p>' +
-        '<p><strong>5.5</strong> The winner of an audience opens the next. ' + T + ' audiences are ' +
+        '<p>The winner of an audience opens the next. ' + T + ' audiences are ' +
         'played, exhausting every hand.</p>'
     },
     {
@@ -204,25 +204,32 @@
       html:
         '<p>The Whispers are an optional component. A season played without them is a complete ' +
         'game.</p>' +
-        '<p><strong>8.1</strong> The ' + Whispers.ALL.length + ' Whispers are shuffled face down ' +
+        '<p>The ' + Whispers.ALL.length + ' Whispers are shuffled face down ' +
         'at the start of each night. After the deal, and <strong>before any pledge is made</strong>, ' +
         'each player may look at their own hand and then choose to <strong>take one Whisper</strong> ' +
         'or to go without.</p>' +
-        '<p><strong>8.2</strong> Taking one <strong>costs nothing</strong>, but it is taken ' +
+        '<p>Taking one <strong>costs nothing</strong>, but it is taken ' +
         '<strong>unread</strong>: a player decides on the strength of their hand alone, not on ' +
         'the word they are about to receive. A Whisper can bind as readily as it can pay.</p>' +
-        '<p><strong>8.3</strong> A Whisper alters how that player\u2019s favour is counted, or ' +
+        '<p>A Whisper alters how that player\u2019s favour is counted, or ' +
         'restricts which agents they may send out on errands, or both. Its <strong>contents are ' +
         'private</strong> and are revealed only when the night ends, alongside the errands. That ' +
         'a player took one is plain for the table to see; <em>which</em> one is not.</p>' +
-        '<p><strong>8.4</strong> Where a Whisper restricts errands, the restriction is binding. If ' +
+        '<p>Not every word is a favour. ' + Whispers.ALL.filter((w) => w.burden).length +
+        ' of the ' + Whispers.ALL.length + ' are <strong>burdens</strong>, which cost rather ' +
+        'than pay. A burden is framed in oxblood under a broken seal and signed as a burden, so ' +
+        'there is no mistaking one once it is in your hand — but every Whisper is identical ' +
+        'face down, and a player who has drawn one is under no obligation to say so.</p>' +
+        '<p>Where a Whisper restricts errands, the restriction is binding. If ' +
         'a player\u2019s hand makes the restriction <strong>impossible to obey</strong> \u2014 ' +
         'being required to send an Assassin while holding none, for instance \u2014 the demand is ' +
         '<strong>waived</strong> for that night and the player pledges freely.</p>' +
-        '<p><strong>8.5</strong> No two players hold the same Whisper on the same night, and a ' +
+        '<p>No two players hold the same Whisper on the same night, and a ' +
         'Whisper never changes the rules of play in section 5.</p>' +
         whisperTable() +
-        '<p class="rule-note">The Whispers are what make the table worth watching. A rival who ' +
+        '<p class="rule-note">Because a burden is as likely as a favour, taking a word is a ' +
+        'gamble rather than a formality: worth reaching for when a season is slipping away, and ' +
+        'worth refusing when it is not. A rival who ' +
         'pledges strangely, or who ducks an audience they could plainly have won, is telling you ' +
         'something about the word they were given \u2014 and a rival who refused a free word is ' +
         'telling you their hand was already exactly what they wanted.</p>'
@@ -231,14 +238,14 @@
       id: 'rule-season',
       title: 'Winning the season',
       html:
-        '<p><strong>9.1</strong> A season is exactly <strong>' + Rules.SEASON_LENGTH +
+        '<p>A season is exactly <strong>' + Rules.SEASON_LENGTH +
         ' nights</strong> long. There is no target score and no early finish: the court sits ' +
         'twelve times and then rises.</p>' +
-        '<p><strong>9.2</strong> The twelfth and final night is <strong>Twelfth Night</strong>, ' +
+        '<p>The twelfth and final night is <strong>Twelfth Night</strong>, ' +
         'the feast of misrule. The stewardship will have passed three full times round the table ' +
         'by then, so every player deals exactly three nights.</p>' +
-        '<p><strong>9.3</strong> The player with the most favour after Twelfth Night wins.</p>' +
-        '<p><strong>9.4</strong> Should two or more players finish level on favour, the season is ' +
+        '<p>The player with the most favour after Twelfth Night wins.</p>' +
+        '<p>Should two or more players finish level on favour, the season is ' +
         'decided in favour of whichever of them, in order:</p>' +
         '<ol>' +
         '<li>won more favour on Twelfth Night;</li>' +

@@ -223,6 +223,7 @@
   function chooseFollow(legal, ctx) {
     const { trick, trump, seen, wantsTrick } = ctx;
     const favoured = Whispers.favouredSuit(ctx.whisper);
+    const shunned = Whispers.shunnedSuit(ctx.whisper);
     const seatsAfterUs = Rules.PLAYER_COUNT - 1 - trick.length;
 
     const wouldWin = (card) => {
@@ -236,7 +237,10 @@
     if (wantsTrick) {
       if (!winners.length) return cheapest(losers, trump);
       const wanted = favoured ? winners.filter((card) => card.suit === favoured) : [];
-      const pool = wanted.length ? wanted : winners;
+      // A noble marked for the blade would rather take the audience some other
+      // way than with an Assassin.
+      const unmarked = shunned ? winners.filter((card) => card.suit !== shunned) : [];
+      const pool = wanted.length ? wanted : (unmarked.length ? unmarked : winners);
       if (seatsAfterUs === 0) return cheapest(pool, trump);
       const safe = pool.filter((card) => isTopOutstanding(card, seen));
       if (safe.length) return cheapest(safe, trump);

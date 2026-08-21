@@ -139,13 +139,11 @@ html, body {
   grid-template-rows: repeat(3, 88.9mm);
 }
 
-.pcard {
+.pcard, .card-grid .wcard {
   width: 63.5mm;
   height: 88.9mm;
-  padding: 2.6mm;
   outline: .18mm solid var(--rule);   /* the cut line */
   outline-offset: -.09mm;
-  background: var(--paper);
 }
 
 /* Every card is a frame within a frame: a hairline rule inside a wider one,

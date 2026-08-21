@@ -9,6 +9,7 @@
   const Engine = globalThis.Engine;
   const Whispers = globalThis.Whispers;
   const Rulebook = globalThis.Rulebook;
+  const WhisperCard = globalThis.WhisperCard;
 
   const byId = (id) => document.getElementById(id);
 
@@ -26,6 +27,7 @@
     historyBox: byId('history-box'),
     trumpKey: byId('trump-key'),
     whisperBox: byId('whisper-box'),
+    tableWhisper: byId('table-whisper'),
     whispersToggle: byId('whispers-toggle'),
     rulebook: byId('rulebook'),
     targetNote: byId('target-note'),
@@ -122,6 +124,14 @@
     return state.phase === 'handOver' || state.phase === 'gameOver';
   }
 
+  /**
+   * Whose errands may be looked at. Your own always, everyone's at the reveal,
+   * and a noble under The Watched from the moment they send them.
+   */
+  function errandsOpen(player) {
+    return player.isHuman || bidsAreOpen() || Whispers.revealsErrands(player.whisper);
+  }
+
   // --- rendering ------------------------------------------------------------
 
   function render() {
@@ -160,7 +170,7 @@
     const isTurn = (state.phase === 'playing' && state.turn === seat) ||
       (player.isHuman && (state.phase === 'whisperOffer' ||
         (state.phase === 'bidding' && player.bid === null)));
-    const showBid = player.isHuman || bidsAreOpen();
+    const showBid = errandsOpen(player);
     const made = showBid && player.bid !== null && player.bid === player.tricksWon;
 
     node.className = 'seat seat-' + player.position + (isTurn ? ' is-active' : '') +
@@ -188,6 +198,10 @@
     } else if (player.tookWhisper === false && state.whispersOn) {
       whisperLine = '<div class="seat-whisper bare">went without</div>';
     }
+    // A noble whose errands are on show cannot pretend otherwise.
+    if (!open && Whispers.revealsErrands(player.whisper)) {
+      whisperLine = '<div class="seat-whisper watched">' + player.whisper.name + '</div>';
+    }
 
     node.innerHTML = head + stats + whisperLine + '<div class="seat-foot"></div>';
     const foot = node.querySelector('.seat-foot');
@@ -198,7 +212,7 @@
       ? 'Errands pledging ' + plural(player.bid, 'audience')
       : Rules.BID_CARDS + ' agents away on errands, their kinds sealed';
     for (const card of player.bidCards) {
-      pile.appendChild(bidsAreOpen() ? cardEl(card, 'sm') : backEl('sm'));
+      pile.appendChild(errandsOpen(player) ? cardEl(card, 'sm') : backEl('sm'));
     }
     foot.appendChild(pile);
 
@@ -408,7 +422,7 @@
   function renderScoreboard() {
     let html = '<tr><th>Noble</th><th>Pledge</th><th>Won</th><th>Favour</th></tr>';
     state.players.forEach((player, seat) => {
-      const showBid = player.isHuman || bidsAreOpen();
+      const showBid = errandsOpen(player);
       const bid = player.bid === null ? '&mdash;' : (showBid ? player.bid : '?');
       const met = showBid && player.bid === player.tricksWon;
       html += '<tr class="' + (player.isHuman ? 'me' : '') + '">' +
@@ -446,6 +460,9 @@
   function renderWhisper() {
     const player = state.players[Engine.HUMAN];
     const whisper = player.whisper;
+
+    // The card as it exists in the deck, laid on the table in front of you.
+    dom.tableWhisper.innerHTML = whisper ? WhisperCard.html(whisper, 'wcard-sm') : '';
 
     if (!whisper) {
       dom.whisperBox.hidden = true;

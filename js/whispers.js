@@ -18,6 +18,9 @@
  *   pledgeFor(estimate)       - the pledge a hand of this strength wants
  *   pledgeCost(bid)           - nudges the rival nobles toward or away from a pledge
  *   favouredSuit              - a kind this noble would rather win audiences with
+ *   shunnedSuit               - a kind this noble would rather NOT win with
+ *   revealsErrands            - the errands are laid face up before any pledge
+ *   burden                    - a word that costs rather than pays
  *   adjust(favour, row, table)- the last word on favour
  *
  * A row carries: seat, bid, tricksWon, counted, made, takenWith, base.
@@ -218,6 +221,57 @@
         const scored = global.Rules.scoreHand(leftOf(table, row).bid, row.counted) + 3;
         return kept(row) ? scored + 5 : scored;
       }
+    },
+
+    // --- burdens ------------------------------------------------------------
+    // Not every word from the monarch is a favour. These cost, and because a
+    // Whisper is taken unread, they are the risk that makes taking one a
+    // decision rather than a formality.
+
+    {
+      id: 'condemned',
+      name: 'The Condemned',
+      burden: true,
+      line: 'Break your pledge and lose a further 4.',
+      detail: 'You are one failure from the block, and the court is watching to see which way ' +
+        'you fall.',
+      adjust: (favour, row) => (kept(row) ? favour : favour - 4)
+    },
+    {
+      id: 'scapegoat',
+      name: 'The Scapegoat',
+      burden: true,
+      line: '-2 for every other noble who keeps their pledge.',
+      detail: 'Someone must answer for last season. It has been decided that it will be you.',
+      adjust: (favour, row, table) =>
+        favour - 2 * table.filter((other) => other !== row && other.made).length
+    },
+    {
+      id: 'disgrace',
+      name: 'In Disgrace',
+      burden: true,
+      line: 'Favour you gain tonight is halved. Favour you lose is not.',
+      detail: 'You are still at court. You are no longer quite of it.',
+      adjust: (favour) => (favour > 0 ? Math.floor(favour / 2) : favour)
+    },
+    {
+      id: 'watched',
+      name: 'The Watched',
+      burden: true,
+      line: 'Your errands are laid face up as soon as they are sent.',
+      detail: 'A clerk has been assigned to your correspondence. Everything you send, the room ' +
+        'sees -- your pledge, and which agents have left your hand.',
+      revealsErrands: true
+    },
+    {
+      id: 'marked',
+      name: 'Marked for the Blade',
+      burden: true,
+      line: '-2 for every audience you take with an Assassin.',
+      detail: 'You have made an enemy of someone who kills for a living. Draw a blade tonight ' +
+        'and it will be noticed.',
+      shunnedSuit: 'S',
+      adjust: (favour, row) => favour - 2 * suitOf(row.takenWith, 'S').length
     }
   ];
 
@@ -283,6 +337,21 @@
     return whisper && whisper.favouredSuit ? whisper.favouredSuit : null;
   }
 
+  /** A kind this noble would rather not be seen winning with, if any. */
+  function shunnedSuit(whisper) {
+    return whisper && whisper.shunnedSuit ? whisper.shunnedSuit : null;
+  }
+
+  /** Whether this noble's errands are public the moment they are sent. */
+  function revealsErrands(whisper) {
+    return !!(whisper && whisper.revealsErrands);
+  }
+
+  /** A word that costs rather than pays. */
+  function isBurden(whisper) {
+    return !!(whisper && whisper.burden);
+  }
+
   /** The last word on favour, once every noble's session has been totalled. */
   function adjust(whisper, favour, row, table) {
     return whisper && whisper.adjust ? whisper.adjust(favour, row, table) : favour;
@@ -301,6 +370,9 @@
     pledgeFor: pledgeFor,
     pledgeCost: pledgeCost,
     favouredSuit: favouredSuit,
+    shunnedSuit: shunnedSuit,
+    revealsErrands: revealsErrands,
+    isBurden: isBurden,
     adjust: adjust
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

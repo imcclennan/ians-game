@@ -1,0 +1,151 @@
+/*
+ * whisper-card.css - the face of a Whisper card.
+ *
+ * Loaded by both the app and the printed edition so the card at the table and
+ * the card off the printer are the same object. Sizes are in millimetres for
+ * print; the app scales the whole thing down with .wcard-sm.
+ *
+ * A Whisper is framed in gold under a whole seal. A burden is framed in
+ * oxblood under a broken one, and signed "A Burden" instead. Face down they
+ * are indistinguishable, which is the point.
+ */
+
+.wcard {
+  --w-paper: #f6f0e2;
+  --w-ink: #23201a;
+  --w-ink-soft: #5c5445;
+  --w-ink-faint: #8c8271;
+  --w-edge: #9a7526;        /* the frame */
+  --w-edge-soft: #c8a960;   /* the hairline inside it */
+  --w-wash: rgba(200, 169, 96, .13);
+
+  position: relative;
+  width: 63.5mm;
+  height: 88.9mm;
+  padding: 2.6mm;
+  flex: 0 0 auto;
+  background: var(--w-paper);
+  color: var(--w-ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, "Times New Roman", serif;
+  box-sizing: border-box;
+}
+
+/* A word that costs. Oxblood where the gold would be. */
+.wcard-burden {
+  --w-edge: #8d2f2a;
+  --w-edge-soft: #c0665f;
+  --w-wash: rgba(141, 47, 42, .14);
+  --w-paper: #f4e9e2;
+}
+
+.wcard * { box-sizing: border-box; }
+
+.wcard-frame {
+  position: relative;
+  height: 100%;
+  padding: 3.4mm 3.6mm 3mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: .5mm solid var(--w-edge);
+  border-radius: 1.6mm;
+  background: linear-gradient(160deg, var(--w-wash), transparent 55%), var(--w-paper);
+}
+
+.wcard-frame::before {
+  content: "";
+  position: absolute;
+  inset: 1.1mm;
+  border: .16mm solid var(--w-edge-soft);
+  border-radius: .9mm;
+  pointer-events: none;
+}
+
+.wseal { display: block; width: 7mm; height: 7mm; color: var(--w-edge); }
+
+.wcard-top { margin-bottom: 1.6mm; }
+
+.wcard-title {
+  margin: 0;
+  font-size: 12.4pt;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: .012em;
+  color: var(--w-ink);
+}
+
+.wflourish {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  width: 100%;
+  margin: 2.2mm 0;
+  color: var(--w-edge);
+}
+
+.wflourish::before, .wflourish::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--w-edge-soft) 22%,
+    var(--w-edge-soft) 78%, transparent);
+}
+
+.wflourish i {
+  font-style: normal;
+  width: 2.4mm;
+  height: 2.4mm;
+  flex: 0 0 auto;
+  transform: rotate(45deg);
+  background: var(--w-edge);
+}
+
+/* A burden's lozenge is a bar, so the break reads even in one colour. */
+.wcard-burden .wflourish i { transform: none; height: 1.1mm; width: 4mm; }
+
+.wcard-rule { margin: 0; font-size: 9.3pt; line-height: 1.45; color: var(--w-ink); }
+.wcard-rule b, .wcard-rule strong { font-weight: 600; }
+
+.wcard-flavour {
+  margin: 0;
+  font-size: 8.2pt;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--w-ink-soft);
+}
+
+.wcard-foot { margin-top: auto; padding-top: 2mm; }
+
+.wcard-mark {
+  font-size: 6pt;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: var(--w-ink-faint);
+}
+
+.wcard-burden .wcard-mark { color: var(--w-edge); font-weight: 600; }
+
+/* --- the smaller card the app puts on the table --------------------------- */
+
+.wcard-sm {
+  width: 132px;
+  height: 185px;
+  padding: 5px;
+  border-radius: 7px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .5);
+}
+
+.wcard-sm .wcard-frame { padding: 8px 8px 7px; border-width: 1.5px; border-radius: 5px; }
+.wcard-sm .wcard-frame::before { inset: 2.5px; border-radius: 3px; }
+.wcard-sm .wseal { width: 17px; height: 17px; }
+.wcard-sm .wcard-top { margin-bottom: 4px; }
+.wcard-sm .wcard-title { font-size: 14px; }
+.wcard-sm .wflourish { margin: 5px 0; gap: 6px; }
+.wcard-sm .wflourish i { width: 5px; height: 5px; }
+.wcard-sm .wcard-burden .wflourish i, .wcard-sm.wcard-burden .wflourish i { width: 9px; height: 2px; }
+.wcard-sm .wcard-rule { font-size: 11px; line-height: 1.35; }
+.wcard-sm .wcard-flavour { font-size: 9.5px; line-height: 1.4; }
+.wcard-sm .wcard-foot { padding-top: 4px; }
+.wcard-sm .wcard-mark { font-size: 8px; }

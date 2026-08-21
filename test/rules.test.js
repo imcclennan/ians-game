@@ -5,10 +5,11 @@
 require('../js/cards.js');
 require('../js/rules.js');
 require('../js/whispers.js');
+require('../js/whispercard.js');
 require('../js/ai.js');
 require('../js/engine.js');
 
-const { Cards, Rules, AI, Engine, Whispers } = globalThis;
+const { Cards, Rules, AI, Engine, Whispers, WhisperCard } = globalThis;
 
 let passed = 0;
 const failures = [];
@@ -102,9 +103,9 @@ check('four audiences on a pledge of five', Rules.scoreHand(5, 4), 2);
 check('six audiences on a pledge of three', Rules.scoreHand(3, 6), 0);
 check('two audiences on a pledge of five', Rules.scoreHand(5, 2), -4);
 check('none at all on a pledge of two', Rules.scoreHand(2, 0), -4);
-check('pledging nothing and keeping it is worth ten', Rules.scoreHand(0, 0), 10);
-check('one audience breaks it for ten', Rules.scoreHand(0, 1), -10);
-check('so does taking every audience there is', Rules.scoreHand(0, 11), -10);
+check('pledging nothing and keeping it is worth eight', Rules.scoreHand(0, 0), 8);
+check('one audience breaks it for eight', Rules.scoreHand(0, 1), -8);
+check('so does taking every audience there is', Rules.scoreHand(0, 11), -8);
 ok('a broken promise of nothing costs the same however badly it went',
   Rules.scoreHand(0, 1) === Rules.scoreHand(0, 5));
 
@@ -185,7 +186,24 @@ check('the standings sort by the same order',
 
 // --- whispers --------------------------------------------------------------
 
-check('there are fifteen whispers', Whispers.ALL.length, 15);
+check('there are twenty whispers', Whispers.ALL.length, 20);
+check('five of them are burdens', Whispers.ALL.filter((w) => w.burden).length, 5);
+for (const whisper of Whispers.ALL.filter((w) => w.burden)) {
+  ok(whisper.name + ' is marked as a burden', Whispers.isBurden(whisper));
+}
+ok('no ordinary whisper is marked as a burden',
+  Whispers.ALL.filter((w) => !w.burden).every((w) => !Whispers.isBurden(w)));
+
+// A burden must be indistinguishable face down, so only the face may differ.
+for (const whisper of Whispers.ALL) {
+  const face = WhisperCard.html(whisper);
+  ok(whisper.name + ' prints a card face', face.indexOf('wcard-frame') > 0);
+  check(whisper.name + ' is framed according to its nature',
+    face.indexOf('wcard-burden') > 0, !!whisper.burden);
+  ok(whisper.name + ' signs itself',
+    face.indexOf(whisper.burden ? 'A Burden' : 'A Whisper') > 0);
+}
+check('an absent whisper prints nothing', WhisperCard.html(null), '');
 check('every whisper is uniquely named',
   new Set(Whispers.ALL.map((w) => w.name)).size, Whispers.ALL.length);
 check('every whisper has a unique id',

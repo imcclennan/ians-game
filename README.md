@@ -78,13 +78,13 @@ much means spending Assassins; promising nothing is cheap only if your Fools wer
 | --- | --- |
 | Pledge kept exactly | 2 per audience won |
 | Pledge broken | 1 per audience won, less 2 for every audience off the pledge |
-| Pledged nothing, took nothing | **+10** |
-| Pledged nothing, took audiences | **−10**, however many |
+| Pledged nothing, took nothing | **+8** |
+| Pledged nothing, took audiences | **−8**, however many |
 
-Pledge 5, win 4 → 4 − 2 = **2**. Pledge 3, win 6 → 6 − 6 = **0**. Pledge 0, win 3 → **−10**.
+Pledge 5, win 4 → 4 − 2 = **2**. Pledge 3, win 6 → 6 − 6 = **0**. Pledge 0, win 3 → **−8**.
 
-Promising the court nothing is the biggest swing in the game — twenty favour between keeping it and
-breaking it — and it needs four Fools to reach.
+Promising the court nothing is the biggest swing in the game — sixteen favour between keeping it
+and breaking it — and it needs four Fools to reach.
 
 ### The Whispers — optional
 
@@ -99,7 +99,9 @@ two nobles hold the same Whisper on the same night.
 They are also an **optional part of the game**: the switch in the top bar turns them off entirely,
 and a season without them is a complete game of its own.
 
-Fifteen of them:
+Twenty of them, and **five are burdens** that cost rather than pay. A burden is framed in oxblood
+under a broken seal, but every Whisper is identical face down, so one cannot be spotted in a
+rival's hand.
 
 | Whisper | The monarch's word |
 | --- | --- |
@@ -118,6 +120,11 @@ Fifteen of them:
 | **Sworn to the Fool** | **+3** favour for every audience you take with a Fool. |
 | **The Contrarian** | Your pledge counts the audiences you will **not** win. Keep it for **+2**. |
 | **The Understudy** | You are scored against the pledge of the noble **on your left**. **+3** for the trouble, **+5** more if you match it. |
+| ⚠ **The Condemned** | Break your pledge and lose a further **4**. |
+| ⚠ **The Scapegoat** | **−2** for every other noble who keeps their pledge. |
+| ⚠ **In Disgrace** | Favour you gain tonight is halved. Favour you lose is not. |
+| ⚠ **The Watched** | Your errands are laid **face up** as soon as they are sent. |
+| ⚠ **Marked for the Blade** | **−2** for every audience you take with an Assassin. |
 
 A demand that cannot be met is waived rather than enforced — a noble holding no Assassin cannot be
 made to send one. Across simulated play that happens in about **0.7%** of player nights.
@@ -163,6 +170,7 @@ and the logic files also load under Node, which is how the tests run.
 | [`js/rules.js`](js/rules.js) | Pure rules: legal plays, who takes the audience, favour, the sway ladder |
 | [`js/whispers.js`](js/whispers.js) | The fifteen Whispers, declared in one table |
 | [`js/rulebook.js`](js/rulebook.js) | The rules in prose, rendered by both the app and the printed edition |
+| [`js/whispercard.js`](js/whispercard.js) | The face of a Whisper card, shared by the table and the printer |
 | [`js/ai.js`](js/ai.js) | Valuing a hand, choosing which agents to send out, playing them |
 | [`js/engine.js`](js/engine.js) | The state of the court and the transitions between phases |
 | [`js/ui.js`](js/ui.js) | Rendering and input |

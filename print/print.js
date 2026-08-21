@@ -12,6 +12,7 @@
   const Rules = global.Rules;
   const Whispers = global.Whispers;
   const Rulebook = global.Rulebook;
+  const WhisperCard = global.WhisperCard;
 
   const CARDS_PER_SHEET = 9;
 
@@ -55,18 +56,10 @@
 
   /* --- the Whisper cards --------------------------------------------------- */
 
+  // The card face is shared with the app -- see js/whispercard.js -- so the
+  // card on the table and the card off the printer cannot drift apart.
   function whisperCard(whisper) {
-    return '<div class="pcard whisper-card">' +
-      '<div class="pcard-frame">' +
-        '<div class="pcard-top">' + seal('sm') + '</div>' +
-        '<h3 class="pcard-title">' + whisper.name + '</h3>' +
-        flourish() +
-        '<p class="pcard-rule">' + whisper.line + '</p>' +
-        flourish() +
-        '<p class="pcard-flavour">' + whisper.detail + '</p>' +
-        '<div class="pcard-foot"><span class="smallcaps">A Whisper</span></div>' +
-      '</div>' +
-    '</div>';
+    return WhisperCard.html(whisper);
   }
 
   function whisperBack() {

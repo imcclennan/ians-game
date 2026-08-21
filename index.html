@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Fool's Court — a card game of promises kept and broken</title>
 <meta name="description" content="Four nobles compete for the monarch's ear. Send agents out on secret errands to pledge how many audiences you will win, and whoever fails hands the court to the Fool.">
+<link rel="stylesheet" href="css/whisper-card.css">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='%23d9a441'><path d='M50 6 L58 32 L58 60 L42 60 L42 32 Z'/><rect x='27' y='60' width='46' height='8' rx='2'/><rect x='45' y='68' width='10' height='18'/><circle cx='50' cy='90' r='7'/></g></svg>">
 </head>
@@ -47,7 +48,10 @@
     </div>
 
     <div class="you">
-      <div class="seat seat-south" id="seat-0"></div>
+      <div class="you-side">
+        <div class="seat seat-south" id="seat-0"></div>
+        <div class="table-whisper" id="table-whisper"></div>
+      </div>
       <div class="hand-block">
         <p class="prompt" id="prompt"></p>
         <div class="hand" id="hand"></div>
@@ -117,6 +121,7 @@
 <script src="js/cards.js"></script>
 <script src="js/rules.js"></script>
 <script src="js/whispers.js"></script>
+<script src="js/whispercard.js"></script>
 <script src="js/rulebook.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/engine.js"></script>

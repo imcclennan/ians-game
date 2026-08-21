@@ -63,14 +63,14 @@
 
   /**
    * Points for one player at the end of a hand.
-   *   bid 0: +10 for taking no tricks, -10 for taking any. Promising the court
+   *   bid 0: +8 for taking no tricks, -8 for taking any. Promising the court
    *          nothing is the boldest thing a noble can do, and the cheapest to
    *          be caught at.
    *   exact bid (> 0): 2 points per trick won.
    *   missed bid: 1 point per trick won, minus 2 for every trick off the bid.
    */
   function scoreHand(bid, tricksWon) {
-    if (bid === 0) return tricksWon === 0 ? 10 : -10;
+    if (bid === 0) return tricksWon === 0 ? 8 : -8;
     if (tricksWon === bid) return 2 * tricksWon;
     return tricksWon - 2 * Math.abs(tricksWon - bid);
   }
