@@ -168,7 +168,7 @@ and the logic files also load under Node, which is how the tests run.
 | --- | --- |
 | [`js/cards.js`](js/cards.js) | The sixty-card deck, the four agents, shuffling and sorting |
 | [`js/rules.js`](js/rules.js) | Pure rules: legal plays, who takes the audience, favour, the sway ladder |
-| [`js/whispers.js`](js/whispers.js) | The fifteen Whispers, declared in one table |
+| [`js/whispers.js`](js/whispers.js) | The twenty-two Whispers, declared in one table |
 | [`js/rulebook.js`](js/rulebook.js) | The rules in prose, rendered by both the app and the printed edition |
 | [`js/whispercard.js`](js/whispercard.js) | The face of a Whisper card, shared by the table and the printer |
 | [`js/ai.js`](js/ai.js) | Valuing a hand, choosing which agents to send out, playing them |
@@ -188,7 +188,7 @@ cards — they pledge by valuing their own hand and play by tracking what has al
 | Sheet | What it is |
 | --- | --- |
 | [`print/rules.html`](print/rules.html) | The full rules, two columns to an A4 sheet, with a masthead and a summary of play |
-| [`print/whispers.html`](print/whispers.html) | All fifteen Whispers at poker size (63.5 × 88.9 mm), nine to a sheet, plus a sheet of backs |
+| [`print/whispers.html`](print/whispers.html) | All twenty-two Whispers at poker size (63.5 × 88.9 mm), nine to a sheet, plus a sheet of backs |
 | [`print/reference.html`](print/reference.html) | A two-sided A6 reference card: making a pledge on one side, sway and favour on the other |
 
 Everything is generated from the same rules files the game runs on, so the printed edition and the
@@ -209,14 +209,14 @@ npm test
 ```
 
 Around 5,000 assertions: the favour table, who takes an audience under every sway, answering in
-kind, the sway ladder, the tie-breakers, all fifteen Whispers in isolation, a full season played
+kind, the sway ladder, the tie-breakers, all twenty-two Whispers in isolation, a full season played
 with Whispers switched off, plus twenty complete seasons played end to end against invariants
 (every session is eleven audiences and four different Whispers, every deal is sixty agents, every
 pledge obeys the Whisper that was given, every favour follows pledge → counted → kept → base →
 Whisper).
 
 The computer nobles are checked for calibration too. Across roughly 34,000 simulated player
-sessions all fifteen Whispers land between **2.36 and 3.50** average favour against a table average
+sessions all twenty-two Whispers land between **2.36 and 3.50** average favour against a table average
 of **3.04** — a spread of 1.1 favour, with no outlier in either direction.
 
 A season is always twelve nights, which runs about twenty minutes.

@@ -98,7 +98,7 @@
     return (seat + PLAYER_COUNT - 1) % PLAYER_COUNT;
   }
 
-  /** Combined rank value of the three face-down bid cards. */
+  /** Combined rank value of the four face-down bid cards. */
   function bidCardValue(row) {
     return row.bidCards.reduce((total, card) => total + card.value, 0);
   }
@@ -124,7 +124,7 @@
    * Decide the game from the rows of the final hand. The highest total wins.
    * If two players end level, the winner is the one who scored more points that
    * hand; failing that the higher bid; failing that the higher combined rank of
-   * their three bid cards.
+   * their four bid cards.
    */
   function decideWinner(rows) {
     const bestTotal = Math.max.apply(null, rows.map((row) => row.total));

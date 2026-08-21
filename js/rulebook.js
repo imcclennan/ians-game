@@ -220,22 +220,18 @@
         '<tr><td class="left">Pledge kept exactly</td><td class="left">2 for every audience won</td></tr>' +
         '<tr><td class="left">Pledge missed, high or low</td><td class="left">1 for every audience ' +
         'won, less 2 for every audience off the pledge</td></tr>' +
-        '<tr><td class="left">Pledged nothing, won nothing</td><td class="left">5</td></tr>' +
-        '<tr><td class="left">Pledged nothing, won audiences</td><td class="left">−5 for the ' +
-        'first, and −2 for each one after it</td></tr>' +
+        '<tr><td class="left">Pledged nothing, won nothing</td><td class="left">8</td></tr>' +
+        '<tr><td class="left">Pledged nothing, won audiences</td><td class="left">−8, however many</td></tr>' +
         '</table>' +
-        '<p><strong>Worked examples.</strong></p>' +
+        '<p><strong>Examples.</strong></p>' +
         '<ul class="rule-examples">' +
         '<li>Pledged 4, won 4. The pledge is kept: <b>8 favour</b>.</li>' +
         '<li>Pledged 5, won 4. One short: 4 − 2 = <b>2 favour</b>.</li>' +
         '<li>Pledged 3, won 6. Three over: 6 − 6 = <b>0 favour</b>.</li>' +
         '<li>Pledged 2, won 0. Two short: 0 − 4 = <b>−4 favour</b>.</li>' +
-        '<li>Pledged 0, won 0. <b>5 favour</b>.</li>' +
-        '<li>Pledged 0, won 3. −5 for the first, −2 each for the other two: ' +
-        '<b>−9 favour</b>.</li>' +
-        '<li>Pledged 12, won ' + T + '. A pledge of twelve cannot be kept: ' + T + ' − 2 = ' +
-        '<b>9 favour</b>, against the ' + (2 * T) + ' that promising ' + T + ' and delivering would ' +
-        'have paid.</li>' +
+        '<li>Pledged 0, won 0. The pledge is kept:<b>8 favour</b>.</li>' +
+        '<li>Pledged 0, won 3. Broken, and the count does not matter: ' +
+        '<b>−8 favour</b>.</li>' +
         '</ul>' +
         '<p class="rule-note">Because being wrong costs 2 favour per audience in <em>either</em> ' +
         'direction, there is no advantage in deliberately under-promising and overshooting. The ' +
