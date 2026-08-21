@@ -391,16 +391,19 @@ const stage = [
   row({ seat: 2, bid: 1, tricksWon: 2, counted: 2 }),
   row({ seat: 3, bid: 4, tricksWon: 1, counted: 1 })
 ];
-check('an Understudy is judged against the noble on their left',
-  Whispers.wasKept(understudy, stage[0], stage), true);
-check('an Understudy who matches their own pledge instead has missed',
-  Whispers.wasKept(understudy, stage[2], stage), false);
+// Seat 3's right-hand neighbour is seat 2, who pledged 1, and seat 3 took 1.
+check('an Understudy is judged against the noble on their right',
+  Whispers.wasKept(understudy, stage[3], stage), true);
+check('the noble on their left is nothing to do with it',
+  Whispers.wasKept(understudy, stage[0], stage), false);
 check('an Understudy who hits the borrowed number takes the pair of bonuses',
-  Whispers.adjust(understudy, 0, Object.assign({}, stage[0], { made: true }), stage),
-  Rules.scoreHand(5, 5) + 3 + 5);
+  Whispers.adjust(understudy, 0, Object.assign({}, stage[3], { made: true }), stage),
+  Rules.scoreHand(1, 1) + 3 + 5);
 check('an Understudy who misses it takes only the three',
-  Whispers.adjust(understudy, 0, Object.assign({}, stage[2], { made: false }), stage),
-  Rules.scoreHand(4, 2) + 3);
+  Whispers.adjust(understudy, 0, Object.assign({}, stage[0], { made: false }), stage),
+  Rules.scoreHand(4, 5) + 3);
+check('a noble on the far side is judged against their own right hand',
+  Whispers.wasKept(understudy, stage[1], stage), false);
 
 // Dealing four at a time should never repeat a whisper.
 for (let seed = 1; seed <= 50; seed++) {
@@ -485,6 +488,15 @@ check('no offer is made when whispers are off', noWords.phase, 'bidding');
 ok('and nobody is left undecided',
   noWords.players.every((player) => player.tookWhisper === false));
 
+const watched = Whispers.BY_ID.watched;
+ok('the Watched lays its errands open', Whispers.revealsErrands(watched));
+ok('no other whisper does',
+  Whispers.ALL.filter((w) => Whispers.revealsErrands(w)).length, 1);
+check('the Watched is paid a token for the indignity',
+  Whispers.adjust(watched, 4, row({}), []), 5);
+check('and is paid it whether the pledge held or not',
+  Whispers.adjust(watched, -6, row({ made: false }), []), -5);
+
 // --- what a rival may not learn ----------------------------------------------
 
 // Every scrap the AI is handed, checked against what it is allowed to know.
@@ -515,9 +527,27 @@ ok('a noble cannot see another noble\'s errands',
 ok('a noble cannot see another noble\'s hand',
   ![...context.seen].some((id) => table.players.some((other, index) =>
     index !== seat && other.hand.some((card) => card.id === id))));
-ok('nothing in the context names another noble',
-  !Object.keys(context).some((key) => /player|seat|rival|opponent/i.test(key)),
-  Object.keys(context).join(','));
+// The only thing a noble learns about anyone else is what that noble chose to
+// expose: a pledge laid face up under The Watched, and audiences already taken,
+// which are public in any case.
+check('the context carries nothing but the permitted keys',
+  Object.keys(context).sort().join(','),
+  'bid,hand,seen,trick,tricksWon,trump,watched,whisper');
+ok('only nobles who laid their errands open appear in it',
+  context.watched.every((other) =>
+    Whispers.revealsErrands(table.players[other.seat].whisper)));
+ok('and never the noble itself', context.watched.every((other) => other.seat !== seat));
+for (const other of context.watched) {
+  check('a watched pledge is reported truthfully',
+    other.bid, table.players[other.seat].bid);
+  check('and so is what they still need',
+    other.needs, Whispers.aimFor(table.players[other.seat].whisper, other.bid) -
+      table.players[other.seat].tricksWon);
+}
+ok('a noble who kept their errands sealed is not in it',
+  table.players.every((other, index) =>
+    index === seat || Whispers.revealsErrands(other.whisper) ||
+    !context.watched.some((row) => row.seat === index)));
 ok('the sealed errands stay out of what anyone has seen',
   ownErrands.size === Rules.BID_CARDS &&
   ![...ownErrands].some((id) => table.playedCards.some((card) => card.id === id)));

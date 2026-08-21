@@ -234,8 +234,31 @@
       bid: player.bid,
       tricksWon: player.tricksWon,
       seen: seenBy(state, seat),
-      whisper: player.whisper
+      whisper: player.whisper,
+      watched: watchedBy(state, seat)
     };
+  }
+
+  /**
+   * The nobles whose pledges are on show. A noble under The Watched has laid
+   * their errands face up, and how many audiences anyone has taken is public
+   * anyway, so the whole table can work out exactly how many more they need.
+   * Nothing secret crosses this line -- only what its holder chose to expose.
+   */
+  function watchedBy(state, seat) {
+    const open = [];
+    state.players.forEach((other, index) => {
+      if (index === seat) return;
+      if (!Whispers.revealsErrands(other.whisper)) return;
+      if (other.bid === null) return;
+      open.push({
+        seat: index,
+        bid: other.bid,
+        tricksWon: other.tricksWon,
+        needs: Whispers.aimFor(other.whisper, other.bid) - other.tricksWon
+      });
+    });
+    return open;
   }
 
   /** Ask the AI for a card and play it. */
@@ -346,6 +369,7 @@
     isLegalPlay: isLegalPlay,
     playCard: playCard,
     contextFor: contextFor,
+    watchedBy: watchedBy,
     playComputerCard: playComputerCard,
     completeTrick: completeTrick,
     finishHand: finishHand,

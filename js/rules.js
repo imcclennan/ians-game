@@ -93,6 +93,11 @@
     return (seat + 1) % PLAYER_COUNT;
   }
 
+  /** Seat to the right (anticlockwise), who plays into you rather than after you. */
+  function rightOf(seat) {
+    return (seat + PLAYER_COUNT - 1) % PLAYER_COUNT;
+  }
+
   /** Combined rank value of the three face-down bid cards. */
   function bidCardValue(row) {
     return row.bidCards.reduce((total, card) => total + card.value, 0);
@@ -158,6 +163,7 @@
     trumpForNextHand: trumpForNextHand,
     trumpLabel: trumpLabel,
     leftOf: leftOf,
+    rightOf: rightOf,
     bidCardValue: bidCardValue,
     TIE_BREAKERS: TIE_BREAKERS,
     compareForWin: compareForWin,

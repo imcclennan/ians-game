@@ -234,6 +234,15 @@
     const winners = legal.filter(wouldWin);
     const losers = legal.filter((card) => !wouldWin(card));
 
+    // A noble whose pledge is on show can be starved of the audiences they
+    // still need. Worth doing only once our own promise is beyond saving.
+    if (!wantsTrick && ctx.overshot && winners.length && trick.length) {
+      const leading = Rules.trickWinner(trick, trump).player;
+      const starving = (ctx.watched || []).some(
+        (other) => other.seat === leading && other.needs > 0);
+      if (starving) return cheapest(winners, trump);
+    }
+
     if (wantsTrick) {
       if (!winners.length) return cheapest(losers, trump);
       const wanted = favoured ? winners.filter((card) => card.suit === favoured) : [];
@@ -265,7 +274,12 @@
     // A Contrarian is chasing the audiences it does not win, so what it is
     // actually aiming at may be nothing like its pledge.
     const target = Whispers.aimFor(ctx.whisper, ctx.bid);
-    const enriched = Object.assign({}, ctx, { wantsTrick: ctx.tricksWon < target });
+    const enriched = Object.assign({}, ctx, {
+      wantsTrick: ctx.tricksWon < target,
+      // Our own promise is already broken past mending, so one more audience
+      // costs little -- which is when spite becomes affordable.
+      overshot: ctx.tricksWon > target
+    });
     return ledSuit ? chooseFollow(legal, enriched) : chooseLead(legal, enriched);
   }
 

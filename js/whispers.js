@@ -33,8 +33,8 @@
   const suitOf = (cards, suit) => cards.filter((card) => card.suit === suit);
   const kept = (row) => row.made;
 
-  function leftOf(table, row) {
-    return table[global.Rules.leftOf(row.seat)];
+  function rightOf(table, row) {
+    return table[global.Rules.rightOf(row.seat)];
   }
 
   const WHISPERS = [
@@ -212,13 +212,14 @@
     {
       id: 'understudy',
       name: 'The Understudy',
-      line: 'You are scored against the pledge of the noble on your left, not your own. ' +
+      line: 'You are scored against the pledge of the noble on your right, not your own. ' +
         'Take +3 for the trouble, and +5 more if you match it.',
-      detail: 'You have been studying them for years. Tonight you find out how well. Their ' +
-        'promise is sealed too, so you are aiming at a number nobody has shown you.',
-      keptTest: (row, table) => row.counted === leftOf(table, row).bid,
+      detail: 'You have been studying them for years -- the one who plays into your hand, ' +
+        'never after it. Tonight you find out how well. Their promise is sealed too, so you are ' +
+        'aiming at a number nobody has shown you.',
+      keptTest: (row, table) => row.counted === rightOf(table, row).bid,
       adjust: (favour, row, table) => {
-        const scored = global.Rules.scoreHand(leftOf(table, row).bid, row.counted) + 3;
+        const scored = global.Rules.scoreHand(rightOf(table, row).bid, row.counted) + 3;
         return kept(row) ? scored + 5 : scored;
       }
     },
@@ -258,10 +259,12 @@
       id: 'watched',
       name: 'The Watched',
       burden: true,
-      line: 'Your errands are laid face up as soon as they are sent.',
+      line: 'Your errands are laid face up as soon as they are sent. Take +1 for the trouble.',
       detail: 'A clerk has been assigned to your correspondence. Everything you send, the room ' +
-        'sees -- your pledge, and which agents have left your hand.',
-      revealsErrands: true
+        'sees -- your pledge, and which agents have left your hand. The monarch pays a token ' +
+        'for the indignity, which is not the same as making up for it.',
+      revealsErrands: true,
+      adjust: (favour) => favour + 1
     },
     {
       id: 'marked',

@@ -90,24 +90,77 @@
         '</strong>. Rank ' + Cards.HIGHEST_VALUE + ' is the most influential and rank 1 the least.</p>' +
         agentTable() +
         '<p>An agent’s <em>kind</em> determines what it is worth when sent out on an errand ' +
-        '(section 4). An agent’s <em>rank</em> determines whether it wins an audience ' +
-        '(section 5). The two are used at different times and never interact.</p>'
+        '(section {{rule-pledge}}). An agent’s <em>rank</em> determines whether it wins an audience ' +
+        '(section {{rule-play}}). The two are used at different times and never interact.</p>'
     },
     {
       id: 'rule-deal',
-      title: 'Seating and the deal',
+      title: 'Seating, the deal, and the course of a night',
       html:
         '<p>Four players sit in a fixed order. Play and the deal both proceed ' +
-        '<strong>clockwise</strong>, which is to say to the left.</p>' +
-        '<ol>' +
-        '<li>One player is the <strong>steward</strong> for the night and deals <strong>' +
-        Rules.HAND_SIZE + ' cards</strong> to each player, exhausting the deck.</li>' +
-        '<li>Each player looks at their hand and may take a Whisper (section 8).</li>' +
-        '<li>Each player makes a pledge (section 4).</li>' +
-        '<li>' + T + ' audiences are played out (section 5).</li>' +
-        '<li>Favour is scored, and the sway for the next night is determined (sections 6 and 7).</li>' +
+        '<strong>clockwise</strong>, which is to say to the left. One player is the ' +
+        '<strong>steward</strong> for the night; the stewardship passes one seat to the left ' +
+        'after every night.</p>' +
+        '<p>A night runs as follows.</p>' +
+        '<ol class="rule-summary">' +
+        '<li>The steward deals <strong>' + Rules.HAND_SIZE + ' cards</strong> to each of the ' +
+        'four players, exhausting the deck.</li>' +
+        '<li>If Whispers are in use, each player looks at their own hand and chooses whether to ' +
+        'take one, unread and for nothing (section {{rule-whispers}}).</li>' +
+        '<li>Each player sends <strong>' + Rules.BID_CARDS + ' agents</strong> out on errands, ' +
+        'face down. Their kinds are that player\u2019s pledge; their ranks are irrelevant ' +
+        '(section {{rule-pledge}}).</li>' +
+        '<li>The player to the steward\u2019s left opens the first of <strong>' + T +
+        ' audiences</strong>.</li>' +
+        '<li>Players answer in kind where they can. The highest of the opening kind takes the ' +
+        'audience, unless the ruling kind was played, in which case the highest of those does ' +
+        '(section {{rule-play}}).</li>' +
+        '<li>The winner of each audience opens the next, until every hand is empty.</li>' +
+        '<li>Errands and Whispers are revealed. Favour is scored on the exactness of each ' +
+        'pledge (section {{rule-favour}}).</li>' +
+        '<li>The number of pledges kept sets the sway for the next night ' +
+        '(section {{rule-sway}}).</li>' +
         '<li>The stewardship passes one seat to the left, and a new night begins.</li>' +
-        '</ol>'
+        '</ol>' +
+        '<p>After <strong>' + Rules.SEASON_LENGTH + ' nights</strong> the season ends and the ' +
+        'most favour wins, as set out in section {{rule-season}}.</p>'
+    },
+    {
+      id: 'rule-whispers',
+      title: 'The Whispers',
+      optional: true,
+      html:
+        '<p>The Whispers are an optional component. A season played without them is a complete ' +
+        'game.</p>' +
+        '<p>The ' + Whispers.ALL.length + ' Whispers are shuffled face down ' +
+        'at the start of each night. After the deal, and <strong>before any pledge is made</strong>, ' +
+        'each player may look at their own hand and then choose to <strong>take one Whisper</strong> ' +
+        'or to go without.</p>' +
+        '<p>Taking one <strong>costs nothing</strong>, but it is taken ' +
+        '<strong>unread</strong>: a player decides on the strength of their hand alone, not on ' +
+        'the word they are about to receive. A Whisper can bind as readily as it can pay.</p>' +
+        '<p>A Whisper alters how that player\u2019s favour is counted, or ' +
+        'restricts which agents they may send out on errands, or both. Its <strong>contents are ' +
+        'private</strong> and are revealed only when the night ends, alongside the errands. That ' +
+        'a player took one is plain for the table to see; <em>which</em> one is not.</p>' +
+        '<p>Not every word is a favour. ' + Whispers.ALL.filter((w) => w.burden).length +
+        ' of the ' + Whispers.ALL.length + ' are <strong>burdens</strong>, which cost rather ' +
+        'than pay. A burden is framed in oxblood under a broken seal and signed as a burden, so ' +
+        'there is no mistaking one once it is in your hand — but every Whisper is identical ' +
+        'face down, and a player who has drawn one is under no obligation to say so.</p>' +
+        '<p>Where a Whisper restricts errands, the restriction is binding. If ' +
+        'a player\u2019s hand makes the restriction <strong>impossible to obey</strong> \u2014 ' +
+        'being required to send an Assassin while holding none, for instance \u2014 the demand is ' +
+        '<strong>waived</strong> for that night and the player pledges freely.</p>' +
+        '<p>No two players hold the same Whisper on the same night, and a ' +
+        'Whisper never changes the rules of play in section {{rule-play}}.</p>' +
+        '<p>Every Whisper in the deck is set out in section {{rule-whisperlist}}.</p>' +
+        '<p class="rule-note">Because a burden is as likely as a favour, taking a word is a ' +
+        'gamble rather than a formality: worth reaching for when a season is slipping away, and ' +
+        'worth refusing when it is not. A rival who ' +
+        'pledges strangely, or who ducks an audience they could plainly have won, is telling you ' +
+        'something about the word they were given \u2014 and a rival who refused a free word is ' +
+        'telling you their hand was already exactly what they wanted.</p>'
     },
     {
       id: 'rule-pledge',
@@ -143,7 +196,7 @@
         'audience — if they hold one. A player holding none may play any card at all.</p>' +
         '<p>The audience is won by the <strong>highest-ranked card of the kind ' +
         'that opened it</strong>, unless one or more cards of the <strong>ruling kind</strong> ' +
-        '(section 7) were played, in which case the highest-ranked of those wins instead.</p>' +
+        '(section {{rule-sway}}) were played, in which case the highest-ranked of those wins instead.</p>' +
         '<p>A card of neither the opening kind nor the ruling kind can never ' +
         'win an audience, whatever its rank.</p>' +
         '<p>The winner of an audience opens the next. ' + T + ' audiences are ' +
@@ -186,7 +239,7 @@
       title: 'Who holds sway',
       html:
         '<p>One kind of agent may <strong>hold sway</strong> for a night, outranking every other ' +
-        'kind when audiences are decided (rule 5.3). Sway is not chosen by any player. It is ' +
+        'kind when audiences are decided (rule {{rule-play}}). Sway is not chosen by any player. It is ' +
         'determined by how the <em>previous</em> night went.</p>' +
         '<p>The first night of a season is always played at <strong>No Sway</strong>, where no ' +
         'kind outranks any other. After that, sway passes according to how many of the four nobles ' +
@@ -196,43 +249,6 @@
         'the whole court fails, the Fool rules it; when the whole court succeeds, nobody does. ' +
         'Because sway is public knowledge before pledges are made, every player knows which kind is ' +
         'dangerous while they are deciding what to promise.</p>'
-    },
-    {
-      id: 'rule-whispers',
-      title: 'The Whispers',
-      optional: true,
-      html:
-        '<p>The Whispers are an optional component. A season played without them is a complete ' +
-        'game.</p>' +
-        '<p>The ' + Whispers.ALL.length + ' Whispers are shuffled face down ' +
-        'at the start of each night. After the deal, and <strong>before any pledge is made</strong>, ' +
-        'each player may look at their own hand and then choose to <strong>take one Whisper</strong> ' +
-        'or to go without.</p>' +
-        '<p>Taking one <strong>costs nothing</strong>, but it is taken ' +
-        '<strong>unread</strong>: a player decides on the strength of their hand alone, not on ' +
-        'the word they are about to receive. A Whisper can bind as readily as it can pay.</p>' +
-        '<p>A Whisper alters how that player\u2019s favour is counted, or ' +
-        'restricts which agents they may send out on errands, or both. Its <strong>contents are ' +
-        'private</strong> and are revealed only when the night ends, alongside the errands. That ' +
-        'a player took one is plain for the table to see; <em>which</em> one is not.</p>' +
-        '<p>Not every word is a favour. ' + Whispers.ALL.filter((w) => w.burden).length +
-        ' of the ' + Whispers.ALL.length + ' are <strong>burdens</strong>, which cost rather ' +
-        'than pay. A burden is framed in oxblood under a broken seal and signed as a burden, so ' +
-        'there is no mistaking one once it is in your hand — but every Whisper is identical ' +
-        'face down, and a player who has drawn one is under no obligation to say so.</p>' +
-        '<p>Where a Whisper restricts errands, the restriction is binding. If ' +
-        'a player\u2019s hand makes the restriction <strong>impossible to obey</strong> \u2014 ' +
-        'being required to send an Assassin while holding none, for instance \u2014 the demand is ' +
-        '<strong>waived</strong> for that night and the player pledges freely.</p>' +
-        '<p>No two players hold the same Whisper on the same night, and a ' +
-        'Whisper never changes the rules of play in section 5.</p>' +
-        whisperTable() +
-        '<p class="rule-note">Because a burden is as likely as a favour, taking a word is a ' +
-        'gamble rather than a formality: worth reaching for when a season is slipping away, and ' +
-        'worth refusing when it is not. A rival who ' +
-        'pledges strangely, or who ducks an audience they could plainly have won, is telling you ' +
-        'something about the word they were given \u2014 and a rival who refused a free word is ' +
-        'telling you their hand was already exactly what they wanted.</p>'
     },
     {
       id: 'rule-season',
@@ -257,34 +273,32 @@
         'player ahead can afford to promise nothing and simply survive.</p>'
     },
     {
-      id: 'rule-summary',
-      title: 'Summary of play',
+      id: 'rule-whisperlist',
+      title: 'The Whispers in full',
+      optional: true,
       html:
-        '<ol class="rule-summary">' +
-        '<li>The steward deals ' + Rules.HAND_SIZE + ' cards to each of the four players.</li>' +
-        '<li>Each player sends four agents out on errands, face down. Their kinds are that ' +
-        'player’s pledge; their ranks are irrelevant.</li>' +
-        '<li>If Whispers are in use, each player has already been given one, face down.</li>' +
-        '<li>The player to the steward’s left opens the first of ' + T + ' audiences.</li>' +
-        '<li>Players answer in kind where they can. The highest of the opening kind takes the ' +
-        'audience, unless the ruling kind was played, in which case the highest of those does.</li>' +
-        '<li>The winner of each audience opens the next.</li>' +
-        '<li>Errands and Whispers are revealed. Favour is scored on the exactness of each pledge.</li>' +
-        '<li>The number of pledges kept sets the sway for the next night.</li>' +
-        '<li>The stewardship passes one seat to the left.</li>' +
-        '<li>After ' + Rules.SEASON_LENGTH + ' nights the season ends and the most favour wins.</li>' +
-        '</ol>'
+        '<p>All ' + Whispers.ALL.length + ' words the monarch may have for you, of which the ' +
+        'last ' + Whispers.ALL.filter((w) => w.burden).length + ' are <strong>burdens</strong>. ' +
+        'The rules governing them are in section {{rule-whispers}}.</p>' +
+        whisperTable()
     }
   ];
 
-  /** The numbered sections, ready to drop into a document. */
+  /**
+   * The numbered sections, ready to drop into a document. Cross-references are
+   * written as {{section-id}} and resolved here, so the sections can be
+   * reordered without anyone having to chase the numbers through the prose.
+   */
   function sections() {
+    const numberOf = {};
+    SECTIONS.forEach((section, index) => { numberOf[section.id] = index + 1; });
+
     return SECTIONS.map((section, index) => ({
       id: section.id,
       number: index + 1,
       title: section.title,
       optional: !!section.optional,
-      html: section.html
+      html: section.html.replace(/\{\{([a-z-]+)\}\}/g, (whole, id) => numberOf[id] || whole)
     }));
   }
 

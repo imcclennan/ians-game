@@ -168,9 +168,9 @@
     startSheet(true);
 
     for (const section of sections) {
-      // The table of Whispers is a reference in its own right and gets a sheet
+      // The list of Whispers is a reference in its own right and gets a sheet
       // to itself rather than being wrapped around a column break.
-      if (section.id === 'rule-whispers' && columns.childElementCount) startSheet(false);
+      if (section.id === 'rule-whisperlist' && columns.childElementCount) startSheet(false);
 
       columns.insertAdjacentHTML('beforeend', sectionHtml(section));
 
