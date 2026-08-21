@@ -81,6 +81,16 @@
       Cards.SUIT_ROLE_PLURAL[suit] + '</b></span>';
   }
 
+  /** The twelfth is Twelfth Night, when the Fool presides and the books close. */
+  function nightName(number) {
+    return number === Rules.SEASON_LENGTH ? 'Twelfth Night' : 'Night';
+  }
+
+  /** "Night 4" or, for the last of them, "Twelfth Night". */
+  function nightLabel(number) {
+    return number === Rules.SEASON_LENGTH ? 'Twelfth Night' : 'Night ' + number;
+  }
+
   /**
    * The human is addressed in the second person and the rivals in the third,
    * so a line about a seat needs both forms of its verb: "You take" against
@@ -107,7 +117,7 @@
     return count + ' ' + word + (count === 1 ? '' : 's');
   }
 
-  /** Errands stay face down until the session is over. */
+  /** Errands stay face down until the night is over. */
   function bidsAreOpen() {
     return state.phase === 'handOver' || state.phase === 'gameOver';
   }
@@ -130,7 +140,9 @@
 
   function renderTopbar() {
     const parts = [
-      chip('Session', state.handNumber),
+      chip(nightName(state.handNumber), state.handNumber === state.seasonLength
+        ? 'the last'
+        : state.handNumber + ' of ' + state.seasonLength),
       chip('Steward', state.players[state.dealer].name),
       '<span class="chip chip-trump">' +
         (state.trump === null ? '<b>No Sway</b>' : 'Sway ' + suitSpan(state.trump)) + '</span>'
@@ -139,14 +151,15 @@
       parts.push(chip('Audience', state.trickNumber + ' of ' + Rules.TRICKS_PER_HAND));
     }
     dom.meta.innerHTML = parts.join('');
-    dom.targetNote.textContent = 'first to ' + state.target;
+    dom.targetNote.textContent = 'over twelve nights';
   }
 
   function renderSeat(seat) {
     const player = state.players[seat];
     const node = byId('seat-' + seat);
     const isTurn = (state.phase === 'playing' && state.turn === seat) ||
-      (state.phase === 'bidding' && player.isHuman && player.bid === null);
+      (player.isHuman && (state.phase === 'whisperOffer' ||
+        (state.phase === 'bidding' && player.bid === null)));
     const showBid = player.isHuman || bidsAreOpen();
     const made = showBid && player.bid !== null && player.bid === player.tricksWon;
 
@@ -156,7 +169,7 @@
     const head = '<div class="seat-head">' +
       '<span class="seat-name">' + player.name + '</span>' +
       (player.style ? '<span class="seat-style">' + player.style + '</span>' : '') +
-      (state.dealer === seat ? '<span class="seat-dealer" title="Steward this session">S</span>' : '') +
+      (state.dealer === seat ? '<span class="seat-dealer" title="Steward tonight">S</span>' : '') +
       '</div>';
 
     const bidText = player.bid === null ? '&mdash;' : (showBid ? player.bid : '?');
@@ -165,11 +178,16 @@
       '<span class="' + (made ? 'met' : '') + '">Won <b>' + player.tricksWon + '</b></span>' +
       '</div>';
 
-    const whisper = player.whisper;
-    const whisperLine = whisper
-      ? '<div class="seat-whisper' + (bidsAreOpen() || player.isHuman ? ' open' : '') + '">' +
-        (bidsAreOpen() || player.isHuman ? whisper.name : 'sealed') + '</div>'
-      : '';
+    // Whether a noble took a word is there for anyone to see. What it says is
+    // theirs alone until the night is over.
+    const open = bidsAreOpen() || player.isHuman;
+    let whisperLine = '';
+    if (player.tookWhisper === true) {
+      whisperLine = '<div class="seat-whisper' + (open ? ' open' : '') + '">' +
+        (open ? player.whisper.name : 'sealed') + '</div>';
+    } else if (player.tookWhisper === false && state.whispersOn) {
+      whisperLine = '<div class="seat-whisper bare">went without</div>';
+    }
 
     node.innerHTML = head + stats + whisperLine + '<div class="seat-foot"></div>';
     const foot = node.querySelector('.seat-foot');
@@ -178,7 +196,7 @@
     pile.className = 'bid-pile';
     pile.title = showBid && player.bid !== null
       ? 'Errands pledging ' + plural(player.bid, 'audience')
-      : Rules.BID_CARDS + ' agents away on errands';
+      : Rules.BID_CARDS + ' agents away on errands, their kinds sealed';
     for (const card of player.bidCards) {
       pile.appendChild(bidsAreOpen() ? cardEl(card, 'sm') : backEl('sm'));
     }
@@ -272,6 +290,29 @@
     const player = state.players[Engine.HUMAN];
     dom.handActions.innerHTML = '';
 
+    if (state.phase === 'whisperOffer') {
+      const take = document.createElement('button');
+      take.type = 'button';
+      take.className = 'btn';
+      take.id = 'take-whisper';
+      take.textContent = 'Take a Whisper';
+      dom.handActions.appendChild(take);
+
+      const refuse = document.createElement('button');
+      refuse.type = 'button';
+      refuse.className = 'btn btn-quiet';
+      refuse.id = 'refuse-whisper';
+      refuse.textContent = 'Go without';
+      dom.handActions.appendChild(refuse);
+
+      const note = document.createElement('span');
+      note.className = 'bid-readout';
+      note.innerHTML = '<span class="sum">' + state.whisperPool.length +
+        ' words sealed &middot; you will not know which you have until you take it</span>';
+      dom.handActions.appendChild(note);
+      return;
+    }
+
     if (state.phase === 'bidding' && player.bid === null) {
       const chosen = selection.map((id) => player.hand.find((card) => card.id === id));
       const total = Rules.bidFromCards(chosen);
@@ -328,10 +369,17 @@
   function renderPrompt() {
     const player = state.players[Engine.HUMAN];
 
+    if (state.phase === 'whisperOffer') {
+      dom.prompt.innerHTML = 'Look at your hand. Will you take a <b>Whisper</b>? ' +
+        '<span class="hint">It costs nothing, but you take it unread &mdash; and a word from ' +
+        'the monarch can bind you as easily as it can pay.</span>';
+      return;
+    }
+
     if (state.phase === 'bidding' && player.bid === null) {
       dom.prompt.innerHTML = 'Send out <b>four agents</b> to set your pledge. ' +
         '<span class="hint">' + mark('S') + ' 3, ' + mark('H') + ' 2, ' + mark('D') + ' 1, ' +
-        mark('C') + ' 0 &mdash; and they are gone for the session.</span>';
+        mark('C') + ' 0 &mdash; and they are gone for the night.</span>';
       return;
     }
 
@@ -354,7 +402,7 @@
       return;
     }
 
-    dom.prompt.innerHTML = '<span class="hint">The session is over.</span>';
+    dom.prompt.innerHTML = '<span class="hint">The night is over.</span>';
   }
 
   function renderScoreboard() {
@@ -380,7 +428,7 @@
     }
     let html = '';
     for (const summary of state.history.slice().reverse()) {
-      html += '<div class="history-hand"><h3>Session ' + summary.handNumber + ' &middot; ' +
+      html += '<div class="history-hand"><h3>' + nightLabel(summary.handNumber) + ' &middot; ' +
         Rules.trumpLabel(summary.trump) + '</h3>';
       for (const row of summary.rows) {
         const sign = row.points > 0 ? 'pos' : (row.points < 0 ? 'neg' : '');
@@ -408,7 +456,7 @@
 
     const bound = Whispers.canSatisfy(whisper, player.hand.concat(player.bidCards));
     const demand = whisper.demand && bound
-      ? '<p class="whisper-demand">This session, ' + whisper.demand + '.</p>'
+      ? '<p class="whisper-demand">Tonight, ' + whisper.demand + '.</p>'
       : '';
     const waived = whisper.demand && !bound
       ? '<p class="whisper-demand waived">You hold none, so the demand is waived.</p>'
@@ -477,26 +525,28 @@
     const nextSteward = state.players[Rules.leftOf(state.dealer)];
 
     if (state.phase === 'handOver') {
-      html += '<h2>Session ' + summary.handNumber + ' &middot; ' + Rules.trumpLabel(summary.trump) + '</h2>';
+      html += '<h2>' + nightLabel(summary.handNumber) + ' &middot; ' +
+        Rules.trumpLabel(summary.trump) + '</h2>';
       html += '<p class="lede">' + MADE_WORDS[summary.madeCount] + ' kept their pledge exactly.</p>';
       html += resultTable(summary);
       html += '<div class="modal-note">' + MADE_WORDS[summary.madeCount] + ' kept their word, so ' +
         (summary.nextTrump === null
-          ? 'the court sits at <b>No Sway</b> next session.'
-          : 'the ' + suitSpan(summary.nextTrump) + ' hold sway next session.') +
+          ? 'the court sits at <b>No Sway</b> tomorrow night.'
+          : 'the ' + suitSpan(summary.nextTrump) + ' hold sway tomorrow night.') +
         ' ' + (nextSteward.isHuman
           ? '<b>You</b> become steward.'
           : '<b>' + nextSteward.name + '</b> becomes steward.') + '</div>';
-      html += '<div class="modal-actions"><button type="button" class="btn" id="deal-next">Open session ' +
-        (summary.handNumber + 1) + '</button></div>';
+      html += '<div class="modal-actions"><button type="button" class="btn" id="deal-next">Open ' +
+        nightLabel(summary.handNumber + 1).toLowerCase().replace('night', 'night') +
+        '</button></div>';
     } else {
       const ranked = summary.rows.slice().sort(Rules.compareForWin);
       const won = state.winners.includes(state.players[Engine.HUMAN].name);
       html += '<h2>' + (won && state.winners.length === 1
         ? 'You win!'
         : state.winners.join(' and ') + (state.winners.length === 1 ? ' wins' : ' tie')) + '</h2>';
-      html += '<p class="lede">First past ' + state.target + ' favour after ' +
-        plural(state.history.length, 'session') + '.' +
+      html += '<p class="lede">The court has sat ' + plural(state.history.length, 'night') +
+        ' and the books are closed.' +
         (state.winReason
           ? ' Level on favour, so it goes to <b>' + state.winReason + '</b>.'
           : '') + '</p>';
@@ -585,6 +635,16 @@
     } else {
       selection.push(id);
     }
+    render();
+  }
+
+  /** The human decides, then the rivals decide, then everyone pledges. */
+  function answerWhisper(take) {
+    if (state.phase !== 'whisperOffer') return;
+    if (take) Engine.takeWhisper(state, Engine.HUMAN);
+    else Engine.refuseWhisper(state, Engine.HUMAN);
+    Engine.resolveComputerWhispers(state);
+    Engine.beginBidding(state);
     render();
   }
 
@@ -679,6 +739,11 @@
     onHandActivate(event);
   });
 
+  dom.handActions.addEventListener('click', (event) => {
+    if (event.target.id === 'take-whisper') answerWhisper(true);
+    else if (event.target.id === 'refuse-whisper') answerWhisper(false);
+  });
+
   byId('open-rules').addEventListener('click', openRules);
   byId('close-rules').addEventListener('click', closeRules);
   dom.rulebook.addEventListener('click', (event) => {
@@ -691,11 +756,11 @@
   dom.whispersToggle.addEventListener('change', () => {
     const wanted = dom.whispersToggle.checked;
     state.whispersOn = wanted;
-    // Whispers are dealt with the cards, so a change lands on the next session
+    // Whispers are offered with the deal, so a change lands on the next night
     // rather than rewriting one already in progress.
     const midSession = state.phase !== 'handOver' && state.phase !== 'gameOver';
     toast('Whispers ' + (wanted ? 'on' : 'off') +
-      (midSession ? ' from the next session.' : ' from here.'));
+      (midSession ? ' from the next night.' : ' from here.'));
     render();
   });
 

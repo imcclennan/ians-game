@@ -10,7 +10,9 @@
   const HAND_SIZE = 15;      // cards dealt to each noble
   const BID_CARDS = 4;       // agents sent out on errands, face down
   const TRICKS_PER_HAND = HAND_SIZE - BID_CARDS; // 11 audiences
-  const TARGET_SCORE = 50;   // favour needed to win the season
+  // A season is twelve nights of court, the last of them Twelfth Night, when
+  // the Fool presides and the accounts are settled for good.
+  const SEASON_LENGTH = 12;
 
   // How many nobles kept their pledge last session -> who holds sway this one.
   const SWAY_LADDER = ['C', 'D', 'H', 'S', null];
@@ -61,13 +63,14 @@
 
   /**
    * Points for one player at the end of a hand.
-   *   bid 0: +5 for taking no tricks; -5 for the first trick taken and -2 for
-   *          every trick after that.
+   *   bid 0: +10 for taking no tricks, -10 for taking any. Promising the court
+   *          nothing is the boldest thing a noble can do, and the cheapest to
+   *          be caught at.
    *   exact bid (> 0): 2 points per trick won.
    *   missed bid: 1 point per trick won, minus 2 for every trick off the bid.
    */
   function scoreHand(bid, tricksWon) {
-    if (bid === 0) return tricksWon === 0 ? 5 : -5 - 2 * (tricksWon - 1);
+    if (bid === 0) return tricksWon === 0 ? 10 : -10;
     if (tricksWon === bid) return 2 * tricksWon;
     return tricksWon - 2 * Math.abs(tricksWon - bid);
   }
@@ -145,7 +148,7 @@
     BID_CARDS: BID_CARDS,
     TRICKS_PER_HAND: TRICKS_PER_HAND,
     KEEPABLE_MAX: KEEPABLE_MAX,
-    TARGET_SCORE: TARGET_SCORE,
+    SEASON_LENGTH: SEASON_LENGTH,
     SWAY_LADDER: SWAY_LADDER,
     bidFromCards: bidFromCards,
     legalPlays: legalPlays,

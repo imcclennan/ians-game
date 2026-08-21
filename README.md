@@ -41,7 +41,9 @@ there is still nothing to fetch. The table itself takes the colour and mark of w
 sway, so the room tells you what is dangerous before you have looked at anything else.
 
 Fifteen agents are dealt to each noble. The **steward** — the seat that deals — passes one place to
-the left after every session. First noble past **50 favour** wins the season.
+the left after every night. A season is **twelve nights**, the last of them **Twelfth Night**, and
+whoever holds the most favour when it ends wins. There is no target score and no early finish: the
+stewardship goes three full times round the table, so everyone deals exactly three nights.
 
 ### Making a pledge
 
@@ -76,23 +78,28 @@ much means spending Assassins; promising nothing is cheap only if your Fools wer
 | --- | --- |
 | Pledge kept exactly | 2 per audience won |
 | Pledge broken | 1 per audience won, less 2 for every audience off the pledge |
-| Pledged nothing, took nothing | +5 |
-| Pledged nothing, took audiences | −5 for the first, −2 for each one after |
+| Pledged nothing, took nothing | **+10** |
+| Pledged nothing, took audiences | **−10**, however many |
 
-Pledge 5, win 4 → 4 − 2 = **2**. Pledge 3, win 6 → 6 − 6 = **0**. Pledge 0, win 3 → **−9**.
+Pledge 5, win 4 → 4 − 2 = **2**. Pledge 3, win 6 → 6 − 6 = **0**. Pledge 0, win 3 → **−10**.
+
+Promising the court nothing is the biggest swing in the game — twenty favour between keeping it and
+breaking it — and it needs four Fools to reach.
 
 ### The Whispers — optional
 
-Before each session the monarch has a **private word** with every noble. One Whisper each, no two
-alike, and nobody sees another's until the session is over. A Whisper bends how your favour is
-counted or what you are permitted to promise — so a rival pledging strangely, or ducking audiences
-they could plainly win, is telling you something.
+After the deal and before any pledge, each noble may look at their own hand and then **choose** to
+take a Whisper or go without. Taking one costs nothing, but it is taken **unread** — you decide on
+the strength of your hand, not on the word you are about to get, and a Whisper can bind as readily
+as it can pay.
 
-They are an **optional part of the game**: the switch in the top bar turns them off, and a season
-without them is a complete game of its own. A change lands on the next session rather than
-rewriting one already in progress.
+*That* a noble took one is plain for the table to see. *Which* one is not, until the night ends. No
+two nobles hold the same Whisper on the same night.
 
-Fifteen of them, four dealt each session:
+They are also an **optional part of the game**: the switch in the top bar turns them off entirely,
+and a season without them is a complete game of its own.
+
+Fifteen of them:
 
 | Whisper | The monarch's word |
 | --- | --- |
@@ -113,7 +120,7 @@ Fifteen of them, four dealt each session:
 | **The Understudy** | You are scored against the pledge of the noble **on your left**. **+3** for the trouble, **+5** more if you match it. |
 
 A demand that cannot be met is waived rather than enforced — a noble holding no Assassin cannot be
-made to send one. Across simulated play that happens in about **0.7%** of player sessions.
+made to send one. Across simulated play that happens in about **0.7%** of player nights.
 
 Two of them are worth understanding before you meet them. **The Contrarian** scores exactly as a
 noble who had openly promised the complement, so the inversion itself is free; what it really buys
@@ -135,12 +142,15 @@ many of the four nobles kept their pledge *exactly* in the session before:
 
 ### Winning the season
 
-The season ends the moment a noble reaches 50 favour, and the highest total wins — 51 beats 50. If
-two nobles finish level, the win goes to whoever:
+Twelve nights, then the court rises. Most favour wins. If two nobles finish level, the win goes to
+whoever:
 
-1. won more favour that session, failing which
-2. made the bolder pledge that session, failing which
-3. sent out the higher-ranked four agents that session.
+1. won more favour on Twelfth Night, failing which
+2. made the bolder pledge on Twelfth Night, failing which
+3. sent out the higher-ranked four agents on Twelfth Night.
+
+Because the end is fixed and known, the last nights play differently from the first: a noble behind
+has to gamble, and a noble ahead can promise nothing and simply survive.
 
 ## The code
 
@@ -201,7 +211,7 @@ The computer nobles are checked for calibration too. Across roughly 34,000 simul
 sessions all fifteen Whispers land between **2.36 and 3.50** average favour against a table average
 of **3.04** — a spread of 1.1 favour, with no outlier in either direction.
 
-A season runs a median of **11 sessions** with Whispers in play, **16** without.
+A season is always twelve nights, which runs about twenty minutes.
 
 ## A note on adding your own Whisper
 

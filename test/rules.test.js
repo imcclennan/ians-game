@@ -102,11 +102,11 @@ check('four audiences on a pledge of five', Rules.scoreHand(5, 4), 2);
 check('six audiences on a pledge of three', Rules.scoreHand(3, 6), 0);
 check('two audiences on a pledge of five', Rules.scoreHand(5, 2), -4);
 check('none at all on a pledge of two', Rules.scoreHand(2, 0), -4);
-check('pledging nothing and taking nothing is worth five', Rules.scoreHand(0, 0), 5);
-check('one audience breaks it for five', Rules.scoreHand(0, 1), -5);
-check('a second costs two more', Rules.scoreHand(0, 2), -7);
-check('a third costs two more again', Rules.scoreHand(0, 3), -9);
-check('a thoroughly broken promise', Rules.scoreHand(0, 7), -17);
+check('pledging nothing and keeping it is worth ten', Rules.scoreHand(0, 0), 10);
+check('one audience breaks it for ten', Rules.scoreHand(0, 1), -10);
+check('so does taking every audience there is', Rules.scoreHand(0, 11), -10);
+ok('a broken promise of nothing costs the same however badly it went',
+  Rules.scoreHand(0, 1) === Rules.scoreHand(0, 5));
 
 // --- trump ladder ----------------------------------------------------------
 
@@ -123,7 +123,7 @@ check('the ruling suit reads as its agents', Rules.trumpLabel('C'), 'Fools');
 check('fifteen agents are dealt to each noble', Rules.HAND_SIZE, 15);
 check('four go out on errands', Rules.BID_CARDS, 4);
 check('eleven audiences remain', Rules.TRICKS_PER_HAND, 11);
-check('the season is won at fifty favour', Rules.TARGET_SCORE, 50);
+check('a season runs twelve nights', Rules.SEASON_LENGTH, 12);
 check('the whole deck is dealt out',
   Rules.HAND_SIZE * Rules.PLAYER_COUNT, Cards.makeDeck().length);
 
@@ -412,6 +412,98 @@ for (const summary of plainGame.history) {
   }
 }
 
+// --- taking a whisper, or not ------------------------------------------------
+
+const offered = Engine.createGame({ dealer: 0, rng: seededRandom(808) });
+Engine.startHand(offered);
+check('the deal stops to offer a word', offered.phase, 'whisperOffer');
+ok('nobody has been given one yet',
+  offered.players.every((player) => player.whisper === null));
+ok('nobody has decided yet',
+  offered.players.every((player) => player.tookWhisper === null));
+check('every whisper is still in the pool', offered.whisperPool.length, Whispers.ALL.length);
+
+const taken = Engine.takeWhisper(offered, 0);
+ok('taking one gives a word', taken && taken.id);
+check('and marks the noble as having taken it', offered.players[0].tookWhisper, true);
+check('and draws it out of the pool', offered.whisperPool.length, Whispers.ALL.length - 1);
+
+Engine.refuseWhisper(offered, 1);
+check('going without leaves no word', offered.players[1].whisper, null);
+check('but is still a decision', offered.players[1].tookWhisper, false);
+check('and costs the pool nothing', offered.whisperPool.length, Whispers.ALL.length - 1);
+
+let refused = false;
+try { Engine.takeWhisper(offered, 1); } catch (error) { refused = true; }
+ok('a noble may not decide twice', refused);
+
+ok('the night cannot begin until everyone has decided', !Engine.whispersSettled(offered));
+Engine.resolveComputerWhispers(offered);
+ok('the rivals decide for themselves', Engine.whispersSettled(offered));
+Engine.beginBidding(offered);
+check('and then the pledging opens', offered.phase, 'bidding');
+
+// Across many deals the rivals should be doing both, not always one.
+let asked = 0;
+let deals = 0;
+for (let seed = 1; seed <= 200; seed++) {
+  const table = Engine.createGame({ dealer: 0, rng: seededRandom(seed * 7919) });
+  Engine.startHand(table);
+  Engine.resolveComputerWhispers(table);
+  for (const player of table.players) {
+    if (player.isHuman) continue;
+    deals += 1;
+    if (player.tookWhisper) asked += 1;
+  }
+}
+ok('the rivals sometimes take a word and sometimes go without',
+  asked > deals * 0.2 && asked < deals * 0.95,
+  Math.round((asked / deals) * 100) + '% took one');
+
+// With whispers switched off there is nothing to offer.
+const noWords = Engine.createGame({ dealer: 0, rng: seededRandom(99), whispers: false });
+Engine.startHand(noWords);
+check('no offer is made when whispers are off', noWords.phase, 'bidding');
+ok('and nobody is left undecided',
+  noWords.players.every((player) => player.tookWhisper === false));
+
+// --- what a rival may not learn ----------------------------------------------
+
+// Every scrap the AI is handed, checked against what it is allowed to know.
+const table = Engine.createGame({ dealer: 0, rng: seededRandom(31337) });
+Engine.startHand(table);
+Engine.resolveComputerWhispers(table);
+Engine.beginBidding(table);
+Engine.submitComputerBids(table);
+Engine.beginPlay(table);
+
+const seat = table.turn;
+const context = Engine.contextFor(table, seat);
+const ownIds = new Set(table.players[seat].hand.map((card) => card.id));
+const ownErrands = new Set(table.players[seat].bidCards.map((card) => card.id));
+
+check('a noble is told its own pledge and no other',
+  context.bid, table.players[seat].bid);
+check('a noble is told its own word and no other',
+  context.whisper, table.players[seat].whisper);
+ok('a noble sees only its own hand',
+  context.hand.every((card) => ownIds.has(card.id)));
+ok('what a noble has seen is its own hand and what has been played',
+  [...context.seen].every((id) => ownIds.has(id) ||
+    table.playedCards.some((card) => card.id === id)));
+ok('a noble cannot see another noble\'s errands',
+  ![...context.seen].some((id) => table.players.some((other, index) =>
+    index !== seat && other.bidCards.some((card) => card.id === id))));
+ok('a noble cannot see another noble\'s hand',
+  ![...context.seen].some((id) => table.players.some((other, index) =>
+    index !== seat && other.hand.some((card) => card.id === id))));
+ok('nothing in the context names another noble',
+  !Object.keys(context).some((key) => /player|seat|rival|opponent/i.test(key)),
+  Object.keys(context).join(','));
+ok('the sealed errands stay out of what anyone has seen',
+  ownErrands.size === Rules.BID_CARDS &&
+  ![...ownErrands].some((id) => table.playedCards.some((card) => card.id === id)));
+
 // --- seating ---------------------------------------------------------------
 
 check('play rotates clockwise', [0, 1, 2, 3].map(Rules.leftOf), [1, 2, 3, 0]);
@@ -432,6 +524,8 @@ function playWholeGame(seed) {
     const dealt = state.players.reduce((n, p) => n + p.hand.length, 0);
     if (dealt !== 60) throw new Error('dealt ' + dealt + ' agents');
 
+    Engine.resolveComputerWhispers(state);
+    Engine.beginBidding(state);
     Engine.submitComputerBids(state);
     const inPlay = state.players.reduce((n, p) => n + p.hand.length, 0);
     if (inPlay !== 44) throw new Error('after pledging ' + inPlay + ' agents remain');
@@ -459,9 +553,11 @@ function playWholeGame(seed) {
 
 const game = playWholeGame(20260820);
 ok('a full game reaches a winner', game.state.phase === 'gameOver', 'phase=' + game.state.phase);
-ok('the winner is at or past the target',
-  Math.max(...game.state.players.map((p) => p.score)) >= game.state.target);
-check('a finished game names exactly one winner', game.state.winners.length, 1);
+check('a season is exactly twelve nights long', game.state.history.length, 12);
+check('a finished season names exactly one winner', game.state.winners.length, 1);
+ok('the winner holds the most favour',
+  game.state.players.find((p) => p.name === game.state.winners[0]).score ===
+    Math.max(...game.state.players.map((p) => p.score)));
 check('the opening session is played at No Sway', game.trumpsSeen[0], null);
 ok('the dealer rotated left every hand',
   game.state.dealer === (game.state.history.length - 1) % 4,
@@ -469,15 +565,16 @@ ok('the dealer rotated left every hand',
 
 for (const summary of game.state.history) {
   const total = summary.rows.reduce((n, row) => n + row.tricksWon, 0);
-  ok('session ' + summary.handNumber + ' has eleven audiences', total === 11, 'total=' + total);
-  ok('session ' + summary.handNumber + ' passes sway down the ladder',
+  ok('night ' + summary.handNumber + ' has eleven audiences', total === 11, 'total=' + total);
+  ok('night ' + summary.handNumber + ' passes sway down the ladder',
     summary.nextTrump === Rules.trumpForNextHand(summary.madeCount));
-  ok('session ' + summary.handNumber + ' gave every noble a different whisper',
-    new Set(summary.rows.map((row) => row.whisper.id)).size === Rules.PLAYER_COUNT);
+  const heard = summary.rows.map((row) => row.whisper).filter(Boolean);
+  ok('night ' + summary.handNumber + ' gave no two nobles the same whisper',
+    new Set(heard.map((whisper) => whisper.id)).size === heard.length);
   for (const row of summary.rows) {
-    ok('session ' + summary.handNumber + ' sent exactly four agents',
+    ok('night ' + summary.handNumber + ' sent exactly four agents',
       row.bidCards.length === Rules.BID_CARDS);
-    ok('session ' + summary.handNumber + ' obeyed the whisper',
+    ok('night ' + summary.handNumber + ' obeyed the whisper',
       Whispers.permitsSet(row.whisper, row.bidCards, row.bidCards.concat([])) ||
       !Whispers.canSatisfy(row.whisper, row.bidCards));
   }
@@ -485,7 +582,7 @@ for (const summary of game.state.history) {
 
 for (let i = 1; i < game.state.history.length; i++) {
   const previous = game.state.history[i - 1];
-  ok('hand ' + (i + 1) + ' uses the trump the previous hand set',
+  ok('night ' + (i + 1) + ' uses the sway the night before set',
     game.state.history[i].trump === previous.nextTrump);
 }
 
@@ -501,7 +598,8 @@ for (let seed = 1; seed <= 20; seed++) {
       bidTotal += Whispers.aimFor(row.whisper, row.bid);
       bidCount++;
       ok('pledges stay within 0-12', row.bid >= 0 && row.bid <= 12, 'pledge=' + row.bid);
-      check('the counted audiences follow the whisper for ' + row.whisper.id,
+      check('the counted audiences follow the whisper for ' +
+        (row.whisper ? row.whisper.id : 'a noble who went without'),
         row.counted, Whispers.countedTricks(row.whisper, row.tricksWon));
       check('the base favour follows the rules for ' + row.bid + ' / ' + row.counted,
         row.base, Rules.scoreHand(row.bid, row.counted));

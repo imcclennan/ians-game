@@ -109,7 +109,7 @@
       flourish() +
       '<p class="masthead-line">Sixty cards &middot; ' + Rules.HAND_SIZE + ' dealt each &middot; ' +
         Rules.BID_CARDS + ' sent out &middot; ' + Rules.TRICKS_PER_HAND + ' audiences &middot; ' +
-        Rules.TARGET_SCORE + ' favour wins</p>' +
+        Rules.SEASON_LENGTH + ' nights</p>' +
     '</header>';
   }
 
@@ -248,11 +248,11 @@
         '<table class="ref-table favour-table">' +
           '<tr><td class="left">Pledge kept exactly</td><td class="score">2 each</td></tr>' +
           '<tr><td class="left">Pledge missed</td><td class="score">1 each, &minus;2 per off</td></tr>' +
-          '<tr><td class="left">Pledged 0, won 0</td><td class="score">+5</td></tr>' +
-          '<tr><td class="left">Pledged 0, won any</td><td class="score">&minus;5, then &minus;2</td></tr>' +
+          '<tr><td class="left">Pledged 0, won 0</td><td class="score">+10</td></tr>' +
+          '<tr><td class="left">Pledged 0, won any</td><td class="score">&minus;10</td></tr>' +
         '</table>' +
         '<p class="ref-fine">Pledged 5, won 4 &rarr; <b>2</b>. Pledged 3, won 6 &rarr; <b>0</b>. ' +
-          'First past ' + Rules.TARGET_SCORE + ' favour wins.</p>' +
+          'Most favour after ' + Rules.SEASON_LENGTH + ' nights wins.</p>' +
         '<div class="ref-foot">' + agentRow('3.6mm') + '</div>' +
       '</div>' +
     '</div>';

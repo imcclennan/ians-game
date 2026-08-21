@@ -976,3 +976,6 @@ body.reading { overflow: hidden; }
 }
 
 .result-table .whisper-row.me td { color: var(--ink); }
+
+/* A noble who heard nothing says so; a noble who heard something does not. */
+.seat-whisper.bare { color: var(--ink-faint); font-style: italic; }

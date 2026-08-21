@@ -78,6 +78,37 @@
   }
 
   /**
+   * Would this noble rather have a word from the monarch, or go without?
+   *
+   * Taking one is free but blind, and a Whisper can bind as easily as it can
+   * pay. A hand that already promises something exact has more to lose from a
+   * demand it cannot refuse than it stands to gain, so it keeps its own
+   * counsel; anything vaguer takes the word and hopes.
+   */
+  function wantsWhisper(hand, trump, aggression) {
+    const bias = aggression || 1;
+    let closest = Infinity;
+    let estimateThere = 0;
+
+    for (const combo of bidCombos(hand, Rules.BID_CARDS)) {
+      const bid = Rules.bidFromCards(combo);
+      if (bid > Rules.KEEPABLE_MAX) continue;
+      const estimate = estimateTricks(Cards.removeCards(hand, combo), trump) * bias;
+      const gap = Math.abs(bid - estimate);
+      if (gap < closest) {
+        closest = gap;
+        estimateThere = estimate;
+      }
+    }
+
+    // Measured over whole seasons, every word in the book is worth more than
+    // silence, so a noble takes one almost always. The exception is a hand
+    // that already sits exactly on a substantial promise: that is the one
+    // hand a demand it cannot refuse can actually spoil.
+    return !(closest < 0.16 && estimateThere >= 3.5);
+  }
+
+  /**
    * Choose the agents to send out. Their suits set the pledge and they leave
    * play, so we look for the combination whose pledge best matches the strength
    * of the hand it leaves behind.
@@ -104,7 +135,11 @@
       // Promising more than the court can give is never worth it.
       const overreach = Math.max(0, bid - Rules.KEEPABLE_MAX) * 3;
 
-      const cost = Math.abs(bid - wanted) + overreach +
+      // Promising nothing pays +10 and costs -10, far more than the two a
+      // trick is otherwise worth, so it is worth reaching a little for.
+      const nilPull = bid === 0 ? -0.55 : 0;
+
+      const cost = Math.abs(bid - wanted) + overreach + nilPull +
         Whispers.pledgeCost(whisper, bid) + discardCost * 0.002;
 
       const candidate = { cards: combo, bid: bid, cost: cost };
@@ -233,6 +268,7 @@
   global.AI = {
     estimateTricks: estimateTricks,
     bidCombos: bidCombos,
+    wantsWhisper: wantsWhisper,
     chooseBidCards: chooseBidCards,
     chooseCard: chooseCard,
     isTopOutstanding: isTopOutstanding

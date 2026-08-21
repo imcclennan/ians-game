@@ -33,6 +33,7 @@
         bidCards: [],
         bid: null,
         whisper: null,
+        tookWhisper: null,   // null until they decide; then true or false
         tricksWon: 0,
         takenWith: [],
         score: 0
@@ -57,7 +58,8 @@
       winners: [],
       winReason: null,
       whispersOn: settings.whispers === undefined ? true : !!settings.whispers,
-      target: settings.target || Rules.TARGET_SCORE,
+      whisperPool: [],
+      seasonLength: settings.seasonLength || Rules.SEASON_LENGTH,
       rng: settings.rng || Math.random
     };
   }
@@ -65,8 +67,12 @@
   /** Shuffle, deal fifteen to each noble, and open the pledging. */
   function startHand(state) {
     const deck = Cards.shuffle(Cards.makeDeck(), state.rng);
-    const whispers = state.whispersOn
-      ? Whispers.deal(Rules.PLAYER_COUNT, state.rng)
+
+    // The Whispers are shuffled but not handed out. A noble takes one only if
+    // they ask for one, and they ask blind: the word is not read until it is
+    // taken, so the choice is made on the strength of the hand alone.
+    state.whisperPool = state.whispersOn
+      ? Whispers.deal(Whispers.ALL.length, state.rng)
       : [];
 
     state.handNumber += 1;
@@ -77,12 +83,13 @@
       player.hand = deck.slice(seat * Rules.HAND_SIZE, (seat + 1) * Rules.HAND_SIZE);
       player.bidCards = [];
       player.bid = null;
-      player.whisper = whispers[seat] || null;
+      player.whisper = null;
+      player.tookWhisper = state.whispersOn ? null : false;
       player.tricksWon = 0;
       player.takenWith = [];
     });
 
-    state.phase = 'bidding';
+    state.phase = state.whispersOn ? 'whisperOffer' : 'bidding';
     state.leader = Rules.leftOf(state.dealer);
     state.turn = state.leader;
     state.trick = [];
@@ -91,6 +98,48 @@
     state.lastTrick = null;
     state.playedCards = [];
     state.handSummary = null;
+    return state;
+  }
+
+  /**
+   * Take a Whisper, sight unseen. A noble may look at their own hand first but
+   * not at the word they are about to be given, and taking one costs nothing.
+   */
+  function takeWhisper(state, seat) {
+    const player = state.players[seat];
+    if (player.tookWhisper !== null) throw new Error('That noble has already decided');
+    player.whisper = state.whisperPool.pop() || null;
+    player.tookWhisper = !!player.whisper;
+    return player.whisper;
+  }
+
+  /** Hear nothing, owe nothing. */
+  function refuseWhisper(state, seat) {
+    const player = state.players[seat];
+    if (player.tookWhisper !== null) throw new Error('That noble has already decided');
+    player.whisper = null;
+    player.tookWhisper = false;
+    return null;
+  }
+
+  /** Each rival noble decides for itself, on its own hand and nothing else. */
+  function resolveComputerWhispers(state) {
+    state.players.forEach((player, seat) => {
+      if (player.isHuman || player.tookWhisper !== null) return;
+      if (AI.wantsWhisper(player.hand, state.trump, player.aggression)) {
+        takeWhisper(state, seat);
+      } else {
+        refuseWhisper(state, seat);
+      }
+    });
+  }
+
+  function whispersSettled(state) {
+    return state.players.every((player) => player.tookWhisper !== null);
+  }
+
+  function beginBidding(state) {
+    state.phase = 'bidding';
     return state;
   }
 
@@ -170,11 +219,15 @@
     return seen;
   }
 
-  /** Ask the AI for a card and play it. */
-  function playComputerCard(state) {
-    const seat = state.turn;
+  /**
+   * Everything a noble is allowed to know when it plays: its own hand, its own
+   * pledge, its own word, what is on the table, and what it has watched go by.
+   * Nothing else crosses this line -- it is the whole of the AI's world, and
+   * the test suite checks it for leaks.
+   */
+  function contextFor(state, seat) {
     const player = state.players[seat];
-    const card = AI.chooseCard({
+    return {
       hand: player.hand,
       trick: state.trick,
       trump: state.trump,
@@ -182,7 +235,13 @@
       tricksWon: player.tricksWon,
       seen: seenBy(state, seat),
       whisper: player.whisper
-    });
+    };
+  }
+
+  /** Ask the AI for a card and play it. */
+  function playComputerCard(state) {
+    const seat = state.turn;
+    const card = AI.chooseCard(contextFor(state, seat));
     playCard(state, seat, card);
     return card;
   }
@@ -255,8 +314,7 @@
     };
     state.history.push(state.handSummary);
 
-    const best = Math.max.apply(null, state.players.map((player) => player.score));
-    if (best >= state.target) {
+    if (state.handNumber >= state.seasonLength) {
       const decision = Rules.decideWinner(rows);
       state.winners = decision.winners;
       state.winReason = decision.wasTied ? decision.reason : null;
@@ -274,6 +332,11 @@
     HUMAN: HUMAN,
     createGame: createGame,
     startHand: startHand,
+    takeWhisper: takeWhisper,
+    refuseWhisper: refuseWhisper,
+    resolveComputerWhispers: resolveComputerWhispers,
+    whispersSettled: whispersSettled,
+    beginBidding: beginBidding,
     submitBid: submitBid,
     submitComputerBids: submitComputerBids,
     biddingComplete: biddingComplete,
@@ -282,6 +345,7 @@
     legalPlaysFor: legalPlaysFor,
     isLegalPlay: isLegalPlay,
     playCard: playCard,
+    contextFor: contextFor,
     playComputerCard: playComputerCard,
     completeTrick: completeTrick,
     finishHand: finishHand,
