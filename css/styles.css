@@ -254,7 +254,7 @@ button, select { font: inherit; }
 .card {
   position: relative;
   width: 62px;
-  height: 88px;
+  height: 106px;          /* tarot: 70 x 120mm, held to the millimetre in ratio */
   flex: 0 0 auto;
   border-radius: 7px;
   background: var(--card-face);
@@ -291,7 +291,7 @@ button, select { font: inherit; }
   place-items: center;
 }
 
-.card .face .emblem { width: 46%; height: 46%; opacity: .92; }
+.card .face .emblem { width: 42%; height: 42%; opacity: .92; }
 
 .card.back {
   background:
@@ -299,7 +299,7 @@ button, select { font: inherit; }
   box-shadow: inset 0 0 0 2px #d9c9a4, 0 2px 6px rgba(0, 0, 0, .45);
 }
 
-.card.sm { width: 26px; height: 37px; border-radius: 4px; }
+.card.sm { width: 26px; height: 45px; border-radius: 4px; }
 .card.sm .corner { font-size: 9px; }
 .card.sm .corner .emblem { width: 9px; height: 9px; }
 .card.sm .corner.br { display: none; }
@@ -394,15 +394,15 @@ button, select { font: inherit; }
 }
 
 .hand .card {
-  width: 68px;
-  height: 96px;
+  width: 70px;            /* 70 x 120mm read across at one pixel to the millimetre */
+  height: 120px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(0, 0, 0, .07);
   transition: transform var(--pace), box-shadow var(--pace), opacity var(--pace);
 }
 
 /* Fifteen agents will not sit side by side, so the hand fans instead. The rank
    and pip live in the top-left corner, which the overlap always leaves clear. */
-.hand .card + .card { margin-left: -14px; }
+.hand .card + .card { margin-left: -16px; }
 .hand .card:hover, .hand .card.selected { z-index: 4; }
 
 .hand .card.playable { cursor: pointer; }
@@ -670,8 +670,8 @@ button, select { font: inherit; }
   .felt { grid-template-columns: minmax(96px, 1fr) auto minmax(96px, 1fr); padding: 12px; gap: 8px; }
   .seat { min-width: 0; padding: 8px; }
   .seat-style { display: none; }
-  .card { width: 50px; height: 71px; }
-  .hand .card { width: 54px; height: 77px; }
+  .card { width: 50px; height: 86px; }
+  .hand .card { width: 54px; height: 93px; }
   .trick { width: 176px; height: 178px; }
   .trump-medallion { font-size: 104px; }
   .topbar { padding: 10px 12px; gap: 10px; }
@@ -745,13 +745,23 @@ button, select { font: inherit; }
   font-weight: 400;
 }
 
-.hand .card.forbidden {
-  opacity: .3;
-  cursor: not-allowed;
-  filter: grayscale(.7);
+/* Nothing is forbidden. An agent the word asked you to keep back is marked
+   with a crimson edge, and sending it anyway costs you only the word's pay. */
+.hand .card.against-word {
+  filter: grayscale(.35);
 }
 
-.hand .card.forbidden:hover { transform: none; }
+.hand .card.against-word::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px var(--bad);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hand .card.against-word.selected::before { box-shadow: inset 0 0 0 2px var(--bad); }
 
 .bid-readout .warn { color: var(--accent); }
 

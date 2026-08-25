@@ -285,14 +285,15 @@
     for (const card of Cards.sortHand(player.hand, state.trump)) {
       let extra = '';
       if (bidding) {
-        extra = bound && !Whispers.allowsCard(whisper, card)
-          ? 'forbidden'
-          : 'playable' + (selection.includes(card.id) ? ' selected' : '');
+        extra = 'playable' + (selection.includes(card.id) ? ' selected' : '');
+        // Nothing is forbidden. An agent the word asked you to keep back is
+        // marked, and sending it anyway simply costs you the word's reward.
+        if (bound && !Whispers.allowsCard(whisper, card)) extra += ' against-word';
       } else if (myTurn) {
         extra = legal.has(card.id) ? 'playable' : 'illegal';
       }
       const node = cardEl(card, extra);
-      if ((bidding && extra !== 'forbidden') || (myTurn && extra !== 'illegal')) {
+      if (bidding || (myTurn && extra !== 'illegal')) {
         node.tabIndex = 0;
         node.setAttribute('role', 'button');
       }
@@ -342,7 +343,7 @@
         : '';
 
       const complete = selection.length === Rules.BID_CARDS;
-      const legal = Whispers.permitsSet(player.whisper, chosen, player.hand);
+      const heeded = Whispers.permitsSet(player.whisper, chosen, player.hand);
       const aim = Whispers.aimFor(player.whisper, total);
 
       const readout = document.createElement('div');
@@ -351,8 +352,9 @@
         (breakdown ? ' <span class="sum">(' + breakdown + ')</span>' : '') +
         (aim !== total ? ' <span class="sum">&middot; win exactly <b>' + aim + '</b></span>' : '') +
         ' <span class="sum">&middot; ' + selection.length + ' of ' + Rules.BID_CARDS + ' sent</span>' +
-        (complete && !legal
-          ? ' <span class="warn">&middot; your Whisper says ' + player.whisper.demand + '</span>'
+        (complete && !heeded
+          ? ' <span class="warn">&middot; against your Whisper (' + player.whisper.demand +
+            ') &mdash; it will pay you nothing</span>'
           : '');
       dom.handActions.appendChild(readout);
 
@@ -360,7 +362,7 @@
       confirm.type = 'button';
       confirm.className = 'btn';
       confirm.textContent = 'Pledge ' + plural(total, 'audience');
-      confirm.disabled = !complete || !legal;
+      confirm.disabled = !complete;
       confirm.addEventListener('click', placeBid);
       dom.handActions.appendChild(confirm);
 
@@ -650,11 +652,6 @@
   function toggleSelection(id) {
     const player = state.players[Engine.HUMAN];
     const card = player.hand.find((one) => one.id === id);
-    if (card && Whispers.canSatisfy(player.whisper, player.hand) &&
-        !Whispers.allowsCard(player.whisper, card)) {
-      toast('Your Whisper forbids it: ' + player.whisper.demand + '.');
-      return;
-    }
 
     const index = selection.indexOf(id);
     if (index >= 0) {

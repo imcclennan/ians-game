@@ -115,9 +115,11 @@
    */
   function chooseBidCards(hand, trump, aggression, whisper) {
     const bias = aggression || 1;
+    // Heeding a demand is worth roughly what the word pays for it, so a noble
+    // weighs disobedience rather than being forbidden it.
     const bound = Whispers.canSatisfy(whisper, hand);
+    const defiance = Whispers.restrictsErrands(whisper) ? 1.8 : 0;
     let best = null;
-    let fallback = null;
 
     for (const combo of bidCombos(hand, Rules.BID_CARDS)) {
       const bid = Rules.bidFromCards(combo);
@@ -142,12 +144,11 @@
       const cost = Math.abs(bid - wanted) + overreach + nilPull +
         Whispers.pledgeCost(whisper, bid) + discardCost * 0.002;
 
-      const candidate = { cards: combo, bid: bid, cost: cost };
-      if (!fallback || cost < fallback.cost) fallback = candidate;
-      if (bound && !Whispers.permitsSet(whisper, combo, hand)) continue;
-      if (!best || cost < best.cost) best = candidate;
+      const disobeys = bound && !Whispers.permitsSet(whisper, combo, hand);
+      const candidate = { cards: combo, bid: bid, cost: cost + (disobeys ? defiance : 0) };
+      if (!best || candidate.cost < best.cost) best = candidate;
     }
-    return (best || fallback).cards;
+    return best.cards;
   }
 
   // --- card play -----------------------------------------------------------

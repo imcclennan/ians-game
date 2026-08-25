@@ -35,6 +35,8 @@ printed on its own face, in its own ink.
 A hand is fanned by what each kind promises — Assassins, then Lovers, Merchants and Fools, high to
 low within each — with whichever kind holds sway pulled to the front of all of them, wearing gold.
 
+The deck is **tarot sized, 70 × 120 mm**, and the cards on screen carry that shape exactly.
+
 Four faces rather than the usual two colours means every kind is legible from the corner alone,
 which matters in a fanned hand of fifteen overlapping cards. The marks are drawn as inline SVG, so
 there is still nothing to fetch. The table itself takes the colour and mark of whichever kind holds
@@ -51,8 +53,8 @@ Before the court sits, each noble sends **four agents** out of the room on secre
 *kinds* they send is their pledge: how many audiences they promise to win. Standing counts for
 nothing here — a Fool of 15 promises exactly as little as a Fool of 1.
 
-Nobody sees a pledge until the session ends, which keeps it secret *and* hides which agents left
-the room. Those four are gone for the session, so **eleven audiences** remain to be won.
+Nobody sees a pledge until the night ends, which keeps it secret *and* hides which agents left
+the room. Those four are gone for the night, so **eleven audiences** remain to be won.
 
 Four Assassins come to **twelve**, one more than the court has to give. Nothing stops you
 promising it — but a promise of twelve is broken the moment it is made, and the best it can ever
@@ -99,35 +101,47 @@ two nobles hold the same Whisper on the same night.
 They are also an **optional part of the game**: the switch in the top bar turns them off entirely,
 and a season without them is a complete game of its own.
 
-Twenty of them, and **five are burdens** that cost rather than pay. A burden is framed in oxblood
-under a broken seal, but every Whisper is identical face down, so one cannot be spotted in a
-rival's hand.
+Twenty-two of them: **fifteen boons** that pay, and **seven burdens** that cost. A burden is framed in oxblood under a broken seal, but every Whisper is identical face down, so one cannot be spotted in a rival’s hand.
 
-| Whisper | The monarch's word |
+| Whisper | The monarch’s word |
 | --- | --- |
-| **Blackmailed** | At least one Assassin must go out. Keep your pledge for **+5**. |
+| **Blackmailed** | At least one Assassin must go out. Keep your pledge for **+6**. |
 | **Sworn to Silence** | No Assassin may go out. Keep your pledge for **+3**. |
 | **The Smitten** | No Lover may go out. Keep your pledge for **+3**. |
-| **The Audited** | Send **two Merchants and two Fools**, which pledges exactly 2. Keep it for **+4**. |
+| **The Audited** | Send two Merchants and two Fools, which pledges exactly 2. Keep it for **+4**. |
 | **The Debtor** | A kept pledge of 2 or fewer earns nothing; keep 3 or more for **+3**. |
-| **All or Nothing** | Keep your pledge for **double favour**. Break it and lose **3**, whatever else you did. |
-| **The Cautious Clerk** | You cannot lose favour this session, nor gain more than **6**. |
-| **The Bold** | **+5** if your pledge is the highest at the table, outright. |
-| **The Meek** | **−4** if your pledge is the lowest or tied for lowest. Keep it for **+4**. |
+| **All or Nothing** | Keep your pledge for **double favour**. Break it and lose 3, whatever else you did. |
+| **The Cautious Clerk** | You cannot lose favour this night, nor gain more than 7. |
+| **The Bold** | **+6** if your pledge is the highest at the table, outright. |
+| **The Meek** | **−3** if your pledge is the lowest or tied for lowest. Keep it for **+4**. |
 | **The Kingmaker** | Keep your pledge and take **+2** for every other noble who broke theirs. |
 | **The Favourite** | **+6** if you win more audiences than any other noble, outright. |
 | **The Wallflower** | **+6** if you win fewer audiences than any other noble, outright. |
 | **Sworn to the Fool** | **+3** favour for every audience you take with a Fool. |
-| **The Contrarian** | Your pledge counts the audiences you will **not** win. Keep it for **+2**. |
-| **The Understudy** | You are scored against the pledge of the noble **on your left**. **+3** for the trouble, **+5** more if you match it. |
-| ⚠ **The Condemned** | Break your pledge and lose a further **4**. |
-| ⚠ **The Scapegoat** | **−2** for every other noble who keeps their pledge. |
-| ⚠ **In Disgrace** | Favour you gain tonight is halved. Favour you lose is not. |
-| ⚠ **The Watched** | Your errands are laid **face up** as soon as they are sent. |
-| ⚠ **Marked for the Blade** | **−2** for every audience you take with an Assassin. |
+| **The Contrarian** | Your pledge counts the audiences you will NOT win. Keep it for **+2**. |
+| **The Understudy** | You are scored against the pledge of the noble on your right, not your own. Take **+3** for the trouble, and **+5** more if you match it. |
 
-A demand that cannot be met is waived rather than enforced — a noble holding no Assassin cannot be
-made to send one. Across simulated play that happens in about **0.7%** of player nights.
+### The burdens
+
+| Burden | The monarch’s word |
+| --- | --- |
+| **The Condemned** | Break your pledge and lose a further 3. |
+| **The Scapegoat** | **−2** for every other noble who keeps their pledge, to a limit of 4. |
+| **In Disgrace** | Favour you gain tonight is halved. Favour you lose is not. |
+| **The Watched** | Your errands are laid face up as soon as they are sent. |
+| **Marked for the Blade** | **−2** for every audience you take with an Assassin. |
+| **Out of Favour** | A kept pledge of 4 or more earns you nothing. |
+| **Called Out** | **−5** if you win more audiences than the noble on your right. |
+
+**A demand is a request, not a rule.** Four Whispers ask something of your errands — an Assassin
+sent, or kept back, or two Merchants and two Fools. You may always pledge exactly as you please and
+ignore the word entirely. But a Whisper that was not heeded **pays nothing at all**: its rewards are
+forfeit and you score the night as though you had gone without one. Agents the word asked you to
+keep back are marked in crimson while you choose, so the choice is never made by accident.
+
+A demand your hand *cannot* meet — being asked for an Assassin while holding none — counts as
+heeded, and the Whisper pays in full. Across simulated play that happens on about **0.7%** of
+player nights.
 
 Two of them are worth understanding before you meet them. **The Contrarian** scores exactly as a
 noble who had openly promised the complement, so the inversion itself is free; what it really buys
@@ -136,10 +150,10 @@ aiming at a number nobody has shown them, which is why it pays whether or not it
 
 ### Who holds sway
 
-The opening session of a season is always **No Sway**. After that, sway passes according to how
-many of the four nobles kept their pledge *exactly* in the session before:
+The opening night of a season is always **No Sway**. After that, sway passes according to how
+many of the four nobles kept their pledge *exactly* in the night before:
 
-| Nobles who kept their word | Sway next session |
+| Nobles who kept their word | Sway next night |
 | --- | --- |
 | 0 | Fools |
 | 1 | Merchants |
@@ -211,13 +225,22 @@ npm test
 Around 5,000 assertions: the favour table, who takes an audience under every sway, answering in
 kind, the sway ladder, the tie-breakers, all twenty-two Whispers in isolation, a full season played
 with Whispers switched off, plus twenty complete seasons played end to end against invariants
-(every session is eleven audiences and four different Whispers, every deal is sixty agents, every
+(every night is eleven audiences and four different Whispers, every deal is sixty agents, every
 pledge obeys the Whisper that was given, every favour follows pledge → counted → kept → base →
 Whisper).
 
-The computer nobles are checked for calibration too. Across roughly 34,000 simulated player
-sessions all twenty-two Whispers land between **2.36 and 3.50** average favour against a table average
-of **3.04** — a spread of 1.1 favour, with no outlier in either direction.
+The computer nobles are checked for calibration too, and the Whispers are measured over whole
+seasons rather than guessed at. Across 300 simulated seasons a word is worth **−0.50 favour a
+night** against going without — but carries a standard deviation of **4.57** against **3.80**.
+It is a bad bet in favour and a good one in variance, which is exactly what a noble who is
+behind needs. Refusing every word wins **16.8%** of seasons against a fair share of 25%; taking
+one whenever the monarch offers wins **28.0%**.
+
+The two groups do not overlap: the weakest boon costs **−0.49** against the no-word baseline
+and the mildest burden **−0.80**, so a gold frame means what it says.
+
+The rival nobles ignore a demand on about **3%** of the nights they are given one — rarely worth
+the forfeited reward, but not never.
 
 A season is always twelve nights, which runs about twenty minutes.
 

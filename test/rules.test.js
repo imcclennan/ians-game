@@ -525,6 +525,65 @@ ok('and nobody is left undecided',
 ok('nor is anyone eligible',
   noWords.players.every((player, seat) => !Engine.mayTakeWhisper(noWords, seat)));
 
+// --- a demand is a request, not a rule ---------------------------------------
+
+const asks = Whispers.ALL.filter((w) => Whispers.restrictsErrands(w));
+check('four whispers ask something of the errands', asks.length, 4);
+ok('and none of them is a burden', asks.every((w) => !w.burden));
+ok('every one of them explains the demand in words',
+  asks.every((w) => typeof w.demand === 'string' && w.demand.length > 0));
+ok('no whisper without a demand claims one',
+  Whispers.ALL.every((w) => Whispers.restrictsErrands(w) || !w.demand));
+
+// A word that was heeded pays; the same word ignored pays nothing at all.
+const heededRow = row({ bid: 3, tricksWon: 3, counted: 3, made: true, obeyed: true });
+const defiedRow = row({ bid: 3, tricksWon: 3, counted: 3, made: true, obeyed: false });
+for (const asking of asks) {
+  const paid = Whispers.adjust(asking, 6, heededRow, [heededRow]);
+  const unpaid = Whispers.adjust(asking, 6, defiedRow, [defiedRow]);
+  ok(asking.name + ' pays when it is heeded', paid > 6, 'paid ' + paid);
+  check(asking.name + ' pays nothing when it is not', unpaid, 6);
+}
+
+// A word that asks nothing is unaffected by the obedience flag.
+const brokenCourt = [
+  row({ seat: 0, made: true, obeyed: false }),
+  row({ seat: 1, made: false }),
+  row({ seat: 2, made: false }),
+  row({ seat: 3, made: true })
+];
+check('a word that asks nothing is paid regardless',
+  Whispers.adjust(Whispers.BY_ID.kingmaker, 6, brokenCourt[0], brokenCourt), 10);
+
+// Pledging against a word is allowed, and the engine remembers it.
+const defiant = Engine.createGame({ dealer: 0, rng: seededRandom(31337) });
+defiant.players[0].score = 0;
+defiant.players[1].score = 9;
+Engine.startHand(defiant);
+defiant.players[0].whisper = Whispers.BY_ID.silenced;   // no Assassin may go out
+defiant.players[0].tookWhisper = true;
+const blades = Cards.cardsOfSuit(defiant.players[0].hand, 'S');
+if (blades.length) {
+  const against = [blades[0]].concat(
+    Cards.removeCards(defiant.players[0].hand, [blades[0]]).slice(0, Rules.BID_CARDS - 1));
+  let blocked = false;
+  try { Engine.submitBid(defiant, 0, against); } catch (error) { blocked = true; }
+  ok('sending an agent the word asked you to keep back is allowed', !blocked);
+  check('and is recorded as disobedience', defiant.players[0].obeyed, false);
+  check('while the pledge itself stands', defiant.players[0].bidCards.length, Rules.BID_CARDS);
+}
+
+const obedient = Engine.createGame({ dealer: 0, rng: seededRandom(2024) });
+obedient.players[1].score = 12;
+Engine.startHand(obedient);
+obedient.players[0].whisper = Whispers.BY_ID.silenced;
+obedient.players[0].tookWhisper = true;
+const noBlades = obedient.players[0].hand.filter((card) => card.suit !== 'S');
+if (noBlades.length >= Rules.BID_CARDS) {
+  Engine.submitBid(obedient, 0, noBlades.slice(0, Rules.BID_CARDS));
+  check('keeping the blades back is recorded as obedience', obedient.players[0].obeyed, true);
+}
+
 const watched = Whispers.BY_ID.watched;
 ok('the Watched lays its errands open', Whispers.revealsErrands(watched));
 check('no other whisper does',
@@ -659,9 +718,17 @@ for (const summary of game.state.history) {
   for (const row of summary.rows) {
     ok('night ' + summary.handNumber + ' sent exactly four agents',
       row.bidCards.length === Rules.BID_CARDS);
-    ok('night ' + summary.handNumber + ' obeyed the whisper',
-      Whispers.permitsSet(row.whisper, row.bidCards, row.bidCards.concat([])) ||
-      !Whispers.canSatisfy(row.whisper, row.bidCards));
+    // Obedience cannot be recomputed here -- it was judged against the full
+    // fifteen-card hand, which is gone by now -- but it must be recorded, and
+    // an unheeded demand must have paid nothing.
+    ok('night ' + summary.handNumber + ' recorded a verdict on the whisper',
+      typeof row.obeyed === 'boolean');
+    if (row.obeyed === false) {
+      ok('night ' + summary.handNumber + ' only disobeyed a word that asked something',
+        row.whisper && Whispers.restrictsErrands(row.whisper));
+      check('night ' + summary.handNumber + ' paid nothing for a word ignored',
+        row.points, row.base);
+    }
   }
 }
 

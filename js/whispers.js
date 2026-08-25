@@ -8,8 +8,8 @@
  * whole point of them. They are an optional part of the game.
  *
  * Each Whisper may define any of:
- *   allows(card)              - which agents may be sent out at all
- *   permits(cards, hand)      - whether a whole set of four errands is legal
+ *   allows(card)              - which agents the word asks be kept back
+ *   permits(cards, hand)      - whether a whole set of four errands obeys it
  *   satisfiable(hand)         - whether the demand can be met; if not it is waived
  *   demand                    - how to phrase that requirement to a player
  *   countedTricks(won)        - what number is measured against the pledge
@@ -321,8 +321,10 @@
   }
 
   /**
-   * Is this whole set of errands legal? Pass the full hand as well and an
-   * impossible demand is forgiven rather than enforced.
+   * Does this set of errands obey the word? A demand is never binding -- a
+   * noble may always pledge as they please -- but a word that was not obeyed
+   * pays nothing. Pass the full hand as well and a demand the hand cannot meet
+   * is treated as obeyed rather than held against its holder.
    */
   function permitsSet(whisper, cards, hand) {
     if (!whisper) return true;
@@ -371,14 +373,24 @@
     return !!(whisper && whisper.revealsErrands);
   }
 
+  /** Does this word ask anything of the errands at all? */
+  function restrictsErrands(whisper) {
+    return !!(whisper && (whisper.allows || whisper.permits));
+  }
+
   /** A word that costs rather than pays. */
   function isBurden(whisper) {
     return !!(whisper && whisper.burden);
   }
 
-  /** The last word on favour, once every noble's night has been totalled. */
+  /**
+   * The last word on favour, once every noble's night has been totalled. A
+   * demand that went unheeded is its own answer: the word grants nothing.
+   */
   function adjust(whisper, favour, row, table) {
-    return whisper && whisper.adjust ? whisper.adjust(favour, row, table) : favour;
+    if (!whisper || !whisper.adjust) return favour;
+    if (restrictsErrands(whisper) && row && row.obeyed === false) return favour;
+    return whisper.adjust(favour, row, table);
   }
 
   global.Whispers = {
@@ -396,6 +408,7 @@
     favouredSuit: favouredSuit,
     shunnedSuit: shunnedSuit,
     revealsErrands: revealsErrands,
+    restrictsErrands: restrictsErrands,
     isBurden: isBurden,
     adjust: adjust
   };

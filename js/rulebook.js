@@ -155,10 +155,13 @@
         'than pay. A burden is framed in oxblood under a broken seal and signed as a burden, so ' +
         'there is no mistaking one once it is in your hand — but every Whisper is identical ' +
         'face down, and a player who has drawn one is under no obligation to say so.</p>' +
-        '<p>Where a Whisper restricts errands, the restriction is binding. If ' +
-        'a player\u2019s hand makes the restriction <strong>impossible to obey</strong> \u2014 ' +
-        'being required to send an Assassin while holding none, for instance \u2014 the demand is ' +
-        '<strong>waived</strong> for that night and the player pledges freely.</p>' +
+        '<p>Where a Whisper asks something of the errands, the demand is ' +
+        '<strong>never binding</strong>. A player may always pledge exactly as they please. But ' +
+        'a Whisper that was not heeded <strong>pays nothing at all</strong>: its rewards are ' +
+        'forfeit, and the player scores the night as though they had gone without a word.</p>' +
+        '<p>If a hand makes a demand <strong>impossible to obey</strong> — being asked for ' +
+        'an Assassin while holding none, for instance — it counts as heeded, and the ' +
+        'Whisper pays in full.</p>' +
         '<p>No two players hold the same Whisper on the same night, and a ' +
         'Whisper never changes the rules of play in section {{rule-play}}.</p>' +
         '<p>Every Whisper in the deck is set out in section {{rule-whisperlist}}.</p>' +

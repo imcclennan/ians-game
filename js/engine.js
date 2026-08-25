@@ -33,6 +33,7 @@
         bidCards: [],
         bid: null,
         whisper: null,
+        obeyed: true,
         tookWhisper: null,   // null until they decide; then true or false
         tricksWon: 0,
         takenWith: [],
@@ -164,9 +165,9 @@
       throw new Error('A pledge must be exactly ' + Rules.BID_CARDS + ' agents');
     }
     const player = state.players[seat];
-    if (!Whispers.permitsSet(player.whisper, cards, player.hand)) {
-      throw new Error('Your Whisper does not permit those errands');
-    }
+    // A word may ask something of the errands, but it cannot forbid a pledge.
+    // Whether the noble heeded it is remembered and settled up at scoring.
+    player.obeyed = Whispers.permitsSet(player.whisper, cards, player.hand);
     player.bidCards = cards.slice();
     player.bid = Rules.bidFromCards(cards);
     player.hand = Cards.removeCards(player.hand, cards);
@@ -325,6 +326,7 @@
         counted: counted,
         takenWith: player.takenWith.slice(),
         whisper: player.whisper,
+        obeyed: player.obeyed,
         bidCards: player.bidCards.slice(),
         made: false,
         base: 0,
