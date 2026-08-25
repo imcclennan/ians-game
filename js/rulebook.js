@@ -159,9 +159,6 @@
         '<strong>never binding</strong>. A player may always pledge exactly as they please. But ' +
         'a Whisper that was not heeded <strong>pays nothing at all</strong>: its rewards are ' +
         'forfeit, and the player scores the night as though they had gone without a word.</p>' +
-        '<p>If a hand makes a demand <strong>impossible to obey</strong> — being asked for ' +
-        'an Assassin while holding none, for instance — it counts as heeded, and the ' +
-        'Whisper pays in full.</p>' +
         '<p>No two players hold the same Whisper on the same night, and a ' +
         'Whisper never changes the rules of play in section {{rule-play}}.</p>' +
         '<p>Every Whisper in the deck is set out in section {{rule-whisperlist}}.</p>' +

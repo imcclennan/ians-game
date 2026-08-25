@@ -145,10 +145,6 @@ ignore the word entirely. But a Whisper that was not heeded **pays nothing at al
 forfeit and you score the night as though you had gone without one. Agents the word asked you to
 keep back are marked in crimson while you choose, so the choice is never made by accident.
 
-A demand your hand *cannot* meet — being asked for an Assassin while holding none — counts as
-heeded, and the Whisper pays in full. Across simulated play that happens on about **0.7%** of
-player nights.
-
 Two of them are worth understanding before you meet them. **The Contrarian** scores exactly as a
 noble who had openly promised the complement, so the inversion itself is free; what it really buys
 is a table that sees a bold pledge of eight where the real promise was three. **The Understudy** is
