@@ -167,7 +167,28 @@ button, select { font: inherit; }
   background: radial-gradient(ellipse at 50% 42%, var(--felt) 0%, var(--felt-dark) 78%);
   box-shadow: inset 0 0 0 1px rgba(217, 164, 65, .22), var(--shadow);
   transition: background 600ms ease;
+  isolation: isolate;
 }
+
+/* The court itself, printed into the mat: the monarch on the throne, four
+   nobles petitioning, blades in the near shadow and fools at the foot of the
+   steps. The same scene whoever holds sway -- only the wash over it changes. */
+.felt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  /* The mat is far wider than the picture, so cover crops it top and bottom.
+     Sitting the crop a little high keeps the throne and the faces in view. */
+  background: url("../print/rectangular-back.PNG") center 28% / cover no-repeat;
+  opacity: .3;
+  mix-blend-mode: luminosity;
+  pointer-events: none;
+}
+
+/* Everything on the mat sits above the scene rather than under it. */
+.felt > * { position: relative; z-index: 1; }
 
 /* The table itself takes the colour of whoever holds sway, so the room tells
    you which kind is dangerous before you have looked at anything else. */
@@ -200,8 +221,9 @@ button, select { font: inherit; }
   padding: 10px 12px;
   min-width: 132px;
   border-radius: var(--radius);
-  background: rgba(22, 6, 12, .45);
-  border: 1px solid rgba(217, 164, 65, .18);
+  background: rgba(14, 5, 9, .74);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(217, 164, 65, .2);
   transition: border-color var(--pace), box-shadow var(--pace);
 }
 
@@ -317,7 +339,7 @@ button, select { font: inherit; }
   height: 190px;
   display: grid;
   place-items: center;
-  color: rgba(243, 234, 215, .1);
+  color: rgba(243, 234, 215, .16);
   pointer-events: none;
 }
 

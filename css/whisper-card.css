@@ -20,9 +20,9 @@
   --w-wash: rgba(200, 169, 96, .13);
 
   position: relative;
-  width: 63.5mm;
-  height: 88.9mm;
-  padding: 2.6mm;
+  width: 70mm;              /* tarot, to match the deck */
+  height: 120mm;
+  padding: 3mm;
   flex: 0 0 auto;
   background: var(--w-paper);
   color: var(--w-ink);
@@ -44,32 +44,32 @@
 .wcard-frame {
   position: relative;
   height: 100%;
-  padding: 3.4mm 3.6mm 3mm;
+  padding: 5mm 5.2mm 4.2mm;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border: .5mm solid var(--w-edge);
-  border-radius: 1.6mm;
+  border: .6mm solid var(--w-edge);
+  border-radius: 2mm;
   background: linear-gradient(160deg, var(--w-wash), transparent 55%), var(--w-paper);
 }
 
 .wcard-frame::before {
   content: "";
   position: absolute;
-  inset: 1.1mm;
-  border: .16mm solid var(--w-edge-soft);
-  border-radius: .9mm;
+  inset: 1.5mm;
+  border: .18mm solid var(--w-edge-soft);
+  border-radius: 1.2mm;
   pointer-events: none;
 }
 
-.wseal { display: block; width: 7mm; height: 7mm; color: var(--w-edge); }
+.wseal { display: block; width: 10mm; height: 10mm; color: var(--w-edge); }
 
-.wcard-top { margin-bottom: 1.6mm; }
+.wcard-top { margin-bottom: 3mm; }
 
 .wcard-title {
   margin: 0;
-  font-size: 12.4pt;
+  font-size: 16pt;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: .012em;
@@ -79,9 +79,9 @@
 .wflourish {
   display: flex;
   align-items: center;
-  gap: 3mm;
+  gap: 3.4mm;
   width: 100%;
-  margin: 2.2mm 0;
+  margin: 3.2mm 0;
   color: var(--w-edge);
 }
 
@@ -95,31 +95,31 @@
 
 .wflourish i {
   font-style: normal;
-  width: 2.4mm;
-  height: 2.4mm;
+  width: 3mm;
+  height: 3mm;
   flex: 0 0 auto;
   transform: rotate(45deg);
   background: var(--w-edge);
 }
 
 /* A burden's lozenge is a bar, so the break reads even in one colour. */
-.wcard-burden .wflourish i { transform: none; height: 1.1mm; width: 4mm; }
+.wcard-burden .wflourish i { transform: none; height: 1.4mm; width: 5.4mm; }
 
-.wcard-rule { margin: 0; font-size: 9.3pt; line-height: 1.45; color: var(--w-ink); }
+.wcard-rule { margin: 0; font-size: 11.4pt; line-height: 1.45; color: var(--w-ink); }
 .wcard-rule b, .wcard-rule strong { font-weight: 600; }
 
 .wcard-flavour {
   margin: 0;
-  font-size: 8.2pt;
+  font-size: 9.9pt;
   font-style: italic;
   line-height: 1.5;
   color: var(--w-ink-soft);
 }
 
-.wcard-foot { margin-top: auto; padding-top: 2mm; }
+.wcard-foot { margin-top: auto; padding-top: 3mm; }
 
 .wcard-mark {
-  font-size: 6pt;
+  font-size: 7.6pt;
   text-transform: uppercase;
   letter-spacing: .2em;
   color: var(--w-ink-faint);
@@ -130,8 +130,8 @@
 /* --- the smaller card the app puts on the table --------------------------- */
 
 .wcard-sm {
-  width: 132px;
-  height: 185px;
+  width: 122px;             /* tarot, at the size the table can hold */
+  height: 209px;
   padding: 5px;
   border-radius: 7px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, .5);
@@ -139,13 +139,13 @@
 
 .wcard-sm .wcard-frame { padding: 8px 8px 7px; border-width: 1.5px; border-radius: 5px; }
 .wcard-sm .wcard-frame::before { inset: 2.5px; border-radius: 3px; }
-.wcard-sm .wseal { width: 17px; height: 17px; }
+.wcard-sm .wseal { width: 19px; height: 19px; }
 .wcard-sm .wcard-top { margin-bottom: 4px; }
-.wcard-sm .wcard-title { font-size: 14px; }
+.wcard-sm .wcard-title { font-size: 15px; }
 .wcard-sm .wflourish { margin: 5px 0; gap: 6px; }
 .wcard-sm .wflourish i { width: 5px; height: 5px; }
 .wcard-sm .wcard-burden .wflourish i, .wcard-sm.wcard-burden .wflourish i { width: 9px; height: 2px; }
-.wcard-sm .wcard-rule { font-size: 11px; line-height: 1.35; }
-.wcard-sm .wcard-flavour { font-size: 9.5px; line-height: 1.4; }
+.wcard-sm .wcard-rule { font-size: 11.5px; line-height: 1.4; }
+.wcard-sm .wcard-flavour { font-size: 10px; line-height: 1.45; }
 .wcard-sm .wcard-foot { padding-top: 4px; }
 .wcard-sm .wcard-mark { font-size: 8px; }

@@ -60,7 +60,7 @@ html, body {
   overflow: hidden;
 }
 
-.sheet.cards { padding: 15.15mm 9.75mm; }
+.sheet.cards { padding: 28.5mm 35mm; }
 
 /* --- shared devices ------------------------------------------------------- */
 
@@ -135,13 +135,13 @@ html, body {
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(3, 63.5mm);
-  grid-template-rows: repeat(3, 88.9mm);
+  grid-template-columns: repeat(2, 70mm);
+  grid-template-rows: repeat(2, 120mm);
 }
 
 .pcard, .card-grid .wcard {
-  width: 63.5mm;
-  height: 88.9mm;
+  width: 70mm;            /* tarot */
+  height: 120mm;
   outline: .18mm solid var(--rule);   /* the cut line */
   outline-offset: -.09mm;
 }
@@ -151,13 +151,13 @@ html, body {
 .pcard-frame {
   position: relative;
   height: 100%;
-  padding: 3.4mm 3.6mm 3mm;
+  padding: 5mm 5.2mm 4.2mm;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border: .5mm solid var(--gold);
-  border-radius: 1.6mm;
+  border: .6mm solid var(--gold);
+  border-radius: 2mm;
   background:
     linear-gradient(160deg, rgba(200, 169, 96, .13), rgba(200, 169, 96, 0) 55%),
     var(--paper);
@@ -166,28 +166,28 @@ html, body {
 .pcard-frame::before {
   content: "";
   position: absolute;
-  inset: 1.1mm;
+  inset: 1.5mm;
   border: .16mm solid var(--gold-soft);
   border-radius: .9mm;
   pointer-events: none;
 }
 
-.pcard-top { margin-bottom: 1.6mm; }
+.pcard-top { margin-bottom: 2.4mm; }
 
 .pcard-title {
   margin: 0;
-  font-size: 12.4pt;
+  font-size: 15pt;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: .012em;
   color: var(--ink);
 }
 
-.whisper-card .flourish { width: 100%; margin: 2.2mm 0; }
+.whisper-card .flourish { width: 100%; margin: 3.2mm 0; }
 
 .pcard-rule {
   margin: 0;
-  font-size: 9.3pt;
+  font-size: 11pt;
   line-height: 1.45;
   color: var(--ink);
 }
@@ -196,14 +196,14 @@ html, body {
 
 .pcard-flavour {
   margin: 0;
-  font-size: 8.2pt;
+  font-size: 9.6pt;
   font-style: italic;
   line-height: 1.5;
   color: var(--ink-soft);
 }
 
-.pcard-foot { margin-top: auto; padding-top: 2mm; }
-.pcard-foot .smallcaps { font-size: 6pt; letter-spacing: .2em; }
+.pcard-foot { margin-top: auto; padding-top: 3mm; }
+.pcard-foot .smallcaps { font-size: 7pt; letter-spacing: .2em; }
 
 /* --- card backs ----------------------------------------------------------- */
 
@@ -227,13 +227,13 @@ html, body {
 }
 
 .back-title {
-  font-size: 12pt;
+  font-size: 14.5pt;
   letter-spacing: .06em;
   color: #e8d8ad;
 }
 
 .back-sub {
-  font-size: 6.6pt;
+  font-size: 7.6pt;
   text-transform: uppercase;
   letter-spacing: .24em;
   color: #b09a63;

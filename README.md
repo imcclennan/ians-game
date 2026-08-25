@@ -35,7 +35,13 @@ printed on its own face, in its own ink.
 A hand is fanned by what each kind promises — Assassins, then Lovers, Merchants and Fools, high to
 low within each — with whichever kind holds sway pulled to the front of all of them, wearing gold.
 
-The deck is **tarot sized, 70 × 120 mm**, and the cards on screen carry that shape exactly.
+The deck is **tarot sized, 70 × 120 mm** — on screen, at the table, and off the printer. The
+Whisper cards match it, four to an A4 sheet.
+
+The playing mat carries the court itself: the monarch on the throne, four nobles petitioning,
+blades in the near shadow and fools at the foot of the steps. It is the same scene whoever holds
+sway — only the wash of colour over it changes, which it does by luminosity blending, so the
+picture takes the ruling kind's hue without being repainted.
 
 Four faces rather than the usual two colours means every kind is legible from the corner alone,
 which matters in a fanned hand of fifteen overlapping cards. The marks are drawn as inline SVG, so
@@ -202,7 +208,7 @@ cards — they pledge by valuing their own hand and play by tracking what has al
 | Sheet | What it is |
 | --- | --- |
 | [`print/rules.html`](print/rules.html) | The full rules, two columns to an A4 sheet, with a masthead and a summary of play |
-| [`print/whispers.html`](print/whispers.html) | All twenty-two Whispers at poker size (63.5 × 88.9 mm), nine to a sheet, plus a sheet of backs |
+| [`print/whispers.html`](print/whispers.html) | All twenty-two Whispers at tarot size (70 × 120 mm), four to a sheet, plus a sheet of backs |
 | [`print/reference.html`](print/reference.html) | A two-sided A6 reference card: making a pledge on one side, sway and favour on the other |
 
 Everything is generated from the same rules files the game runs on, so the printed edition and the

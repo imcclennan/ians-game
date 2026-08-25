@@ -14,7 +14,7 @@
   const Rulebook = global.Rulebook;
   const WhisperCard = global.WhisperCard;
 
-  const CARDS_PER_SHEET = 9;
+  const CARDS_PER_SHEET = 4;
 
   /* --- ornaments ---------------------------------------------------------- */
 
