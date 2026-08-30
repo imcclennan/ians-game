@@ -3,6 +3,7 @@
  * Units are tenths of a millimetre. Trim is 700 x 1200 (70 x 120 mm).
  */
 const A = require('./art');
+const WM = require('./watermark');
 const { emblem, crown, fleuron, text, block, wrap, r, STYLES, ROLE, PLEDGE } = A;
 
 const W = 700, H = 1200;
@@ -364,6 +365,10 @@ function faceCommon(card, opt, cfg) {
   const tint = FACE[card.suit];
   let s = sheet(cfg.parchment ? '#eee2c6' : '#f6efe1', bleed);
   s += sheet(tint, bleed, cfg.groundTint);
+  // The kind's court, printed into the stock. The plate's own highlight is
+  // this card's ground colour, so it replaces the two sheets above rather
+  // than darkening them, and nothing here can approach the weight of the ink.
+  if (!cfg.parchment && cfg.watermark !== false) s += WM.plate(card.suit, bleed);
   if (cfg.parchment) s += sheet('url(#w-grain)', bleed);
   s += cfg.frame;
   s += cfg.centre || '';

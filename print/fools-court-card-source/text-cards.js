@@ -6,6 +6,7 @@
 const A = require('./art');
 const { EMBLEM, emblem, crown, fleuron, r } = A;
 const C = require('./cards');
+const WM = require('./watermark');
 const { W, H, CX, doc, sheet } = C;
 
 // 300 DPI page: 3" x 5" = 900 x 1500 px, 1/8" bleed, 1/8" safe zone inside trim.
@@ -96,6 +97,10 @@ function whisperArt(burden) {
   const accent = burden ? BURDEN_ACCENT : GOLD_D;
   const washId = burden ? 'wf-wash-b' : 'wf-wash';
   let s = sheet(CREAM, 0);
+  // The monarch, watching. Cream under indigo for a word, under oxblood for a
+  // burden — the two plates differ only in tone, and the back of both is the
+  // same, so face down they still cannot be told apart.
+  s += WM.plate(burden ? 'burden' : 'whisper', 0);
   s += `<rect x="-60" y="-60" width="${W + 120}" height="${H + 120}" fill="url(#${washId})"/>`;
   s += `<rect x="50" y="50" width="${W - 100}" height="${H - 100}" fill="none" stroke="${line}" ` +
     `stroke-width="${burden ? 6 : 4}" opacity="${burden ? 0.9 : 0.75}"/>`;

@@ -1,5 +1,5 @@
 const fs = require('fs'), path = require('path');
-const { chromium } = require('/home/claude/.npm-global/lib/node_modules/playwright');
+const { chromium } = require(process.env.PLAYWRIGHT || '/home/claude/.npm-global/lib/node_modules/playwright');
 
 /** items: [{ name, html }] -> PNG at 900x1500 (rendered 2x then downsampled) */
 async function renderAll(items, dir, scale = 2) {
