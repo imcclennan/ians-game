@@ -1,7 +1,11 @@
 /*
  * cards.js - the deck and its primitives.
  *
- * Sixty cards: four agents, each ranked 1 to 15 by their standing at court.
+ * Sixty cards: four agents, each ranked by their standing at court. How far
+ * that ranking runs, and whether any rank is struck twice, is the business of
+ * the active ruleset -- fifteen distinct ranks under A, ten with five doubled
+ * in every kind under B. Either way the deck comes to sixty.
+ *
  * The classic pips are kept because they already read as the four agents --
  * the blade, the heart, the coin, the jester's bauble.
  *
@@ -10,6 +14,8 @@
  */
 (function (global) {
   'use strict';
+
+  const Ruleset = global.Ruleset;
 
   const SUITS = ['C', 'D', 'H', 'S'];
 
@@ -54,31 +60,55 @@
       SUIT_EMBLEM[suit] + '</svg>';
   }
 
-  // Audiences promised when an agent is sent out on an errand.
-  const BID_VALUE = { C: 0, D: 1, H: 2, S: 3 };
-
-  const RANKS = ['1', '2', '3', '4', '5', '6', '7', '8', '9',
-    '10', '11', '12', '13', '14', '15'];
-
-  const HIGHEST_VALUE = 15;
-
   // Display order for a fanned hand: by what each kind promises, richest first,
   // with whoever holds sway pulled to the front of all of them.
   const DISPLAY_ORDER = ['S', 'H', 'D', 'C'];
 
-  function makeCard(suit, rank) {
+  /** How many cards of this rank the active deck holds in this kind: one or two. */
+  function copiesOf(suit, rank) {
+    return Ruleset.current().doubled[suit].indexOf(String(rank)) === -1 ? 1 : 2;
+  }
+
+  /**
+   * An agent's name in the pack. Two cards of a doubled rank are identical in
+   * play and carry no distinguishing face, but they must still be told apart
+   * here: a shared id would let removeCards strip both copies at once, and
+   * would make every Set of cards already seen quietly undercount.
+   *
+   * The copy number is always present, in both rulesets, so that no code
+   * anywhere has to know which ruleset it is building an id for.
+   */
+  function idFor(suit, rank, copy) {
+    return String(rank) + suit + (copy || 0);
+  }
+
+  /** Every id a rank could be holding in this kind. */
+  function idsFor(suit, rank) {
+    const ids = [];
+    for (let copy = 0; copy < copiesOf(suit, rank); copy++) ids.push(idFor(suit, rank, copy));
+    return ids;
+  }
+
+  function makeCard(suit, rank, copy) {
+    const which = copy || 0;
     return {
       suit: suit,
       rank: rank,
-      value: Number(rank), // 1 is the weakest agent, 15 the most influential
-      id: rank + suit
+      value: Number(rank), // 1 is the weakest agent, the highest rank the most influential
+      copy: which,
+      id: idFor(suit, rank, which)
     };
   }
 
   function makeDeck() {
     const deck = [];
+    const ranks = Ruleset.current().ranks;
     for (const suit of SUITS) {
-      for (const rank of RANKS) deck.push(makeCard(suit, rank));
+      for (const rank of ranks) {
+        for (let copy = 0; copy < copiesOf(suit, rank); copy++) {
+          deck.push(makeCard(suit, rank, copy));
+        }
+      }
     }
     return deck;
   }
@@ -96,8 +126,14 @@
     return out;
   }
 
+  /**
+   * What a set of agents promises, before any ruleset has had its say about
+   * what to do with a total of nothing or less. Rules.bidFromCards is the one
+   * that turns this into a pledge.
+   */
   function bidValueOf(cards) {
-    return cards.reduce((total, card) => total + BID_VALUE[card.suit], 0);
+    const bidValue = Ruleset.current().bidValue;
+    return cards.reduce((total, card) => total + bidValue[card.suit], 0);
   }
 
   function cardsOfSuit(cards, suit) {
@@ -140,9 +176,9 @@
     SUIT_EMBLEM: SUIT_EMBLEM,
     emblem: emblem,
     SUIT_COLOR: SUIT_COLOR,
-    BID_VALUE: BID_VALUE,
-    RANKS: RANKS,
-    HIGHEST_VALUE: HIGHEST_VALUE,
+    copiesOf: copiesOf,
+    idFor: idFor,
+    idsFor: idsFor,
     makeCard: makeCard,
     makeDeck: makeDeck,
     shuffle: shuffle,
@@ -154,4 +190,15 @@
     removeCards: removeCards,
     describe: describe
   };
+
+  // The shape of the deck belongs to the ruleset in force, and the ruleset can
+  // change between seasons, so these are read through rather than copied out.
+  // Anything that captures one of them at load time will be wrong the moment
+  // the court changes its rules.
+  Object.defineProperties(global.Cards, {
+    RANKS: { enumerable: true, get: () => Ruleset.current().ranks },
+    HIGHEST_VALUE: { enumerable: true, get: () => Ruleset.current().highestValue },
+    // Audiences promised when an agent is sent out on an errand.
+    BID_VALUE: { enumerable: true, get: () => Ruleset.current().bidValue }
+  });
 })(typeof globalThis !== 'undefined' ? globalThis : this);

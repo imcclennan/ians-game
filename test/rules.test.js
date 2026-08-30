@@ -2,6 +2,7 @@
  * Plain-node test suite. No dependencies: node test/rules.test.js
  * The logic files attach themselves to globalThis, so requiring them is enough.
  */
+require('../js/ruleset.js');
 require('../js/cards.js');
 require('../js/rules.js');
 require('../js/whispers.js');
@@ -9,7 +10,12 @@ require('../js/whispercard.js');
 require('../js/ai.js');
 require('../js/engine.js');
 
-const { Cards, Rules, AI, Engine, Whispers, WhisperCard } = globalThis;
+const { Cards, Rules, AI, Engine, Whispers, WhisperCard, Ruleset } = globalThis;
+
+// Everything above the Ruleset B block is the game as it has always been, and
+// is pinned to Ruleset A explicitly so that no later switch can quietly rescore
+// it. The B block resets this when it is done.
+Ruleset.reset();
 
 let passed = 0;
 const failures = [];
@@ -26,7 +32,14 @@ function ok(label, condition, detail) {
   else failures.push(label + (detail ? '\n    ' + detail : ''));
 }
 
-const card = (id) => Cards.makeCard(id.slice(-1), id.slice(0, -1));
+/**
+ * A card from a short name: '15S', or '10S/1' for the second copy of a doubled
+ * rank. Ids themselves always carry the copy number, in both rulesets.
+ */
+const card = (name) => {
+  const [face, copy] = name.split('/');
+  return Cards.makeCard(face.slice(-1), face.slice(0, -1), Number(copy) || 0);
+};
 const hand = (...ids) => ids.map(card);
 
 function seededRandom(seed) {
@@ -67,9 +80,9 @@ check('the most that can actually be kept', Rules.KEEPABLE_MAX, Rules.TRICKS_PER
 
 const mixed = hand('15S', '4S', '13H', '2C');
 check('you must answer with the agent that was sent',
-  Rules.legalPlays(mixed, 'S').map((c) => c.id), ['15S', '4S']);
+  Rules.legalPlays(mixed, 'S').map((c) => c.id), ['15S0', '4S0']);
 check('holding none of them, anyone may go',
-  Rules.legalPlays(mixed, 'D').map((c) => c.id), ['15S', '4S', '13H', '2C']);
+  Rules.legalPlays(mixed, 'D').map((c) => c.id), ['15S0', '4S0', '13H0', '2C0']);
 check('whoever opens may send anyone',
   Rules.legalPlays(mixed, null).length, 4);
 
@@ -783,7 +796,7 @@ ok('a noble answers with the kind that was sent', forced.suit === 'S', 'played '
 const ducking = AI.chooseCard({
   hand: aiHand, trick: openTrick, trump: 'H', bid: 1, tricksWon: 1, seen: new Set()
 });
-check('a noble ducks once the pledge is filled', ducking.id, '4S');
+check('a noble ducks once the pledge is filled', ducking.id, '4S0');
 
 const grabbing = AI.chooseCard({
   hand: aiHand, trick: [
@@ -792,7 +805,7 @@ const grabbing = AI.chooseCard({
     { player: 2, card: card('11S') }
   ], trump: 'H', bid: 3, tricksWon: 0, seen: new Set()
 });
-check('a noble takes the audience it still needs from last seat', grabbing.id, '15S');
+check('a noble takes the audience it still needs from last seat', grabbing.id, '15S0');
 
 const strongHand = hand('15S', '14S', '13S', '15H', '14H', '15D', '14D', '13D', '12D',
   '9C', '5C', '4C', '3C', '2C', '1C');
@@ -826,6 +839,238 @@ const nothingButFools = hand('1C', '2C', '3C', '4C', '5C', '6C', '7C', '8C',
   '9C', '10C', '11C', '12C', '13C', '14C', '15C');
 check('a hand of nothing but Fools can only pledge nothing',
   Rules.bidFromCards(AI.chooseBidCards(nothingButFools, null, 1, null)), 0);
+
+// ===========================================================================
+// Ruleset B
+//
+// Everything above this line is Ruleset A and has run under it. From here the
+// court plays under B; the block puts the rules back when it is done, so
+// nothing after it is contaminated.
+// ===========================================================================
+
+Ruleset.releaseAll();   // no season left open by the tests above may hold the rules
+Ruleset.use('B');
+check('the court is playing under B', Ruleset.currentId(), 'B');
+
+// --- the deck --------------------------------------------------------------
+
+const deckB = Cards.makeDeck();
+check('B deals sixty agents too', deckB.length, 60);
+check('no two agents share a name', new Set(deckB.map((c) => c.id)).size, 60);
+check('B runs to ten ranks', Cards.HIGHEST_VALUE, 10);
+check('ten is the most influential', card('10S').value, 10);
+
+const DOUBLED_B = { C: ['1', '2', '3', '4', '5'], D: ['1', '3', '5', '7', '9'],
+  H: ['2', '4', '6', '8', '10'], S: ['6', '7', '8', '9', '10'] };
+for (const suit of Cards.SUITS) {
+  check('B gives ' + Cards.SUIT_ROLE_PLURAL[suit] + ' fifteen cards',
+    Cards.cardsOfSuit(deckB, suit).length, 15);
+  ok('no ' + Cards.SUIT_ROLE_PLURAL[suit] + ' rank runs past ten',
+    Cards.cardsOfSuit(deckB, suit).every((c) => c.value >= 1 && c.value <= 10));
+  for (const rank of Cards.RANKS) {
+    const wanted = DOUBLED_B[suit].indexOf(rank) === -1 ? 1 : 2;
+    check('B strikes ' + Cards.SUIT_ROLE[suit] + ' ' + rank + ' ' + wanted + ' time(s)',
+      Cards.cardsOfSuit(deckB, suit).filter((c) => c.rank === rank).length, wanted);
+  }
+}
+ok('the two copies of a doubled rank are told apart', card('10S').id !== card('10S/1').id);
+check('and are otherwise the same agent',
+  [card('10S').suit, card('10S').value], [card('10S/1').suit, card('10S/1').value]);
+check('sending one copy on an errand leaves the other in hand',
+  Cards.removeCards(hand('10S', '10S/1', '4H'), [card('10S')]).map((c) => c.id),
+  ['10S1', '4H0']);
+
+// --- the pledge ------------------------------------------------------------
+
+check('a Fool costs a promise rather than making none', Cards.BID_VALUE.C, -1);
+check('four Fools pledge nothing', Rules.bidFromCards(hand('1C', '2C', '3C', '4C')), 0);
+check('a set that comes to less than nothing still pledges nothing',
+  Rules.bidFromCards(hand('1C', '2C', '3C', '1D')), 0);
+check('and so does one that lands exactly on nothing',
+  Rules.bidFromCards(hand('1C', '2C', '3C', '1H')), 0);
+check('two Fools and two Assassins pledge four',
+  Rules.bidFromCards(hand('1C', '2C', '1S', '2S')), 4);
+check('three Merchants and a Fool pledge two',
+  Rules.bidFromCards(hand('1D', '3D', '5D', '1C')), 2);
+check('four Assassins still pledge twelve',
+  Rules.bidFromCards(hand('7S', '8S', '9S', '10S')), 12);
+ok('overreaching cannot pay as well as promising the lot',
+  Rules.scoreHand(12, 11) < Rules.scoreHand(11, 11),
+  'twelve at best pays ' + Rules.scoreHand(12, 11) +
+  ', eleven kept pays ' + Rules.scoreHand(11, 11));
+
+ok('four Fools is a true nil', Rules.isTrueNil(hand('1C', '2C', '3C', '4C')));
+ok('a set that merely adds up to nothing is not',
+  !Rules.isTrueNil(hand('1C', '2C', '3C', '1H')));
+ok('nor is one that adds up to less than nothing',
+  !Rules.isTrueNil(hand('1C', '2C', '3C', '1D')));
+ok('a pledge of something is never a nil', !Rules.isTrueNil(hand('1C', '2C', '3C', '2S')));
+
+// --- ties ------------------------------------------------------------------
+
+check('equal ranks go to whoever played second',
+  Rules.trickWinner(trick('7S', '7S/1', '2S', '3S'), null).player, 1);
+check('and to the second even from the last seat',
+  Rules.trickWinner(trick('7S', '2S', '3S', '7S/1'), null).player, 3);
+check('a higher rank still takes it outright',
+  Rules.trickWinner(trick('7S', '7S/1', '8S', '3S'), null).player, 2);
+check('equal ruling agents go to the second as well',
+  Rules.trickWinner(trick('6H', '2H', '6H/1', '3H'), 'H').player, 2);
+check('a ruling agent beats a higher rank of another kind',
+  Rules.trickWinner(trick('10S', '1H', '2S', '3S'), 'H').player, 1);
+check('an equal rank of another kind wins nothing',
+  Rules.trickWinner(trick('7S', '7D', '2S', '3S'), null).player, 0);
+check('a lesser ruling agent still beats an equal rank of the led kind',
+  Rules.trickWinner(trick('7S', '7S/1', '1H', '3S'), 'H').player, 2);
+
+// --- favour ----------------------------------------------------------------
+
+check('a pledge of two kept pays five', Rules.scoreHand(2, 2, false), 5);
+check('a pledge of one kept pays three', Rules.scoreHand(1, 1, false), 3);
+check('three audiences on a pledge of four pays two', Rules.scoreHand(4, 3, false), 2);
+check('four audiences on a pledge of two costs two', Rules.scoreHand(2, 4, false), -2);
+check('a true nil kept pays eight', Rules.scoreHand(0, 0, true), 8);
+check('a true nil broken on two audiences costs four', Rules.scoreHand(0, 2, true), -4);
+check('an arithmetic nought kept pays one', Rules.scoreHand(0, 0, false), 1);
+ok('the two kinds of nought pay differently',
+  Rules.scoreHand(0, 0, true) !== Rules.scoreHand(0, 0, false));
+check('a broken nought scales with the damage',
+  [1, 2, 3].map((won) => Rules.scoreHand(0, won, true)), [-2, -4, -6]);
+check('and scales the same however the nought was made',
+  [1, 2, 3].map((won) => Rules.scoreHand(0, won, false)), [-2, -4, -6]);
+check('missing by one costs the same high as low',
+  Rules.scoreHand(4, 3, false), Rules.scoreHand(4, 5, false));
+ok('so under-promising on purpose buys nothing',
+  Rules.scoreHand(4, 4, false) > Rules.scoreHand(3, 4, false),
+  'kept 4 pays ' + Rules.scoreHand(4, 4, false) +
+  ', under-promised 3 and won 4 pays ' + Rules.scoreHand(3, 4, false));
+
+// --- what the rival nobles can prove ---------------------------------------
+
+function seenExcept(missing) {
+  const set = new Set(Cards.makeDeck().map((c) => c.id));
+  for (const id of missing) set.delete(id);
+  return set;
+}
+ok('an unseen twin of the same rank means nothing is proven',
+  !AI.isTopOutstanding(card('10S'), seenExcept(['10S1'])),
+  'the other Assassin 10 is still out there');
+ok('once both copies are accounted for, the rank is safe',
+  AI.isTopOutstanding(card('10S'), seenExcept([])));
+ok('an unseen higher rank still refuses the claim',
+  !AI.isTopOutstanding(card('9S'), seenExcept(['10S0'])));
+ok('the card itself being in hand does not count against it',
+  AI.isTopOutstanding(card('10H'), seenExcept(['10H0'])),
+  'a card cannot be beaten by itself');
+
+// --- the words that read differently ---------------------------------------
+
+const auditedB = Whispers.BY_ID.audited;
+const auditedHand = hand('1D', '3D', '5D', '7D', '1C', '2C', '3C', '1S', '2S', '3S',
+  '4H', '5H', '6H', '7H', '8H');
+ok('The Audited accepts three Merchants and one Fool',
+  Whispers.permitsSet(auditedB, hand('1D', '3D', '5D', '1C'), auditedHand));
+ok('and refuses two of each',
+  !Whispers.permitsSet(auditedB, hand('1D', '3D', '1C', '2C'), auditedHand));
+ok('and refuses four Merchants',
+  !Whispers.permitsSet(auditedB, hand('1D', '3D', '5D', '7D'), auditedHand));
+check('the set it asks for pledges exactly two',
+  Rules.bidFromCards(hand('1D', '3D', '5D', '1C')), 2);
+ok('it is waived on a hand holding too few Merchants',
+  Whispers.permitsSet(auditedB, hand('1C', '2C', '3C', '1S'),
+    hand('1D', '3D', '1C', '2C', '3C', '1S', '2S', '3S',
+      '4H', '5H', '6H', '7H', '8H', '9H', '10H')));
+
+const meekB = Whispers.BY_ID.meek;
+const meekTied = [row({ seat: 0, bid: 2 }), row({ seat: 1, bid: 2 }),
+  row({ seat: 2, bid: 5 }), row({ seat: 3, bid: 6 })];
+check('The Meek does not fire when the lowest pledge is tied',
+  Whispers.adjust(meekB, 5, meekTied[0], meekTied), 5 + 4);
+const meekAlone = [row({ seat: 0, bid: 1 }), row({ seat: 1, bid: 2 }),
+  row({ seat: 2, bid: 5 }), row({ seat: 3, bid: 6 })];
+check('and does fire when it is lowest outright',
+  Whispers.adjust(meekB, 5, meekAlone[0], meekAlone), 5 - 3 + 4);
+
+const scapegoatB = Whispers.BY_ID.scapegoat;
+function goatTable(keepers) {
+  const table = [row({ seat: 0, bid: 3, made: true })];
+  for (let seat = 1; seat <= 3; seat++) {
+    table.push(row({ seat: seat, bid: 3, made: seat <= keepers }));
+  }
+  return table;
+}
+for (const keepers of [0, 1, 2, 3]) {
+  const table = goatTable(keepers);
+  check('The Scapegoat pays 7 less 3 a head, with ' + keepers + ' keeping',
+    Whispers.adjust(scapegoatB, 99, table[0], table), 7 - 3 * keepers);
+}
+const goatOne = goatTable(1);
+ok('its own pledge is not scored at all',
+  Whispers.adjust(scapegoatB, 22, goatOne[0], goatOne) ===
+  Whispers.adjust(scapegoatB, -8, goatOne[0], goatOne));
+ok('but the pledge is still kept or broken as a fact, for the sway ladder',
+  Whispers.wasKept(scapegoatB, row({ bid: 3, counted: 3 }), goatOne) === true &&
+  Whispers.wasKept(scapegoatB, row({ bid: 3, counted: 2 }), goatOne) === false);
+
+const swornB = Whispers.BY_ID.swornToFool;
+const wonRow = (ids, tookWith) => row({
+  wonCards: hand.apply(null, ids),
+  takenWith: tookWith ? hand.apply(null, tookWith) : []
+});
+check('Sworn to the Fool pays nothing for the first Fool in an audience won',
+  Whispers.adjust(swornB, 99, wonRow(['1C', '2S', '3H', '4D']), []), 0);
+check('three for the second',
+  Whispers.adjust(swornB, 99, wonRow(['1C', '2C', '3H', '4D']), []), 3);
+check('and six for the third',
+  Whispers.adjust(swornB, 99, wonRow(['1C', '2C', '3C', '4D']), []), 6);
+check('nothing at all where no Fool was in the room',
+  Whispers.adjust(swornB, 99, wonRow(['1S', '2S', '3H', '4D']), []), 0);
+check('it counts Fools inside the audiences, not audiences won by a Fool',
+  Whispers.adjust(swornB, 0, wonRow(['1S', '2S'], ['1C', '2C']), []), 0);
+ok('its own pledge is not scored either',
+  Whispers.adjust(swornB, 22, wonRow(['1C', '2C']), []) ===
+  Whispers.adjust(swornB, -8, wonRow(['1C', '2C']), []));
+check('and it chases every audience there is', Whispers.aimFor(swornB, 2), Rules.TRICKS_PER_HAND);
+
+check('B hears the same twenty-two words', Whispers.ALL.length, 22);
+const idsUnderB = Whispers.ALL.map((whisper) => whisper.id);
+
+// --- the switch itself -----------------------------------------------------
+
+const seasonB = Engine.createGame({ dealer: 0, rng: seededRandom(4242) });
+check('a season remembers which rules dealt it', seasonB.ruleset, 'B');
+Engine.startHand(seasonB);
+let switchedMidSeason = false;
+try {
+  Ruleset.use('A');
+  switchedMidSeason = true;
+} catch (error) {
+  switchedMidSeason = false;
+}
+ok('the rules cannot be changed mid-season', !switchedMidSeason);
+check('and the court is still playing under B', Ruleset.currentId(), 'B');
+Engine.abandonSeason(seasonB);
+ok('abandoning the season frees them again', !Ruleset.inSeason());
+
+// A whole season under B, to shake out anything the assertions above miss.
+const wholeB = playWholeGame(90210);
+check('a season under B runs its twelve nights', wholeB.state.handNumber, Rules.SEASON_LENGTH);
+ok('and leaves somebody holding the ear of the monarch', wholeB.state.winners.length >= 1);
+ok('every night was recorded against the rules it was played under',
+  wholeB.state.history.every((night) => night.ruleset === 'B'));
+
+// --- back to where we started ----------------------------------------------
+
+Ruleset.reset();
+check('the court returns to Ruleset A', Ruleset.currentId(), 'A');
+check('and to a fifteen-rank deck', Cards.HIGHEST_VALUE, 15);
+check('every word survives the change of rules',
+  Whispers.ALL.map((whisper) => whisper.id), idsUnderB);
+check('A still hears twenty-two of them', Whispers.ALL.length, 22);
+check('four Assassins pledge twelve under A as well',
+  Rules.bidFromCards(hand('4S', '5S', '6S', '7S')), 12);
+ok('and overreaching cannot pay under A either',
+  Rules.scoreHand(12, 11) < Rules.scoreHand(11, 11));
 
 // --- report ----------------------------------------------------------------
 

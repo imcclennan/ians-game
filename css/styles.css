@@ -95,6 +95,18 @@ button, select { font: inherit; }
 
 .topbar-actions { display: flex; align-items: center; gap: 12px; }
 
+/* The line under the top bar naming which rules the court is playing under.
+   The bar wraps, so a full-width basis puts this on a row of its own. */
+.topbar-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+.topbar-note:empty { display: none; }
+.control input:disabled { cursor: not-allowed; }
+.control:has(input:disabled) { opacity: 0.55; cursor: not-allowed; }
+
 .speed {
   display: flex;
   align-items: center;

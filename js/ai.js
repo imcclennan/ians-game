@@ -8,20 +8,26 @@
 
   const Cards = global.Cards;
   const Rules = global.Rules;
+  const Ruleset = global.Ruleset;
   const Whispers = global.Whispers;
-
-  // The four most influential ranks in a suit, whatever the deck size.
-  const FIRST = Cards.HIGHEST_VALUE;
-  const SECOND = FIRST - 1;
-  const THIRD = FIRST - 2;
-  const FOURTH = FIRST - 3;
 
   /**
    * Roughly how many audiences a hand is worth. Calibrated for eleven-card
    * hands with sixteen agents away on errands, so the four nobles' estimates
    * sum to about eleven.
+   *
+   * The weights were fitted against a fifteen-rank deck. On a shorter ladder
+   * the top four honours come up far more often and the estimate runs high;
+   * retuning them is a separate, measurable change.
    */
   function estimateTricks(hand, trump) {
+    // The four most influential ranks in a suit, whatever the deck size. Read
+    // afresh each time: the deck can change between seasons.
+    const FIRST = Cards.HIGHEST_VALUE;
+    const SECOND = FIRST - 1;
+    const THIRD = FIRST - 2;
+    const FOURTH = FIRST - 3;
+
     const trumpLength = trump ? Cards.cardsOfSuit(hand, trump).length : 0;
     let total = 0;
 
@@ -137,9 +143,13 @@
       // Promising more than the court can give is never worth it.
       const overreach = Math.max(0, bid - Rules.KEEPABLE_MAX) * 3;
 
-      // Promising nothing pays +10 and costs -10, far more than the two a
-      // trick is otherwise worth, so it is worth reaching a little for.
-      const nilPull = bid === 0 ? -0.55 : 0;
+      // Promising nothing and meaning it pays far more than the two a single
+      // audience is otherwise worth, so it is worth reaching a little for. A
+      // set that merely adds up to nought pays less than the smallest kept
+      // pledge, so it is worth reaching slightly away from. Where the ruleset
+      // does not tell the two apart, a pledge of nothing is always the true
+      // kind and only the pull applies.
+      const nilPull = bid === 0 ? (Rules.isTrueNil(combo) ? -0.55 : 0.45) : 0;
 
       const cost = Math.abs(bid - wanted) + overreach + nilPull +
         Whispers.pledgeCost(whisper, bid) + discardCost * 0.002;
@@ -166,12 +176,24 @@
     return cards.reduce((a, b) => (keepCost(b, trump) > keepCost(a, trump) ? b : a));
   }
 
-  /** Nothing unseen can beat this card in its own suit. */
+  /**
+   * Nothing unseen can beat this card in its own suit.
+   *
+   * Where an audience is settled in favour of whoever played second, an unseen
+   * agent of the *same* rank beats this one as surely as a higher one does, so
+   * the scan has to start at the card's own rank and account for both copies of
+   * every doubled rank -- the card itself excepted, which is in hand and
+   * therefore beats nothing but itself.
+   */
   function isTopOutstanding(card, seen) {
+    const tieToSecond = Ruleset.current().tieToSecond;
     for (const rank of Cards.RANKS) {
-      const value = Cards.RANKS.indexOf(rank) + 2;
-      if (value <= card.value) continue;
-      if (!seen.has(rank + card.suit)) return false;
+      const value = Number(rank);
+      if (tieToSecond ? value < card.value : value <= card.value) continue;
+      for (const id of Cards.idsFor(card.suit, rank)) {
+        if (id === card.id) continue;
+        if (!seen.has(id)) return false;
+      }
     }
     return true;
   }

@@ -23,7 +23,8 @@
  *   burden                    - a word that costs rather than pays
  *   adjust(favour, row, table)- the last word on favour
  *
- * A row carries: seat, bid, tricksWon, counted, made, takenWith, base.
+ * A row carries: seat, bid, tricksWon, counted, made, takenWith, wonCards,
+ * trueNil, base.
  */
 (function (global) {
   'use strict';
@@ -32,6 +33,14 @@
   const errands = () => global.Rules.BID_CARDS;
   const suitOf = (cards, suit) => cards.filter((card) => card.suit === suit);
   const kept = (row) => row.made;
+
+  /**
+   * The rules in force. Four of the twenty-two words below read differently
+   * under Ruleset B, and each of them branches inside its own definition rather
+   * than being listed twice -- the id, name, frame and place in the order are
+   * written once and cannot drift apart.
+   */
+  const rules = () => global.Ruleset.current();
 
   function rightOf(table, row) {
     return table[global.Rules.rightOf(row.seat)];
@@ -77,14 +86,45 @@
     {
       id: 'audited',
       name: 'The Audited',
-      line: 'Send two Merchants and two Fools, which pledges exactly 2. ' +
-        'Keep it for +4.',
-      detail: 'The treasury has been through your books and found them wanting. Two purses go ' +
-        'out to be counted, and two Fools go with them to see that the counting is honest. ' +
-        'What you promise the court this night was never really your choice.',
-      demand: 'two Merchants and two Fools must go out',
-      permits: (cards) => suitOf(cards, 'D').length >= 2 && suitOf(cards, 'C').length >= 2,
-      satisfiable: (hand) => suitOf(hand, 'D').length >= 2 && suitOf(hand, 'C').length >= 2,
+      // The mix is chosen to come to a pledge of exactly 2 under whichever
+      // rules are in force. Two Merchants and two Fools comes to 2 where a Fool
+      // promises nothing, but to nothing at all where a Fool costs one -- which
+      // would be a nil at eight favour either way rather than the modest,
+      // easily landed promise this word is meant to hand out.
+      get line() {
+        const r = rules();
+        return 'Send ' + (r.auditedMerchants === 3 ? 'three Merchants and one Fool' :
+          'two Merchants and two Fools') + ', which pledges exactly 2. Keep it for +4.';
+      },
+      get detail() {
+        const r = rules();
+        return 'The treasury has been through your books and found them wanting. ' +
+          (r.auditedMerchants === 3
+            ? 'Three purses go out to be counted, and a Fool goes with them to see that the ' +
+              'counting is honest. '
+            : 'Two purses go out to be counted, and two Fools go with them to see that the ' +
+              'counting is honest. ') +
+          'What you promise the court this night was never really your choice.';
+      },
+      get demand() {
+        const r = rules();
+        return (r.auditedExact ? 'exactly ' : '') +
+          (r.auditedMerchants === 3 ? 'three Merchants and one Fool' :
+            'two Merchants and two Fools') + ' must go out';
+      },
+      permits: (cards) => {
+        const r = rules();
+        const merchants = suitOf(cards, 'D').length;
+        const fools = suitOf(cards, 'C').length;
+        return r.auditedExact
+          ? merchants === r.auditedMerchants && fools === r.auditedFools
+          : merchants >= r.auditedMerchants && fools >= r.auditedFools;
+      },
+      satisfiable: (hand) => {
+        const r = rules();
+        return suitOf(hand, 'D').length >= r.auditedMerchants &&
+          suitOf(hand, 'C').length >= r.auditedFools;
+      },
       // A pledge of two is an easy one to land, so the reward for being handed
       // it is modest.
       adjust: (favour, row) => (kept(row) ? favour + 4 : favour)
@@ -114,9 +154,11 @@
     {
       id: 'clerk',
       name: 'The Cautious Clerk',
-      line: 'You cannot lose favour this night, nor gain more than 7.',
+      get line() {
+        return 'You cannot lose favour this night, nor gain more than ' + rules().clerkCap + '.';
+      },
       detail: 'You have learned that the way to survive a court is to be impossible to blame.',
-      adjust: (favour) => Math.min(7, Math.max(0, favour))
+      adjust: (favour) => Math.min(rules().clerkCap, Math.max(0, favour))
     },
 
     // --- how you compare to the table ---------------------------------------
@@ -137,12 +179,22 @@
     {
       id: 'meek',
       name: 'The Meek',
-      line: '-3 if your pledge is the lowest or tied for lowest. Keep it for +4.',
+      // Every other word that measures a noble against the table says outright.
+      // With four seats and a narrow range of sensible pledges, a shared lowest
+      // is common enough that counting it fires the penalty almost every night.
+      get line() {
+        return '-3 if your pledge is the lowest at the table' +
+          (rules().meekOutright ? ', outright' : ' or tied for lowest') + '. Keep it for +4.';
+      },
       detail: 'The court has no use for a noble who promises least. Nor, it turns out, does ' +
         'the monarch.',
       adjust: (favour, row, table) => {
         const lowest = Math.min.apply(null, table.map((other) => other.bid));
-        const floored = row.bid === lowest ? favour - 3 : favour;
+        const alone = table.filter((other) => other.bid === lowest).length === 1;
+        const lowestHere = rules().meekOutright
+          ? row.bid === lowest && alone
+          : row.bid === lowest;
+        const floored = lowestHere ? favour - 3 : favour;
         return kept(row) ? floored + 4 : floored;
       },
       pledgeCost: (bid) => (bid <= 2 ? 1.3 : 0)
@@ -185,10 +237,28 @@
     {
       id: 'swornToFool',
       name: 'Sworn to the Fool',
-      line: '+3 favour for every audience you take with a Fool.',
+      // Two quite different cards. Under A it counts the audiences this noble
+      // took *with* a Fool and adds that to a pledge scored as normal. Under B
+      // the pledge is set aside entirely and what is counted is every Fool
+      // *inside* the audiences won, whoever played it -- which comes up around
+      // four times as often, and is why the pledge can be given up for it.
+      get line() {
+        return rules().swornCountsInAudiences
+          ? 'Your pledge is not scored. +3 for every Fool in the audiences you win, ' +
+            'after the first.'
+          : '+3 favour for every audience you take with a Fool.';
+      },
       detail: 'The jester knows what the monarch actually thinks. You have decided to find out.',
       favouredSuit: 'C',
-      adjust: (favour, row) => favour + 3 * suitOf(row.takenWith, 'C').length
+      // With nothing to keep, every audience is worth having.
+      aimFor: (bid) => (rules().swornCountsInAudiences ? audiences() : bid),
+      adjust: (favour, row) => {
+        if (!rules().swornCountsInAudiences) {
+          return favour + 3 * suitOf(row.takenWith, 'C').length;
+        }
+        const fools = suitOf(row.wonCards || [], 'C').length;
+        return 3 * Math.max(0, fools - 1);
+      }
     },
 
     // --- inversion and misdirection -----------------------------------------
@@ -205,7 +275,9 @@
       // Scored exactly as a noble who had openly promised the complement, so the
       // inversion itself is free; the small bonus pays for the misdirection.
       adjust: (favour, row) => {
-        const scored = global.Rules.scoreHand(audiences() - row.bid, row.tricksWon);
+        // The number being scored is the complement of the pledge, not the
+        // pledge, so a nought here is never the four Fools that make a true nil.
+        const scored = global.Rules.scoreHand(audiences() - row.bid, row.tricksWon, false);
         return kept(row) ? scored + 2 : scored;
       }
     },
@@ -219,7 +291,10 @@
         'aiming at a number nobody has shown you.',
       keptTest: (row, table) => row.counted === rightOf(table, row).bid,
       adjust: (favour, row, table) => {
-        const scored = global.Rules.scoreHand(rightOf(table, row).bid, row.counted) + 3;
+        // Scored against the neighbour's promise, so it is the neighbour's
+        // errand that decides whether a nought there was meant or merely added up.
+        const neighbour = rightOf(table, row);
+        const scored = global.Rules.scoreHand(neighbour.bid, row.counted, neighbour.trueNil) + 3;
         return kept(row) ? scored + 5 : scored;
       }
     },
@@ -242,10 +317,22 @@
       id: 'scapegoat',
       name: 'The Scapegoat',
       burden: true,
-      line: '-2 for every other noble who keeps their pledge, to a limit of 4.',
+      // Under B the pledge is not scored at all and the night is worth +7 less
+      // 3 a head, running from +7 down to -2. The pledge is still kept or
+      // broken as a matter of fact: the sway ladder counts it, and so does any
+      // other word that reads the table.
+      get line() {
+        return rules().scapegoatScoresPledge
+          ? '-2 for every other noble who keeps their pledge, to a limit of 4.'
+          : 'Your pledge is not scored. +7, less 3 for every other noble who keeps theirs.';
+      },
       detail: 'Someone must answer for last season. It has been decided that it will be you.',
-      adjust: (favour, row, table) =>
-        favour - Math.min(4, 2 * table.filter((other) => other !== row && other.made).length)
+      adjust: (favour, row, table) => {
+        const keepers = table.filter((other) => other !== row && other.made).length;
+        return rules().scapegoatScoresPledge
+          ? favour - Math.min(4, 2 * keepers)
+          : 7 - 3 * keepers;
+      }
     },
     {
       id: 'disgrace',

@@ -182,6 +182,7 @@ and the logic files also load under Node, which is how the tests run.
 
 | File | What is in it |
 | --- | --- |
+| [`js/ruleset.js`](js/ruleset.js) | Which of the two rulesets the court is playing under, and everything that differs between them |
 | [`js/cards.js`](js/cards.js) | The sixty-card deck, the four agents, shuffling and sorting |
 | [`js/rules.js`](js/rules.js) | Pure rules: legal plays, who takes the audience, favour, the sway ladder |
 | [`js/whispers.js`](js/whispers.js) | The twenty-two Whispers, declared in one table |
@@ -191,6 +192,7 @@ and the logic files also load under Node, which is how the tests run.
 | [`js/engine.js`](js/engine.js) | The state of the court and the transitions between phases |
 | [`js/ui.js`](js/ui.js) | Rendering and input |
 | [`serve.js`](serve.js) | Optional local static server |
+| [`test/selfplay.js`](test/selfplay.js) | Whole seasons played by four computer nobles, for measuring what assertions cannot see |
 
 The three rivals share one brain with different nerve: **Verane the patient** plays it straight,
 **Mors the reckless** pledges bold, **Ilka the careful** pledges shy. None of them look at hidden
@@ -216,7 +218,31 @@ a coronet in a beaded ring — on anything the monarch is responsible for, a loz
 breaking each rule, and the four agent marks as a footer device. Card backs are plum with a woven
 diagonal and a gold border.
 
-Still to make: the sixty playing cards themselves.
+Still to make: the sixty playing cards themselves. The printed edition is **Ruleset A**; a
+physical deck can only carry one ruleset, and that decision has not been made.
+
+## Ruleset B
+
+The game above is **Ruleset A**, and it is what the app plays by default. Ticking **Use Ruleset B**
+in the top bar plays an alternate set of rules instead. It is a variant, not a replacement: nothing
+about A changes, and switching begins a fresh season.
+
+| | Ruleset A | Ruleset B |
+| --- | --- | --- |
+| Ranks | 1–15, one card each | 1–10, five ranks doubled in every kind |
+| Equal ranks | cannot happen | the audience goes to whoever played second |
+| A Fool on an errand | promises 0 | costs 1, and a set coming to nought pledges nothing |
+| Pledge kept | 2 an audience | 1, plus 2 an audience |
+| Pledge missed | 1 an audience, less 2 for every one off | the pledge, less 2 for every one off |
+| Promising nothing | 8 kept, −8 broken | 8 for four Fools, 1 for any other nought, −2 an audience broken |
+
+Four of the twenty-two Whispers read differently under B — The Audited, The Meek, The Scapegoat and
+Sworn to the Fool — and the rulebook behind **Rules** rewrites itself to match whichever ruleset is
+in force. The deck is sixty cards either way.
+
+The tie rule is what the doubled ranks buy: it settles about one audience in seven, and it makes a
+card that nothing can beat a great deal rarer — a noble leads holding a provable winner on 47% of
+audiences under A, and 31% under B.
 
 ## Tests
 
@@ -224,12 +250,21 @@ Still to make: the sixty playing cards themselves.
 npm test
 ```
 
-Around 5,000 assertions: the favour table, who takes an audience under every sway, answering in
+Around 5,500 assertions, most pinned explicitly to Ruleset A and the rest covering B: the favour table, who takes an audience under every sway, answering in
 kind, the sway ladder, the tie-breakers, all twenty-two Whispers in isolation, a full season played
 with Whispers switched off, plus twenty complete seasons played end to end against invariants
 (every night is eleven audiences and four different Whispers, every deal is sixty agents, every
 pledge obeys the Whisper that was given, every favour follows pledge → counted → kept → base →
-Whisper).
+Whisper). Ruleset B adds its own block — deck shape and unique card names, ties to the second card,
+the pledge clamp and the two kinds of nought, every row of the favour table, the four Whispers that
+change, and a refusal to swap rulesets in the middle of a season — and puts the court back on A
+when it is done, so nothing after it is scored under the wrong rules.
+
+Whole seasons are measured separately, which is where the interaction bugs live:
+
+```bash
+node test/selfplay.js 300
+```
 
 The computer nobles are checked for calibration too, and the Whispers are measured over whole
 seasons rather than guessed at. Across 300 simulated seasons a word is worth **−0.50 favour a

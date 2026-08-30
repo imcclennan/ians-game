@@ -12,6 +12,7 @@
   const Cards = global.Cards;
   const Rules = global.Rules;
   const Whispers = global.Whispers;
+  const Ruleset = global.Ruleset;
 
   const INK = { S: 'graphite', H: 'crimson', D: 'antique gold', C: 'plum' };
   const FACE = { S: 'pale slate', H: 'pale rose', D: 'pale gold', C: 'pale lilac' };
@@ -25,6 +26,11 @@
       ' <b>' + Cards.SUIT_ROLE_PLURAL[suit] + '</b></span>';
   }
 
+  /** What a kind promises, with a proper minus sign where it costs one. */
+  function promised(value) {
+    return value < 0 ? '−' + Math.abs(value) : String(value);
+  }
+
   function agentTable() {
     return '<table class="rule-table">' +
       '<tr><th class="left">Agent</th><th>Mark</th><th>Promises</th>' +
@@ -33,7 +39,7 @@
         '<td class="left"><span class="agent agent-' + suit + '"><b>' +
           Cards.SUIT_ROLE[suit] + '</b></span></td>' +
         '<td><span class="agent agent-' + suit + ' big">' + Cards.emblem(suit) + '</span></td>' +
-        '<td>' + Cards.BID_VALUE[suit] + '</td>' +
+        '<td>' + promised(Cards.BID_VALUE[suit]) + '</td>' +
         '<td class="left">' + FACE[suit] + ', in ' + INK[suit] + ' (' + MARK[suit] + ')</td>' +
         '</tr>').join('') +
       '</table>';
@@ -50,6 +56,46 @@
       '</table>';
   }
 
+  /** The ranks struck twice in each kind, where the deck strikes any twice. */
+  function doublingTable() {
+    const doubled = Ruleset.current().doubled;
+    return '<table class="rule-table">' +
+      '<tr><th class="left">Agent</th><th class="left">Ranks struck twice</th></tr>' +
+      AGENT_ORDER.map((suit) => '<tr>' +
+        '<td class="left"><span class="agent agent-' + suit + '"><b>' +
+          Cards.SUIT_ROLE_PLURAL[suit] + '</b></span></td>' +
+        '<td class="left">' + doubled[suit].join(', ') + '</td>' +
+        '</tr>').join('') +
+      '</table>';
+  }
+
+  /** What each result is worth, as the ruleset in force pays it. */
+  function favourTable() {
+    const r = Ruleset.current();
+    const bonus = r.flatBonus;
+    const rows = bonus > 0
+      ? [
+        ['Pledge kept exactly', bonus + ', plus 2 for every audience won'],
+        ['Pledge missed, high or low',
+          'the pledge itself, less 2 for every audience off it'],
+        ['Pledged nothing by sending four Fools, won nothing', String(r.nilPay)],
+        ['Pledged nothing any other way, won nothing', String(bonus)],
+        ['Pledged nothing, won audiences', '−2 for every audience won']
+      ]
+      : [
+        ['Pledge kept exactly', '2 for every audience won'],
+        ['Pledge missed, high or low',
+          '1 for every audience won, less 2 for every audience off the pledge'],
+        ['Pledged nothing, won nothing', String(r.nilPay)],
+        ['Pledged nothing, won audiences', '−' + r.nilPay + ', however many']
+      ];
+    return '<table class="rule-table">' +
+      '<tr><th class="left">Result</th><th class="left">Favour</th></tr>' +
+      rows.map(([result, favour]) => '<tr><td class="left">' + result +
+        '</td><td class="left">' + favour + '</td></tr>').join('') +
+      '</table>';
+  }
+
   function whisperTable() {
     return '<table class="rule-table whisper-table">' +
       '<tr><th class="left">Whisper</th><th class="left">Effect</th></tr>' +
@@ -61,7 +107,15 @@
       '</table>';
   }
 
+  /**
+   * The rules as they stand tonight. Built afresh on every call rather than
+   * once at load: the court may change which ruleset it plays under between
+   * seasons, and the written rules must follow it.
+   */
+  function buildSections() {
   const T = Rules.TRICKS_PER_HAND;
+  const R = Ruleset.current();
+  const doubles = R.doubled[Cards.SUITS[0]].length;
   const SECTIONS = [
     {
       id: 'rule-overview',
@@ -85,10 +139,19 @@
       id: 'rule-deck',
       title: 'The deck',
       html:
-        '<p>The game uses a deck of <strong>' + (Cards.RANKS.length * Cards.SUITS.length) +
-        ' cards</strong>: four kinds of agent, each ranked <strong>1 to ' + Cards.HIGHEST_VALUE +
+        '<p>The game uses a deck of <strong>60 cards</strong>: four kinds of agent, ' +
+        '<strong>15 of each kind</strong>, ranked <strong>1 to ' + Cards.HIGHEST_VALUE +
         '</strong>. Rank ' + Cards.HIGHEST_VALUE + ' is the most influential and rank 1 the least.</p>' +
         agentTable() +
+        (doubles === 0 ? '' :
+          '<p>Fifteen cards across ' + Cards.RANKS.length + ' ranks means that <strong>' +
+          doubles + ' ranks in every kind are struck twice</strong>. Which ones differs from ' +
+          'kind to kind.</p>' +
+          doublingTable() +
+          '<p>The two cards of a doubled rank are <strong>identical in play</strong>. They ' +
+          'carry no distinguishing mark, and none is needed: the only rule that can tell them ' +
+          'apart is the one that settles an audience between them, and that rule turns on the ' +
+          'order they were played rather than on the cards themselves (section {{rule-play}}).</p>') +
         '<p>An agent’s <em>kind</em> determines what it is worth when sent out on an errand ' +
         '(section {{rule-pledge}}). An agent’s <em>rank</em> determines whether it wins an audience ' +
         '(section {{rule-play}}). The two are used at different times and never interact.</p>'
@@ -179,6 +242,17 @@
         '<p>A player’s <strong>pledge</strong> is the sum of the errand ' +
         'values of the four cards sent, by kind. <strong>Rank is disregarded entirely</strong>: a ' +
         'Fool of ' + Cards.HIGHEST_VALUE + ' promises exactly as little as a Fool of 1.</p>' +
+        (Cards.BID_VALUE.C < 0
+          ? '<p>A <strong>Fool is worth −1</strong>: sending one out does not merely promise ' +
+            'nothing, it takes a promise back. A set of errands that comes to <strong>nothing ' +
+            'or less pledges nothing</strong> — there is no promising the court a negative ' +
+            'number of audiences — but how it came to nothing matters when favour is counted.</p>' +
+            '<p>A pledge of nothing made by sending <strong>all four errands as Fools</strong> ' +
+            'is a <strong>true nil</strong>, and pays as one. A set that merely happens to add ' +
+            'up to nought or below — two Fools and two Merchants, say — pledges nothing just ' +
+            'the same, but is <strong>not a nil</strong> and is not paid as one ' +
+            '(section {{rule-favour}}).</p>'
+          : '') +
         '<p>Errands remain face down and <strong>out of play</strong> for the ' +
         'remainder of the night. ' + T + ' cards therefore remain in each hand, and <strong>' +
         T + ' audiences</strong> are contested.</p>' +
@@ -206,6 +280,18 @@
         '(section {{rule-sway}}) were played, in which case the highest-ranked of those wins instead.</p>' +
         '<p>A card of neither the opening kind nor the ruling kind can never ' +
         'win an audience, whatever its rank.</p>' +
+        (R.tieToSecond
+          ? '<p><strong>Equal ranks.</strong> Because ' + doubles + ' ranks in every kind are ' +
+            'struck twice (section {{rule-deck}}), two agents of the same kind can meet on the ' +
+            'same rank. The audience then goes to <strong>whichever of them was played ' +
+            'later</strong>. The later word is the one the court remembers.</p>' +
+            '<p>This settles roughly <strong>one audience in seven</strong>, so it is worth ' +
+            'knowing before you lead: a card that could not be beaten can still be matched, and ' +
+            'a player sitting after you needs only to equal it.</p>' +
+            '<p>The rule applies <em>within a single kind</em> and nowhere else. A card of the ' +
+            'ruling kind beats one of any other kind whatever the two ranks are, so an equal ' +
+            'rank in a different kind settles nothing.</p>'
+          : '') +
         '<p>The winner of an audience opens the next. ' + T + ' audiences are ' +
         'played, exhausting every hand.</p>'
     },
@@ -215,27 +301,39 @@
       html:
         '<p>At the end of the night each player compares the audiences they won against the ' +
         'pledge they made, and scores as follows.</p>' +
-        '<table class="rule-table">' +
-        '<tr><th class="left">Result</th><th class="left">Favour</th></tr>' +
-        '<tr><td class="left">Pledge kept exactly</td><td class="left">2 for every audience won</td></tr>' +
-        '<tr><td class="left">Pledge missed, high or low</td><td class="left">1 for every audience ' +
-        'won, less 2 for every audience off the pledge</td></tr>' +
-        '<tr><td class="left">Pledged nothing, won nothing</td><td class="left">8</td></tr>' +
-        '<tr><td class="left">Pledged nothing, won audiences</td><td class="left">−8, however many</td></tr>' +
-        '</table>' +
+        favourTable() +
         '<p><strong>Examples.</strong></p>' +
-        '<ul class="rule-examples">' +
-        '<li>Pledged 4, won 4. The pledge is kept: <b>8 favour</b>.</li>' +
-        '<li>Pledged 5, won 4. One short: 4 − 2 = <b>2 favour</b>.</li>' +
-        '<li>Pledged 3, won 6. Three over: 6 − 6 = <b>0 favour</b>.</li>' +
-        '<li>Pledged 2, won 0. Two short: 0 − 4 = <b>−4 favour</b>.</li>' +
-        '<li>Pledged 0, won 0. The pledge is kept:<b>8 favour</b>.</li>' +
-        '<li>Pledged 0, won 3. Broken, and the count does not matter: ' +
-        '<b>−8 favour</b>.</li>' +
-        '</ul>' +
-        '<p class="rule-note">Because being wrong costs 2 favour per audience in <em>either</em> ' +
-        'direction, there is no advantage in deliberately under-promising and overshooting. The ' +
-        'only good outcome is the exact one.</p>'
+        (R.flatBonus > 0
+          ? '<ul class="rule-examples">' +
+            '<li>Pledged 2, won 2. The pledge is kept: 1 + 4 = <b>5 favour</b>.</li>' +
+            '<li>Pledged 1, won 1. Kept: 1 + 2 = <b>3 favour</b>.</li>' +
+            '<li>Pledged 4, won 3. One short: 4 − 2 = <b>2 favour</b>.</li>' +
+            '<li>Pledged 2, won 4. Two over: 2 − 4 = <b>−2 favour</b>.</li>' +
+            '<li>Sent four Fools, won nothing. A true nil kept: <b>8 favour</b>.</li>' +
+            '<li>Sent four Fools, won 2. The nil is broken: <b>−4 favour</b>.</li>' +
+            '<li>Sent errands adding up to nothing some other way, won nothing. Nothing ' +
+            'promised and nothing taken, but no nil: <b>1 favour</b>.</li>' +
+            '</ul>' +
+            '<p class="rule-note">Being wrong costs 2 favour per audience in <em>either</em> ' +
+            'direction, so there is no advantage in deliberately under-promising and ' +
+            'overshooting. The only good outcome is the exact one. Note too that a nil is worth ' +
+            'reaching for only when it can be made honestly: four Fools pays eight, while a set ' +
+            'that merely adds up to nought pays less than the smallest kept promise.</p>'
+          : '<ul class="rule-examples">' +
+            '<li>Pledged 4, won 4. The pledge is kept: <b>8 favour</b>.</li>' +
+            '<li>Pledged 5, won 4. One short: 4 − 2 = <b>2 favour</b>.</li>' +
+            '<li>Pledged 3, won 6. Three over: 6 − 6 = <b>0 favour</b>.</li>' +
+            '<li>Pledged 2, won 0. Two short: 0 − 4 = <b>−4 favour</b>.</li>' +
+            '<li>Pledged 0, won 0. The pledge is kept: <b>8 favour</b>.</li>' +
+            '<li>Pledged 0, won 3. Broken, and the count does not matter: ' +
+            '<b>−8 favour</b>.</li>' +
+            '</ul>' +
+            '<p class="rule-note">The two directions do not cost the same. Once you are past ' +
+            'your pledge each further audience costs only 1, while each audience you fall short ' +
+            'by costs 3. A player torn between two numbers should promise the higher of them ' +
+            'and try to fall on it; a player who deliberately promises low and overshoots still ' +
+            'ends up worse off than one who simply promised right. The only good outcome is the ' +
+            'exact one.</p>')
     },
     {
       id: 'rule-sway',
@@ -286,6 +384,8 @@
         whisperTable()
     }
   ];
+  return SECTIONS;
+  }
 
   /**
    * The numbered sections, ready to drop into a document. Cross-references are
@@ -293,6 +393,7 @@
    * reordered without anyone having to chase the numbers through the prose.
    */
   function sections() {
+    const SECTIONS = buildSections();
     const numberOf = {};
     SECTIONS.forEach((section, index) => { numberOf[section.id] = index + 1; });
 
@@ -311,6 +412,8 @@
     agentTable: agentTable,
     swayTable: swayTable,
     whisperTable: whisperTable,
+    doublingTable: doublingTable,
+    favourTable: favourTable,
     INK: INK,
     FACE: FACE,
     MARK: MARK,

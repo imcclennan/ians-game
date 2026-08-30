@@ -20,6 +20,10 @@
       <input type="checkbox" id="whispers-toggle" checked>
       Whispers
     </label>
+    <label class="control toggle" id="ruleset-control">
+      <input type="checkbox" id="ruleset-toggle">
+      Use Ruleset B
+    </label>
     <label class="control">
       Pace
       <select id="speed">
@@ -30,6 +34,7 @@
     </label>
     <button type="button" class="btn btn-quiet" id="new-game">New season</button>
   </nav>
+  <p class="topbar-note" id="ruleset-note"></p>
 </header>
 
 <div class="layout">
@@ -118,6 +123,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
+<script src="js/ruleset.js"></script>
 <script src="js/cards.js"></script>
 <script src="js/rules.js"></script>
 <script src="js/whispers.js"></script>

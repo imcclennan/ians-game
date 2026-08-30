@@ -5,6 +5,7 @@
   'use strict';
 
   const Cards = global.Cards;
+  const Ruleset = global.Ruleset;
 
   const PLAYER_COUNT = 4;
   const HAND_SIZE = 15;      // cards dealt to each noble
@@ -22,9 +23,24 @@
    * Assassins come to twelve, one more than the court has to give: promise
    * that and you have already broken your word. Overreaching is punished by
    * the scoring, not forbidden by the rules.
+   *
+   * Where an agent can cost a promise rather than make one, a set that comes to
+   * nothing or less pledges nothing; there is no promising the court a negative
+   * number of audiences.
    */
   function bidFromCards(cards) {
-    return Cards.bidValueOf(cards);
+    const total = Cards.bidValueOf(cards);
+    return Ruleset.current().clampPledge ? Math.max(0, total) : total;
+  }
+
+  /**
+   * Whether an errand of nothing is a true nil -- the whole errand given over
+   * to Fools -- rather than a set that merely adds up to nought. The two pay
+   * very differently where the ruleset tells them apart, and are the same thing
+   * where it does not.
+   */
+  function isTrueNil(cards) {
+    return bidFromCards(cards) === 0 && Ruleset.current().isTrueNil(cards, 0);
   }
 
   /** The largest pledge that can actually be kept. */
@@ -41,9 +57,16 @@
    * Which play wins the trick.
    * plays: [{ player, card }] in the order they were played, index 0 led.
    * trump: suit letter, or null for No Trump.
+   *
+   * Where the deck strikes some ranks twice, two agents of the same kind can
+   * meet on the same rank. The audience then goes to whoever played second: the
+   * later word is the one the court remembers. A ruling agent still beats a
+   * lesser kind whatever its rank, so the tie can only ever be settled inside a
+   * single kind.
    */
   function trickWinner(plays, trump) {
     if (!plays.length) return null;
+    const tieToSecond = Ruleset.current().tieToSecond;
     let best = plays[0];
     for (const play of plays.slice(1)) {
       const card = play.card;
@@ -55,24 +78,21 @@
       } else if (cardIsTrump === bestIsTrump) {
         // Same category. The card currently winning is either trump or the led
         // suit, so only a higher card of that same suit can take it.
-        if (card.suit === bestCard.suit && card.value > bestCard.value) best = play;
+        const takes = tieToSecond ? card.value >= bestCard.value : card.value > bestCard.value;
+        if (card.suit === bestCard.suit && takes) best = play;
       }
     }
     return best;
   }
 
   /**
-   * Points for one player at the end of a hand.
-   *   bid 0: +8 for taking no tricks, -8 for taking any. Promising the court
-   *          nothing is the boldest thing a noble can do, and the cheapest to
-   *          be caught at.
-   *   exact bid (> 0): 2 points per trick won.
-   *   missed bid: 1 point per trick won, minus 2 for every trick off the bid.
+   * Favour for one noble at the end of a night, per the table the active
+   * ruleset keeps. isTrueNil says whether a pledge of nothing was four Fools or
+   * merely arithmetic; where a ruleset does not tell the two apart it is
+   * ignored, so the signature is the same either way.
    */
-  function scoreHand(bid, tricksWon) {
-    if (bid === 0) return tricksWon === 0 ? 8 : -8;
-    if (tricksWon === bid) return 2 * tricksWon;
-    return tricksWon - 2 * Math.abs(tricksWon - bid);
+  function scoreHand(bid, tricksWon, isTrueNilErrand) {
+    return Ruleset.current().scoreHand(bid, tricksWon, !!isTrueNilErrand);
   }
 
   function madeBid(bid, tricksWon) {
@@ -156,6 +176,7 @@
     SEASON_LENGTH: SEASON_LENGTH,
     SWAY_LADDER: SWAY_LADDER,
     bidFromCards: bidFromCards,
+    isTrueNil: isTrueNil,
     legalPlays: legalPlays,
     trickWinner: trickWinner,
     scoreHand: scoreHand,

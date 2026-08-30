@@ -7,6 +7,7 @@
 
   const Cards = global.Cards;
   const Rules = global.Rules;
+  const Ruleset = global.Ruleset;
   const AI = global.AI;
   const Whispers = global.Whispers;
 
@@ -37,9 +38,14 @@
         tookWhisper: null,   // null until they decide; then true or false
         tricksWon: 0,
         takenWith: [],
+        wonCards: [],
         score: 0
       })),
       human: HUMAN,
+      // Which rules this season was played under. A season scored under one
+      // ruleset must never be reopened under the other, so the answer travels
+      // with the state and with every night in its history.
+      ruleset: Ruleset.currentId(),
       dealer: settings.dealer === undefined
         ? Math.floor(Math.random() * Rules.PLAYER_COUNT)
         : settings.dealer,
@@ -67,6 +73,12 @@
 
   /** Shuffle, deal fifteen to each noble, and open the pledging. */
   function startHand(state) {
+    if (state.ruleset !== Ruleset.currentId()) {
+      throw new Error('This season was dealt under Ruleset ' + state.ruleset);
+    }
+    // From the first card dealt until the season ends, the rules are settled:
+    // the deck now on the table has ranks the other ruleset may not know.
+    Ruleset.beginSeason(state);
     const deck = Cards.shuffle(Cards.makeDeck(), state.rng);
 
     // The Whispers are shuffled but not handed out. A noble takes one only if
@@ -88,6 +100,7 @@
       player.tookWhisper = state.whispersOn ? null : false;
       player.tricksWon = 0;
       player.takenWith = [];
+      player.wonCards = [];
     });
 
     state.phase = state.whispersOn ? 'whisperOffer' : 'bidding';
@@ -298,6 +311,9 @@
     const winner = state.trickResult.winner;
     state.players[winner].tricksWon += 1;
     state.players[winner].takenWith.push(state.trickResult.card);
+    // Every agent that was in the room, not only the one that took it. A word
+    // may care what the audience held rather than what won it.
+    for (const play of state.trick) state.players[winner].wonCards.push(play.card);
     state.lastTrick = { plays: state.trick.slice(), winner: winner, number: state.trickNumber };
     state.trick = [];
     state.trickResult = null;
@@ -325,6 +341,12 @@
         tricksWon: player.tricksWon,
         counted: counted,
         takenWith: player.takenWith.slice(),
+        // Every agent inside the audiences this noble took, not merely the one
+        // that won each of them.
+        wonCards: player.wonCards.slice(),
+        // Four Fools sent out is a pledge of nothing meant; any other set that
+        // comes to nought is a pledge of nothing that happens to add up.
+        trueNil: Rules.isTrueNil(player.bidCards),
         whisper: player.whisper,
         obeyed: player.obeyed,
         bidCards: player.bidCards.slice(),
@@ -339,7 +361,7 @@
     // against a promise that is not their own, so this needs the whole table.
     for (const row of rows) {
       row.made = Whispers.wasKept(row.whisper, row, rows);
-      row.base = Rules.scoreHand(row.bid, row.counted);
+      row.base = Rules.scoreHand(row.bid, row.counted, row.trueNil);
     }
 
     // Pass three: Whispers that read the whole table can only settle up now.
@@ -353,6 +375,7 @@
     state.nextTrump = Rules.trumpForNextHand(madeCount);
     state.handSummary = {
       handNumber: state.handNumber,
+      ruleset: state.ruleset,
       trump: state.trump,
       whispersOn: state.whispersOn,
       madeCount: madeCount,
@@ -366,6 +389,9 @@
       state.winners = decision.winners;
       state.winReason = decision.wasTied ? decision.reason : null;
       state.phase = 'gameOver';
+      // The season is closed and the accounts settled; the court is free to
+      // change its rules again.
+      Ruleset.endSeason(state);
     } else {
       state.winners = [];
       state.winReason = null;
@@ -374,10 +400,20 @@
     return state;
   }
 
+  /**
+   * Walk away from a season before Twelfth Night. Nothing is scored; the point
+   * is to release the ruleset so the court may change it.
+   */
+  function abandonSeason(state) {
+    Ruleset.endSeason(state);
+    return state;
+  }
+
   global.Engine = {
     SEATS: SEATS,
     HUMAN: HUMAN,
     createGame: createGame,
+    abandonSeason: abandonSeason,
     startHand: startHand,
     mayTakeWhisper: mayTakeWhisper,
     takeWhisper: takeWhisper,

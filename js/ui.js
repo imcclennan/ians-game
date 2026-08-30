@@ -9,9 +9,13 @@
   const Engine = globalThis.Engine;
   const Whispers = globalThis.Whispers;
   const Rulebook = globalThis.Rulebook;
+  const Ruleset = globalThis.Ruleset;
   const WhisperCard = globalThis.WhisperCard;
 
   const byId = (id) => document.getElementById(id);
+
+  /** What a kind promises, with a proper minus sign where it costs one. */
+  const promised = (value) => (value < 0 ? '−' + Math.abs(value) : String(value));
 
   const dom = {
     meta: byId('topbar-meta'),
@@ -29,6 +33,9 @@
     whisperBox: byId('whisper-box'),
     tableWhisper: byId('table-whisper'),
     whispersToggle: byId('whispers-toggle'),
+    rulesetToggle: byId('ruleset-toggle'),
+    rulesetControl: byId('ruleset-control'),
+    rulesetNote: byId('ruleset-note'),
     rulebook: byId('rulebook'),
     targetNote: byId('target-note'),
     overlay: byId('overlay'),
@@ -145,6 +152,7 @@
     renderHistory();
     renderTrumpKey();
     renderWhisper();
+    renderRuleset();
     renderOverlay();
   }
 
@@ -339,10 +347,19 @@
       const chosen = selection.map((id) => player.hand.find((card) => card.id === id));
       const total = Rules.bidFromCards(chosen);
       const breakdown = chosen.length
-        ? chosen.map((card) => mark(card.suit) + Cards.BID_VALUE[card.suit]).join(' + ')
+        ? chosen.map((card) => mark(card.suit) + promised(Cards.BID_VALUE[card.suit])).join(' + ')
         : '';
 
       const complete = selection.length === Rules.BID_CARDS;
+      // Where an agent can cost a promise, the parts can add up to less than
+      // the pledge shows, and the two ways of promising nothing are worth very
+      // different amounts. Say which is which rather than leaving the sum to
+      // look like an arithmetic mistake.
+      const nought = complete && total === 0 && Ruleset.current().clampPledge
+        ? (Rules.isTrueNil(chosen)
+          ? ' <span class="sum">&middot; four Fools: a <b>true nil</b></span>'
+          : ' <span class="sum">&middot; this promises <b>nothing</b>, but it is not a nil</span>')
+        : '';
       const heeded = Whispers.permitsSet(player.whisper, chosen, player.hand);
       const aim = Whispers.aimFor(player.whisper, total);
 
@@ -352,6 +369,7 @@
         (breakdown ? ' <span class="sum">(' + breakdown + ')</span>' : '') +
         (aim !== total ? ' <span class="sum">&middot; win exactly <b>' + aim + '</b></span>' : '') +
         ' <span class="sum">&middot; ' + selection.length + ' of ' + Rules.BID_CARDS + ' sent</span>' +
+        nought +
         (complete && !heeded
           ? ' <span class="warn">&middot; against your Whisper (' + player.whisper.demand +
             ') &mdash; it will pay you nothing</span>'
@@ -728,11 +746,94 @@
   function startNewGame() {
     clearTimeout(timer);
     timer = null;
+    // Let go of the season being replaced, so the rules are free to change.
+    if (state) Engine.abandonSeason(state);
     state = Engine.createGame({ whispers: dom.whispersToggle.checked });
     Engine.startHand(state);
     selection = [];
     renderedTrick = [];
     render();
+  }
+
+
+  // --- which rules the court plays under ------------------------------------
+
+  const RULESET_KEY = 'foolscourt.ruleset';
+
+  /** The opening night, with nothing pledged and nothing played: nothing to lose. */
+  function atFreshSeason() {
+    return !!state && state.handNumber <= 1 && state.playedCards.length === 0 &&
+      state.players.every((player) => player.bid === null && player.score === 0);
+  }
+
+  /**
+   * A night already under way cannot change its rules under it: the cards on
+   * the table carry ranks the other deck may not have, and the pledges made
+   * against them were made in the old currency. The switch is open before the
+   * first pledge of a season and between nights, and shut in between.
+   */
+  function nightUnderway() {
+    return !!state && state.handNumber > 0 && !atFreshSeason() &&
+      state.phase !== 'handOver' && state.phase !== 'gameOver';
+  }
+
+  /** Is there favour on the board, or a night in hand, that switching would lose? */
+  function seasonPartway() {
+    return !!state && state.phase !== 'gameOver' && !atFreshSeason();
+  }
+
+  function rememberedRuleset() {
+    try {
+      return window.localStorage.getItem(RULESET_KEY);
+    } catch (error) {
+      return null;   // private browsing, or opened straight off the disk
+    }
+  }
+
+  function rememberRuleset(id) {
+    try {
+      window.localStorage.setItem(RULESET_KEY, id);
+    } catch (error) {
+      // Not being able to remember the choice is not worth interrupting a game.
+    }
+  }
+
+  function renderRuleset() {
+    const rules = Ruleset.current();
+    const locked = nightUnderway();
+    dom.rulesetToggle.checked = rules.id === 'B';
+    dom.rulesetToggle.disabled = locked;
+    dom.rulesetControl.title = locked
+      ? 'The night has been dealt. The rules can only be changed between nights.'
+      : 'Changing the rules begins a new season.';
+    dom.rulesetNote.textContent = rules.id === 'B'
+      ? 'Ruleset B: ' + rules.summary
+      : 'Ruleset A: ' + rules.summary + ' Tick "Use Ruleset B" for the variant.';
+  }
+
+  function switchRuleset() {
+    const wanted = dom.rulesetToggle.checked ? 'B' : 'A';
+    if (wanted === Ruleset.currentId()) return;
+
+    if (seasonPartway() &&
+        !window.confirm('Change the rules? The season starts again and the favour won so ' +
+          'far is lost.')) {
+      renderRuleset();   // put the box back the way it was
+      return;
+    }
+
+    Engine.abandonSeason(state);
+    try {
+      Ruleset.use(wanted);
+    } catch (error) {
+      toast(error.message);
+      renderRuleset();
+      return;
+    }
+    rememberRuleset(wanted);
+    buildRulebook();     // the written rules follow the rules in force
+    startNewGame();
+    toast('Now playing under ' + Ruleset.current().name + '.');
   }
 
   // --- the clock ------------------------------------------------------------
@@ -794,6 +895,8 @@
     render();
   });
 
+  dom.rulesetToggle.addEventListener('change', switchRuleset);
+
   dom.speed.addEventListener('change', () => { pace = Number(dom.speed.value); });
   pace = Number(dom.speed.value);
 
@@ -803,6 +906,11 @@
     if (midGame && !window.confirm('Begin a new season? The favour won so far is lost.')) return;
     startNewGame();
   });
+
+  // The choice of ruleset is remembered between visits, and settled before the
+  // first card is dealt.
+  const remembered = rememberedRuleset();
+  if (remembered && Ruleset.get(remembered)) Ruleset.use(remembered);
 
   buildRulebook();
   startNewGame();
