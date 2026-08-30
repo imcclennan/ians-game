@@ -60,6 +60,19 @@
     return ' suit-' + suit;
   }
 
+  /**
+   * How many of this agent the deck holds, shown as pips beside the rank: one
+   * for a rank struck once, two for a rank struck twice. Only worth printing
+   * where the deck actually doubles some ranks -- on a deck of fifteen distinct
+   * ranks every card would carry a single pip and say nothing.
+   */
+  function copyPips(card) {
+    if (!Ruleset.current().doubled[card.suit].length) return '';
+    const copies = Cards.copiesOf(card.suit, card.rank);
+    return '<span class="copies" aria-hidden="true">' +
+      '<i></i>'.repeat(copies) + '</span>';
+  }
+
   function cardEl(card, extra) {
     const node = document.createElement('div');
     // A card of the ruling kind is marked wherever it appears: it beats
@@ -67,12 +80,20 @@
     const ruling = state && state.trump === card.suit ? ' is-sway' : '';
     node.className = 'card' + suitClass(card.suit) + ruling + (extra ? ' ' + extra : '');
     node.dataset.id = card.id;
-    const corner = '<b>' + card.rank + '</b>' + Cards.emblem(card.suit, 'nib');
+    const pips = copyPips(card);
+    const corner = (pips
+      ? '<span class="rank"><b>' + card.rank + '</b>' + pips + '</span>'
+      : '<b>' + card.rank + '</b>') + Cards.emblem(card.suit, 'nib');
     node.innerHTML =
       '<span class="corner tl">' + corner + '</span>' +
       '<span class="face">' + Cards.emblem(card.suit) + '</span>' +
       '<span class="corner br">' + corner + '</span>';
-    node.setAttribute('aria-label', Cards.SUIT_ROLE[card.suit] + ' ' + card.rank);
+    node.setAttribute('aria-label', Cards.SUIT_ROLE[card.suit] + ' ' + card.rank +
+      (pips
+        ? (Cards.copiesOf(card.suit, card.rank) === 2
+          ? ', two in the deck'
+          : ', one in the deck')
+        : ''));
     return node;
   }
 
