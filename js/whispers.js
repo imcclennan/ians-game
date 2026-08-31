@@ -144,7 +144,7 @@
       id: 'allOrNothing',
       name: 'All or Nothing',
       line: 'Keep your pledge for double favour. Break it and the night is worth -1 for ' +
-        'every audience off it, whatever else you did.',
+        'every audience off it.',
       detail: 'You have staked your name on this. Either the court remembers it, or it costs ' +
         'you to have been here at all.',
       // A flat -3 priced a near miss the same as a disaster, on a card whose
@@ -300,7 +300,7 @@
       line: '-2 for every audience you win with an Assassin.',
       detail: 'You have made an enemy of someone who kills for a living. Take an audience with ' +
         'a blade in your hand and it will be noticed. What the others throw in is their affair; ' +
-        'it is the agent that wins the audience for you that is counted.',
+        'it is the agent that wins the audience for you that counts.',
       shunnedSuit: 'S',
       adjust: (favour, row) => favour - 2 * suitOf(row.takenWith, 'S').length
     },

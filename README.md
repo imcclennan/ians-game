@@ -140,7 +140,7 @@ Twenty-two of them: **fifteen boons** that pay, and **seven burdens** that cost.
 | **Sworn to the Ledger** | No Merchant may go out. Keep your pledge for **+5**. |
 | **The Audited** | Send three Merchants and one Fool, which pledges exactly 2. Keep it for **+6**. |
 | **The Debtor** | A kept pledge of 2 or fewer earns nothing; keep 3 or more for **+5**. |
-| **All or Nothing** | Keep your pledge for **double favour**. Break it and the night is worth **−1** for every audience off it, whatever else you did. |
+| **All or Nothing** | Keep your pledge for **double favour**. Break it and the night is worth **−1** for every audience off it. |
 | **The Bold** | **+4** if no noble pledges more than you. |
 | **The Kingmaker** | Keep your pledge and take **+3** for every other noble who broke theirs. |
 | **The Favourite** | **+6** if no noble wins more audiences than you. |
