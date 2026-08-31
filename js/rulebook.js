@@ -56,15 +56,20 @@
       '</table>';
   }
 
-  /** The ranks struck twice in each kind, where the deck strikes any twice. */
-  function doublingTable() {
-    const doubled = Ruleset.current().doubled;
+  /** What each kind holds: its ranks, and how many of each. */
+  function compositionTable() {
+    const composition = (suit) => Cards.ranksOf(suit).map((rank) => {
+      const copies = Cards.copiesOf(suit, rank);
+      return copies === 1 ? rank : '<b>' + copies + '&times;' + rank + '</b>';
+    }).join(', ');
     return '<table class="rule-table">' +
-      '<tr><th class="left">Agent</th><th class="left">Ranks struck twice</th></tr>' +
+      '<tr><th class="left">Agent</th><th class="left">Ranks held</th>' +
+      '<th>Cards</th></tr>' +
       AGENT_ORDER.map((suit) => '<tr>' +
         '<td class="left"><span class="agent agent-' + suit + '"><b>' +
           Cards.SUIT_ROLE_PLURAL[suit] + '</b></span></td>' +
-        '<td class="left">' + doubled[suit].join(', ') + '</td>' +
+        '<td class="left">' + composition(suit) + '</td>' +
+        '<td>15</td>' +
         '</tr>').join('') +
       '</table>';
   }
@@ -115,7 +120,10 @@
   function buildSections() {
   const T = Rules.TRICKS_PER_HAND;
   const R = Ruleset.current();
-  const doubles = R.doubled[Cards.SUITS[0]].length;
+  const crowded = R.hasDuplicates;
+  // Whether every kind runs the same ranks, or each keeps to its own stretch.
+  const sharedLadder = Cards.SUITS.every((suit) =>
+    Cards.ranksOf(suit).length === Cards.ranksOf(Cards.SUITS[0]).length);
   const SECTIONS = [
     {
       id: 'rule-overview',
@@ -140,18 +148,23 @@
       title: 'The deck',
       html:
         '<p>The game uses a deck of <strong>60 cards</strong>: four kinds of agent, ' +
-        '<strong>15 of each kind</strong>, ranked <strong>1 to ' + Cards.HIGHEST_VALUE +
+        '<strong>15 of each kind</strong>, ranked from <strong>1 to ' + Cards.HIGHEST_VALUE +
         '</strong>. Rank ' + Cards.HIGHEST_VALUE + ' is the most influential and rank 1 the least.</p>' +
         agentTable() +
-        (doubles === 0 ? '' :
-          '<p>Fifteen cards across ' + Cards.RANKS.length + ' ranks means that <strong>' +
-          doubles + ' ranks in every kind are struck twice</strong>. Which ones differs from ' +
-          'kind to kind.</p>' +
-          doublingTable() +
-          '<p>The two cards of a doubled rank are <strong>identical in play</strong>. They ' +
-          'carry no distinguishing mark, and none is needed: the only rule that can tell them ' +
-          'apart is the one that settles an audience between them, and that rule turns on the ' +
-          'order they were played rather than on the cards themselves (section {{rule-play}}).</p>') +
+        (sharedLadder && !crowded ? '' :
+          (sharedLadder
+            ? '<p>Each kind holds fifteen cards, and some ranks are struck more than once.</p>'
+            : '<p>The four kinds <strong>do not share a ladder</strong>. Each holds fifteen ' +
+              'cards, but over its own stretch of the ranks and with its own crowding: the ' +
+              'Assassins sit at the top and the Fools at the bottom, the Merchants alone run ' +
+              'the whole range, and the Lovers take every other rung in pairs. A kind holds ' +
+              'nothing at all at the ranks not listed for it.</p>') +
+          compositionTable() +
+          '<p>Cards of the same kind and rank are <strong>identical in play</strong>. They ' +
+          'carry no distinguishing mark beyond a count of how many the deck holds, and none is ' +
+          'needed: the only rule that can tell them apart is the one that settles an audience ' +
+          'between them, and that rule turns on the order they were played rather than on the ' +
+          'cards themselves (section {{rule-play}}).</p>') +
         '<p>An agent’s <em>kind</em> determines what it is worth when sent out on an errand ' +
         '(section {{rule-pledge}}). An agent’s <em>rank</em> determines whether it wins an audience ' +
         '(section {{rule-play}}). The two are used at different times and never interact.</p>'
@@ -241,7 +254,8 @@
         'them. These are that player’s <strong>errands</strong>.</p>' +
         '<p>A player’s <strong>pledge</strong> is the sum of the errand ' +
         'values of the four cards sent, by kind. <strong>Rank is disregarded entirely</strong>: a ' +
-        'Fool of ' + Cards.HIGHEST_VALUE + ' promises exactly as little as a Fool of 1.</p>' +
+        'Fool of ' + Cards.ranksOf('C').slice(-1)[0] + ' counts for exactly what a Fool of 1 ' +
+        'does, and the highest Assassin in the deck promises no more than the lowest.</p>' +
         (Cards.BID_VALUE.C < 0
           ? '<p>A <strong>Fool is worth −1</strong>: sending one out does not merely promise ' +
             'nothing, it takes a promise back. A set of errands that comes to <strong>nothing ' +
@@ -281,13 +295,14 @@
         '<p>A card of neither the opening kind nor the ruling kind can never ' +
         'win an audience, whatever its rank.</p>' +
         (R.tieToSecond
-          ? '<p><strong>Equal ranks.</strong> Because ' + doubles + ' ranks in every kind are ' +
-            'struck twice (section {{rule-deck}}), two agents of the same kind can meet on the ' +
-            'same rank. The audience then goes to <strong>whichever of them was played ' +
+          ? '<p><strong>Equal ranks.</strong> Because the deck strikes some ranks more than ' +
+            'once (section {{rule-deck}}), two agents of the same kind can meet on the same ' +
+            'rank. The audience then goes to <strong>whichever of them was played ' +
             'later</strong>. The later word is the one the court remembers.</p>' +
-            '<p>This settles roughly <strong>one audience in seven</strong>, so it is worth ' +
+            '<p>This settles roughly <strong>one audience in five</strong>, so it is worth ' +
             'knowing before you lead: a card that could not be beaten can still be matched, and ' +
-            'a player sitting after you needs only to equal it.</p>' +
+            'a player sitting after you needs only to equal it. Where a rank is struck ' +
+            Ruleset.current().mostCopies + ' times, holding one of them proves very little.</p>' +
             '<p>The rule applies <em>within a single kind</em> and nowhere else. A card of the ' +
             'ruling kind beats one of any other kind whatever the two ranks are, so an equal ' +
             'rank in a different kind settles nothing.</p>'
@@ -412,7 +427,7 @@
     agentTable: agentTable,
     swayTable: swayTable,
     whisperTable: whisperTable,
-    doublingTable: doublingTable,
+    compositionTable: compositionTable,
     favourTable: favourTable,
     INK: INK,
     FACE: FACE,

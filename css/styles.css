@@ -317,10 +317,19 @@ button, select { font: inherit; }
 .card .corner .emblem { width: 13px; height: 13px; margin-top: 1px; }
 
 /* How many of this agent the deck holds, beside the rank: one pip for the only
-   one of it, two for a rank the deck strikes twice. Printed only where some
-   ranks are doubled, so a pip always means something. */
+   one of it, up to five for the most crowded rank. Printed only where some rank
+   is struck more than once, so a pip always means something.
+
+   Two to a row rather than one long line: five pips in a row would be wider
+   than the rank itself and would run off the corner of a small card, while a
+   2-wide block stays the same width whatever the count. */
 .card .corner .rank { display: flex; align-items: center; gap: 2px; }
-.card .corner .copies { display: flex; gap: 1.5px; }
+.card .corner .copies {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  justify-items: center;
+  gap: 1.5px;
+}
 .card .corner .copies i {
   width: 3px;
   height: 3px;

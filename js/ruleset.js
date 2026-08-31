@@ -17,14 +17,27 @@
 (function (global) {
   'use strict';
 
+  const SUITS = ['C', 'D', 'H', 'S'];
+
   function ranksUpTo(highest) {
     const ranks = [];
     for (let n = 1; n <= highest; n++) ranks.push(String(n));
     return ranks;
   }
 
-  /** No rank is doubled. */
-  const NO_DOUBLES = { C: [], D: [], H: [], S: [] };
+  /**
+   * A kind holding one card at every rank from 1 up to the given rank. Written
+   * as the same rank -> how many map the uneven kinds use, so nothing has to
+   * special-case an even ladder.
+   */
+  function oneEach(highest) {
+    const copies = {};
+    for (const rank of ranksUpTo(highest)) copies[rank] = 1;
+    return copies;
+  }
+
+  /** The flat deck: every kind runs 1 to 15, one card apiece. */
+  const FLAT = { C: oneEach(15), D: oneEach(15), H: oneEach(15), S: oneEach(15) };
 
   /**
    * Ruleset A -- the game as it stands. Fifteen ranks, one card of each, no
@@ -39,7 +52,7 @@
     // --- the deck ---------------------------------------------------------
     highestValue: 15,
     ranks: ranksUpTo(15),
-    doubled: NO_DOUBLES,
+    copies: FLAT,
 
     // --- errands ----------------------------------------------------------
     bidValue: { C: 0, D: 1, H: 2, S: 3 },
@@ -88,28 +101,40 @@
   };
 
   /**
-   * Ruleset B -- ten ranks with five doubled in every kind, so two agents can
-   * meet on the same rank and the second one played takes the audience. Fools
-   * cost a promise rather than making none, which puts two kinds of nought in
-   * the game: a true nil of four Fools, and a set that merely adds up to
-   * nothing.
+   * Ruleset B -- the same sixty cards dealt very differently. Each kind holds
+   * fifteen, but they no longer share a ladder: the Assassins are all crowded
+   * at the top and the Fools all at the bottom, the Merchants alone run the
+   * whole range, and the Lovers take every other rung in pairs.
+   *
+   * Because a rank can be struck as many as five times, two agents can meet on
+   * the same rank, and the second one played takes the audience. Fools cost a
+   * promise rather than making none, which puts two kinds of nought in the
+   * game: a true nil of four Fools, and a set that merely adds up to nothing.
    */
   const B = {
     id: 'B',
     name: 'Ruleset B',
-    summary: 'Ten ranks with doubles, ties to the second card, Fools worth −1, ' +
-      'and a revised favour table.',
+    summary: 'Four kinds with ladders of their own, ties to the second card, ' +
+      'Fools worth −1, and a revised favour table.',
 
     // --- the deck ---------------------------------------------------------
-    highestValue: 10,
-    ranks: ranksUpTo(10),
-    // Five ranks in each kind are struck twice. The two copies are identical in
-    // play and need no distinguishing face.
-    doubled: {
-      C: ['1', '2', '3', '4', '5'],
-      D: ['1', '3', '5', '7', '9'],
-      H: ['2', '4', '6', '8', '10'],
-      S: ['6', '7', '8', '9', '10']
+    highestValue: 15,
+    // Every rank the deck holds anywhere. Only the Merchants run all of them;
+    // the others each occupy their own stretch of the ladder.
+    ranks: ranksUpTo(15),
+    // How many of each rank each kind holds. Fifteen cards apiece, sixty in
+    // all, and cards of one rank and kind are identical in play.
+    copies: {
+      // One 5 down to five 1s: the Fools are worthless and there are hordes of
+      // them, which is the point of a kind that costs you a promise.
+      C: { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 },
+      // The only kind that runs the whole ladder, one of each.
+      D: oneEach(15),
+      // A single 1, then a pair at every even rank up to 14.
+      H: { 1: 1, 2: 2, 4: 2, 6: 2, 8: 2, 10: 2, 12: 2, 14: 2 },
+      // Five 15s down to a single 11. Every Assassin outranks every Fool,
+      // every Lover but the 12s and 14s, and all but the top four Merchants.
+      S: { 11: 1, 12: 2, 13: 3, 14: 4, 15: 5 }
     },
 
     // --- errands ----------------------------------------------------------
@@ -169,10 +194,21 @@
 
   const RULESETS = { A: A, B: B };
   for (const id of Object.keys(RULESETS)) {
-    Object.freeze(RULESETS[id].doubled);
-    Object.freeze(RULESETS[id].bidValue);
-    Object.freeze(RULESETS[id].ranks);
-    Object.freeze(RULESETS[id]);
+    const ruleset = RULESETS[id];
+    // Whether the deck strikes any rank more than once. A deck that does has
+    // to say so on the cards, and has to settle an audience between equals.
+    ruleset.hasDuplicates = SUITS.some((suit) =>
+      Object.keys(ruleset.copies[suit]).some((rank) => ruleset.copies[suit][rank] > 1));
+    // The most of any one rank the deck holds, which is how many marks a card
+    // may have to carry.
+    ruleset.mostCopies = Math.max.apply(null, SUITS.map((suit) =>
+      Math.max.apply(null, Object.keys(ruleset.copies[suit])
+        .map((rank) => ruleset.copies[suit][rank]))));
+    for (const suit of SUITS) Object.freeze(ruleset.copies[suit]);
+    Object.freeze(ruleset.copies);
+    Object.freeze(ruleset.bidValue);
+    Object.freeze(ruleset.ranks);
+    Object.freeze(ruleset);
   }
   Object.freeze(RULESETS);
 

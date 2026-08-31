@@ -20,14 +20,19 @@
    * the top four honours come up far more often and the estimate runs high;
    * retuning them is a separate, measurable change.
    */
-  function estimateTricks(hand, trump) {
-    // The four most influential ranks in a suit, whatever the deck size. Read
-    // afresh each time: the deck can change between seasons.
-    const FIRST = Cards.HIGHEST_VALUE;
-    const SECOND = FIRST - 1;
-    const THIRD = FIRST - 2;
-    const FOURTH = FIRST - 3;
+  /**
+   * The four most influential ranks a kind actually holds, highest first. The
+   * kinds need not share a ladder -- under Ruleset B the Fools stop at 5 and
+   * the Assassins start at 11 -- so an honour has to be read against its own
+   * kind. Where every kind runs the same range this is the top four of the
+   * deck, exactly as it always was.
+   */
+  function honours(suit) {
+    const ranks = Cards.ranksOf(suit).map(Number);
+    return ranks.slice(-4).reverse();
+  }
 
+  function estimateTricks(hand, trump) {
     const trumpLength = trump ? Cards.cardsOfSuit(hand, trump).length : 0;
     let total = 0;
 
@@ -35,6 +40,7 @@
       const cards = Cards.cardsOfSuit(hand, suit);
       const length = cards.length;
       const has = (value) => cards.some((card) => card.value === value);
+      const [FIRST, SECOND, THIRD, FOURTH] = honours(suit);
 
       if (trump && suit === trump) {
         if (has(FIRST)) total += 1.10;
@@ -181,13 +187,13 @@
    *
    * Where an audience is settled in favour of whoever played second, an unseen
    * agent of the *same* rank beats this one as surely as a higher one does, so
-   * the scan has to start at the card's own rank and account for both copies of
-   * every doubled rank -- the card itself excepted, which is in hand and
-   * therefore beats nothing but itself.
+   * the scan has to start at the card's own rank and account for every copy of
+   * every rank -- the card itself excepted, which is in hand and therefore
+   * beats nothing but itself.
    */
   function isTopOutstanding(card, seen) {
     const tieToSecond = Ruleset.current().tieToSecond;
-    for (const rank of Cards.RANKS) {
+    for (const rank of Cards.ranksOf(card.suit)) {
       const value = Number(rank);
       if (tieToSecond ? value < card.value : value <= card.value) continue;
       for (const id of Cards.idsFor(card.suit, rank)) {
@@ -323,6 +329,7 @@
   }
 
   global.AI = {
+    honours: honours,
     estimateTricks: estimateTricks,
     bidCombos: bidCombos,
     wantsWhisper: wantsWhisper,

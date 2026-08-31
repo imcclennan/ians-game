@@ -229,7 +229,7 @@ about A changes, and switching begins a fresh season.
 
 | | Ruleset A | Ruleset B |
 | --- | --- | --- |
-| Ranks | 1–15, one card each | 1–10, five ranks doubled in every kind |
+| Ranks | 1–15, one card each | each kind keeps to its own stretch of 1–15 |
 | Equal ranks | cannot happen | the audience goes to whoever played second |
 | A Fool on an errand | promises 0 | costs 1, and a set coming to nought pledges nothing |
 | Pledge kept | 2 an audience | 1, plus 2 an audience |
@@ -259,9 +259,24 @@ The Twin is the one that could only exist under B: two agents of a kind can only
 where the deck strikes it twice, and when they do, the tie rule hands the audience to whoever played
 second.
 
-The tie rule is what the doubled ranks buy: it settles about one audience in seven, and it makes a
-card that nothing can beat a great deal rarer — a noble leads holding a provable winner on 47% of
-audiences under A, and 31% under B.
+Under B the four kinds do not share a ladder. Each still holds fifteen cards, but over its own
+stretch of the ranks and with its own crowding:
+
+| Agent | Ranks held | Cards |
+| --- | --- | ---: |
+| **Assassins** | 11, **2×**12, **3×**13, **4×**14, **5×**15 | 15 |
+| **Lovers** | 1, then **2×** every even rank to 14 | 15 |
+| **Merchants** | 1–15, one of each | 15 |
+| **Fools** | **5×**1, **4×**2, **3×**3, **2×**4, 5 | 15 |
+
+Every Assassin outranks every Fool, and a Fool is worth −1 on an errand, so the cheapest kind to
+promise with is also the one that wins nothing. The Merchants are the only kind that can meet any
+other on its own ground.
+
+The tie rule is what the crowding buys: it settles about one audience in five, and it makes a card
+that nothing can beat much rarer — a noble leads holding a provable winner on 47% of audiences under
+A, and 27% under B. Holding an Assassin 15 proves nothing while four more of them are unaccounted
+for.
 
 ## Tests
 

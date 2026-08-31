@@ -62,16 +62,18 @@
 
   /**
    * How many of this agent the deck holds, shown as pips beside the rank: one
-   * for a rank struck once, two for a rank struck twice. Only worth printing
-   * where the deck actually doubles some ranks -- on a deck of fifteen distinct
-   * ranks every card would carry a single pip and say nothing.
+   * pip for the only one of it, up to five for the most crowded rank. Printed
+   * only where the deck strikes some rank more than once -- on a deck of one
+   * card per rank every pip would say the same thing and so say nothing.
    */
   function copyPips(card) {
-    if (!Ruleset.current().doubled[card.suit].length) return '';
+    if (!Ruleset.current().hasDuplicates) return '';
     const copies = Cards.copiesOf(card.suit, card.rank);
     return '<span class="copies" aria-hidden="true">' +
       '<i></i>'.repeat(copies) + '</span>';
   }
+
+  const COPY_WORD = ['no', 'one', 'two', 'three', 'four', 'five'];
 
   function cardEl(card, extra) {
     const node = document.createElement('div');
@@ -89,11 +91,7 @@
       '<span class="face">' + Cards.emblem(card.suit) + '</span>' +
       '<span class="corner br">' + corner + '</span>';
     node.setAttribute('aria-label', Cards.SUIT_ROLE[card.suit] + ' ' + card.rank +
-      (pips
-        ? (Cards.copiesOf(card.suit, card.rank) === 2
-          ? ', two in the deck'
-          : ', one in the deck')
-        : ''));
+      (pips ? ', ' + COPY_WORD[Cards.copiesOf(card.suit, card.rank)] + ' in the deck' : ''));
     return node;
   }
 

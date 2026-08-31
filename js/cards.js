@@ -1,10 +1,11 @@
 /*
  * cards.js - the deck and its primitives.
  *
- * Sixty cards: four agents, each ranked by their standing at court. How far
- * that ranking runs, and whether any rank is struck twice, is the business of
- * the active ruleset -- fifteen distinct ranks under A, ten with five doubled
- * in every kind under B. Either way the deck comes to sixty.
+ * Sixty cards: four agents, fifteen apiece, each ranked by their standing at
+ * court. Which ranks a kind runs to, and how many of each it holds, is the
+ * business of the active ruleset -- one card at every rank from 1 to 15 under
+ * A, four kinds with ladders of their own under B. Either way the deck comes
+ * to sixty.
  *
  * The classic pips are kept because they already read as the four agents --
  * the blade, the heart, the coin, the jester's bauble.
@@ -64,15 +65,24 @@
   // with whoever holds sway pulled to the front of all of them.
   const DISPLAY_ORDER = ['S', 'H', 'D', 'C'];
 
-  /** How many cards of this rank the active deck holds in this kind: one or two. */
+  /**
+   * How many cards of this rank the active deck holds in this kind. Zero where
+   * the kind does not run to that rank at all -- the kinds need not share a
+   * ladder, and under Ruleset B they do not.
+   */
   function copiesOf(suit, rank) {
-    return Ruleset.current().doubled[suit].indexOf(String(rank)) === -1 ? 1 : 2;
+    return Ruleset.current().copies[suit][String(rank)] || 0;
+  }
+
+  /** The ranks this kind actually holds, lowest first. */
+  function ranksOf(suit) {
+    return Object.keys(Ruleset.current().copies[suit]).sort((a, b) => Number(a) - Number(b));
   }
 
   /**
-   * An agent's name in the pack. Two cards of a doubled rank are identical in
+   * An agent's name in the pack. Cards of one rank and kind are identical in
    * play and carry no distinguishing face, but they must still be told apart
-   * here: a shared id would let removeCards strip both copies at once, and
+   * here: a shared id would let removeCards strip every copy at once, and
    * would make every Set of cards already seen quietly undercount.
    *
    * The copy number is always present, in both rulesets, so that no code
@@ -102,9 +112,8 @@
 
   function makeDeck() {
     const deck = [];
-    const ranks = Ruleset.current().ranks;
     for (const suit of SUITS) {
-      for (const rank of ranks) {
+      for (const rank of ranksOf(suit)) {
         for (let copy = 0; copy < copiesOf(suit, rank); copy++) {
           deck.push(makeCard(suit, rank, copy));
         }
@@ -177,6 +186,7 @@
     emblem: emblem,
     SUIT_COLOR: SUIT_COLOR,
     copiesOf: copiesOf,
+    ranksOf: ranksOf,
     idFor: idFor,
     idsFor: idsFor,
     makeCard: makeCard,

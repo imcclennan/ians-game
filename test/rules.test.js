@@ -7,6 +7,7 @@ require('../js/cards.js');
 require('../js/rules.js');
 require('../js/whispers.js');
 require('../js/whispercard.js');
+require('../js/rulebook.js');
 require('../js/ai.js');
 require('../js/engine.js');
 
@@ -229,6 +230,30 @@ for (const whisper of Whispers.ALL) {
   ok(whisper.name + ' carries a demand exactly when it restricts errands',
     !whisper.demand === (!whisper.allows && !whisper.permits));
 }
+
+// --- the rulebook renders ---------------------------------------------------
+// The prose is built from the game's own data, so a rename in the deck or the
+// ruleset config can break it without any assertion above noticing.
+
+function rulebookCheck(label) {
+  let sections = null;
+  let error = null;
+  try {
+    sections = Rulebook.sections();
+  } catch (problem) {
+    error = problem;
+  }
+  ok(label + ': the rulebook builds', !error, error && error.message);
+  if (!sections) return;
+  ok(label + ': every section has a title and a body',
+    sections.every((section) => section.title && section.html && section.html.length > 20));
+  ok(label + ': no cross-reference is left unresolved',
+    sections.every((section) => !/\{\{/.test(section.html)));
+  const html = sections.map((section) => section.html).join('');
+  ok(label + ': nothing rendered as undefined or NaN',
+    !/undefined|NaN|\[object/.test(html));
+}
+rulebookCheck('under A');
 
 const plainRow = { seat: 0, bid: 3, tricksWon: 3, counted: 3, made: true, takenWith: [] };
 check('no whisper leaves favour alone', Whispers.adjust(null, 6, plainRow, [plainRow]), 6);
@@ -857,28 +882,47 @@ check('the court is playing under B', Ruleset.currentId(), 'B');
 const deckB = Cards.makeDeck();
 check('B deals sixty agents too', deckB.length, 60);
 check('no two agents share a name', new Set(deckB.map((c) => c.id)).size, 60);
-check('B runs to ten ranks', Cards.HIGHEST_VALUE, 10);
-check('ten is the most influential', card('10S').value, 10);
+check('the ladder still runs to fifteen', Cards.HIGHEST_VALUE, 15);
+check('fifteen is still the most influential', card('15S').value, 15);
 
-const DOUBLED_B = { C: ['1', '2', '3', '4', '5'], D: ['1', '3', '5', '7', '9'],
-  H: ['2', '4', '6', '8', '10'], S: ['6', '7', '8', '9', '10'] };
+// The four kinds no longer share a ladder. Each holds fifteen cards, but over
+// its own stretch of the ranks and with its own crowding.
+const COPIES_B = {
+  C: { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 },
+  D: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1,
+    9: 1, 10: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1 },
+  H: { 1: 1, 2: 2, 4: 2, 6: 2, 8: 2, 10: 2, 12: 2, 14: 2 },
+  S: { 11: 1, 12: 2, 13: 3, 14: 4, 15: 5 }
+};
 for (const suit of Cards.SUITS) {
-  check('B gives ' + Cards.SUIT_ROLE_PLURAL[suit] + ' fifteen cards',
-    Cards.cardsOfSuit(deckB, suit).length, 15);
-  ok('no ' + Cards.SUIT_ROLE_PLURAL[suit] + ' rank runs past ten',
-    Cards.cardsOfSuit(deckB, suit).every((c) => c.value >= 1 && c.value <= 10));
+  const kind = Cards.cardsOfSuit(deckB, suit);
+  check('B gives ' + Cards.SUIT_ROLE_PLURAL[suit] + ' fifteen cards', kind.length, 15);
+  check('and lists exactly the ranks it holds',
+    Cards.ranksOf(suit), Object.keys(COPIES_B[suit]));
   for (const rank of Cards.RANKS) {
-    const wanted = DOUBLED_B[suit].indexOf(rank) === -1 ? 1 : 2;
+    const wanted = COPIES_B[suit][rank] || 0;
     check('B strikes ' + Cards.SUIT_ROLE[suit] + ' ' + rank + ' ' + wanted + ' time(s)',
-      Cards.cardsOfSuit(deckB, suit).filter((c) => c.rank === rank).length, wanted);
+      kind.filter((c) => c.rank === rank).length, wanted);
+    check('and says so', Cards.copiesOf(suit, rank), wanted);
   }
 }
-ok('the two copies of a doubled rank are told apart', card('10S').id !== card('10S/1').id);
+check('the Assassins are all crowded at the top',
+  Cards.ranksOf('S'), ['11', '12', '13', '14', '15']);
+check('and the Fools all at the bottom', Cards.ranksOf('C'), ['1', '2', '3', '4', '5']);
+check('the Lovers take a single 1 and every even rank in pairs',
+  Cards.ranksOf('H'), ['1', '2', '4', '6', '8', '10', '12', '14']);
+check('the Merchants alone run the whole ladder', Cards.ranksOf('D').length, 15);
+check('five is the most of any one agent', Cards.copiesOf('S', '15'), 5);
+check('and the deck knows it', Ruleset.current().mostCopies, 5);
+
+ok('copies of one rank are told apart', card('15S').id !== card('15S/1').id);
 check('and are otherwise the same agent',
-  [card('10S').suit, card('10S').value], [card('10S/1').suit, card('10S/1').value]);
-check('sending one copy on an errand leaves the other in hand',
-  Cards.removeCards(hand('10S', '10S/1', '4H'), [card('10S')]).map((c) => c.id),
-  ['10S1', '4H0']);
+  [card('15S').suit, card('15S').value], [card('15S/1').suit, card('15S/1').value]);
+check('sending one copy on an errand leaves the others in hand',
+  Cards.removeCards(hand('15S', '15S/1', '15S/2', '4H'), [card('15S')]).map((c) => c.id),
+  ['15S1', '15S2', '4H0']);
+check('a rank a kind does not hold is simply not there', Cards.copiesOf('C', '15'), 0);
+check('and offers no names', Cards.idsFor('C', '15').length, 0);
 
 // --- the pledge ------------------------------------------------------------
 
@@ -952,16 +996,27 @@ function seenExcept(missing) {
   for (const id of missing) set.delete(id);
   return set;
 }
-ok('an unseen twin of the same rank means nothing is proven',
-  !AI.isTopOutstanding(card('10S'), seenExcept(['10S1'])),
-  'the other Assassin 10 is still out there');
-ok('once both copies are accounted for, the rank is safe',
-  AI.isTopOutstanding(card('10S'), seenExcept([])));
+ok('an unseen copy of the same rank means nothing is proven',
+  !AI.isTopOutstanding(card('15S'), seenExcept(['15S1'])),
+  'another Assassin 15 is still out there');
+ok('and four unseen copies certainly do not',
+  !AI.isTopOutstanding(card('15S'), seenExcept(['15S1', '15S2', '15S3', '15S4'])));
+ok('once every copy is accounted for, the rank is safe',
+  AI.isTopOutstanding(card('15S'), seenExcept([])));
 ok('an unseen higher rank still refuses the claim',
-  !AI.isTopOutstanding(card('9S'), seenExcept(['10S0'])));
+  !AI.isTopOutstanding(card('14S'), seenExcept(['15S0'])));
 ok('the card itself being in hand does not count against it',
-  AI.isTopOutstanding(card('10H'), seenExcept(['10H0'])),
+  AI.isTopOutstanding(card('5C'), seenExcept(['5C0'])),
   'a card cannot be beaten by itself');
+ok('a kind is judged against its own ladder, not the whole deck',
+  AI.isTopOutstanding(card('5C'), seenExcept([])),
+  'the Fools stop at 5, so nothing in the kind outranks a Fool 5');
+ok('the lowest Assassin is still beaten from above',
+  !AI.isTopOutstanding(card('11S'), seenExcept(['12S0'])));
+check('the honours of a kind are read off its own ranks',
+  AI.honours('C'), [5, 4, 3, 2]);
+check('so the Assassins keep theirs at the top', AI.honours('S'), [15, 14, 13, 12]);
+check('and the Lovers count only the ranks they hold', AI.honours('H'), [14, 12, 10, 8]);
 
 // --- the words that read differently ---------------------------------------
 
@@ -1147,6 +1202,14 @@ check('a season under B runs its twelve nights', wholeB.state.handNumber, Rules.
 ok('and leaves somebody holding the ear of the monarch', wholeB.state.winners.length >= 1);
 ok('every night was recorded against the rules it was played under',
   wholeB.state.history.every((night) => night.ruleset === 'B'));
+
+rulebookCheck('under B');
+const deckProse = Rulebook.sections().find((section) => section.id === 'rule-deck').html;
+ok('the rulebook prints the deck B actually deals',
+  deckProse.indexOf('5&times;15') !== -1 && deckProse.indexOf('5&times;1') !== -1,
+  'the composition table should show the crowded ranks');
+ok('and says the kinds do not share a ladder',
+  deckProse.indexOf('do not share a ladder') !== -1);
 
 // --- back to where we started ----------------------------------------------
 
