@@ -1,7 +1,7 @@
 /*
  * build-all.js — renders every image PrinterStudio needs.
  *   60 deck faces + 1 deck back  (heraldic)
- *   15 Whisper faces + 1 Whisper back (midnight)
+ *   22 Whisper faces + 1 Whisper back (midnight)
  *   2 sides of the quick reference card (heraldic, printed light)
  * Everything comes out 900 x 1500 px = 3" x 5" at 300 DPI, which is the
  * 2.75" x 4.75" tarot trim plus 1/8" bleed on every side.

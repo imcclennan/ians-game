@@ -40,9 +40,10 @@ known by its own mark, printed on its own face, in its own ink.
 | Merchant | 1 to 15, one of each |
 | Fool | five 1s, four 2s, three 3s, two 4s, one 5 |
 
-The Assassins sit at the top of the ladder and the Fools at the bottom; the Merchants alone run the
-whole range. Cards of the same kind and rank are **identical in play** and carry only a count of how
-many the deck holds, printed beside the rank. Because a rank can be struck as many as five times,
+Rank decides an audience **only between agents of the same kind**, so the four ranges say nothing
+about which kind beats which — what they differ in is how each kind is crowded. Cards of the same
+kind and rank are **identical in play** and carry only a count of how many the deck holds, printed
+beside the rank. Because a rank can be struck as many as five times,
 two agents can meet on the same rank — and then the audience goes to **whichever was played later**,
 which settles about one audience in five.
 
@@ -257,35 +258,22 @@ ranks and with its own crowding:
 | **Merchants** | 1–15, one of each | 15 |
 | **Fools** | **5×**1, **4×**2, **3×**3, **2×**4, 5 | 15 |
 
-Every Assassin outranks every Fool, and a Fool is worth **−1** on an errand, so the cheapest kind to
-promise with is also the one that wins nothing. The Merchants are the only kind that can meet any
-other on its own ground.
+**Rank only ever decides an audience inside a kind**, so an Assassin’s 11 and a Fool’s 1 are each
+simply the lowest card of their own kind. What the four ranges really differ in is their crowding:
+the Assassins are thin at the bottom and five deep at the top, the Fools the other way about, and
+the Merchants flat all the way. A Fool is worth **−1** on an errand, so the kind that costs you a
+promise is also the one stacked highest with near-worthless cards.
+
+The absolute numbers matter in exactly one place, which is why the kinds are not all printed 1–5:
+**The Modest** pays for audiences won with an agent of **rank 5 or lower**, a bar no Assassin can
+ever clear.
 
 Because a rank can be struck as many as five times, two agents of the same kind can meet on the same
 rank. **The audience then goes to whoever played it second** — the later word is the one the court
 remembers. That settles about one audience in five, and it makes a card nothing can beat much
-rarer: holding an Assassin 15 proves nothing while four more of them are unaccounted for. Cards of
-one rank and kind are identical in play, and carry a row of pips beside the rank saying how many of
-them the deck holds.
-
-Under B the four kinds do not share a ladder. Each still holds fifteen cards, but over its own
-stretch of the ranks and with its own crowding:
-
-| Agent | Ranks held | Cards |
-| --- | --- | ---: |
-| **Assassins** | 11, **2×**12, **3×**13, **4×**14, **5×**15 | 15 |
-| **Lovers** | 1, then **2×** every even rank to 14 | 15 |
-| **Merchants** | 1–15, one of each | 15 |
-| **Fools** | **5×**1, **4×**2, **3×**3, **2×**4, 5 | 15 |
-
-Every Assassin outranks every Fool, and a Fool is worth −1 on an errand, so the cheapest kind to
-promise with is also the one that wins nothing. The Merchants are the only kind that can meet any
-other on its own ground.
-
-The tie rule is what the crowding buys: it settles about one audience in five, and it makes a card
-that nothing can beat much rarer — a noble leads holding a provable winner on 47% of audiences under
-A, and 27% under B. Holding an Assassin 15 proves nothing while four more of them are unaccounted
-for.
+rarer: a noble leads holding a provable winner on 27% of audiences, because holding an Assassin 15
+proves nothing while four more of them are unaccounted for. Cards of one rank and kind are identical
+in play, and carry a row of pips beside the rank saying how many of them the deck holds.
 
 ## Tests
 

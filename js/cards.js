@@ -93,8 +93,12 @@
     D: oneEach(HIGHEST_VALUE),
     // A single 1, then a pair at every even rank up to 14.
     H: { 1: 1, 2: 2, 4: 2, 6: 2, 8: 2, 10: 2, 12: 2, 14: 2 },
-    // Five 15s down to a single 11. Every Assassin outranks every Fool, every
-    // Lover but the 12s and 14s, and all but the top four Merchants.
+    // Five 15s down to a single 11. Rank only ever settles an audience between
+    // two agents of the same kind, so the range itself says nothing about the
+    // Assassins against anyone else -- what it carries is the crowding, thin at
+    // the bottom and five deep at the top. Starting them at 11 does have one
+    // consequence: no Assassin can be an agent of rank 5 or lower, which is
+    // what The Modest pays for.
     S: { 11: 1, 12: 2, 13: 3, 14: 4, 15: 5 }
   };
 

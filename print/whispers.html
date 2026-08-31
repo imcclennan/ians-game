@@ -11,10 +11,12 @@
 
 <div class="screen-only">
   <h1>Whisper cards</h1>
-  <p>Twenty-two Whisper cards, four to a sheet at tarot size (70 &times; 120&nbsp;mm), followed by
-    a sheet of matching backs. Print at <b>100% scale</b> on card stock, then cut along the hairlines.</p>
-  <p>To make them double-sided, print the three front sheets, then the back sheet onto the reverse of
-    each. Five of the nine backs on the last sheet will be spare.</p>
+  <p><span data-plan="totalWord">Twenty-two</span> Whisper cards,
+    <span data-plan="perWord">four</span> to a sheet at tarot size (70 &times; 120&nbsp;mm),
+    followed by a sheet of matching backs. Print at <b>100% scale</b> on card stock, then cut
+    along the hairlines.</p>
+  <p data-plan="doubleSided">To make them double-sided, print the front sheets, then the single
+    sheet of backs onto the reverse of each.</p>
   <p><a href="index.html">&larr; All printed assets</a></p>
 </div>
 
@@ -26,6 +28,14 @@
 <script src="../js/whispercard.js"></script>
 <script src="../js/rulebook.js"></script>
 <script src="print.js"></script>
-<script>PrintEdition.buildWhisperSheets(document.getElementById('sheets'));</script>
+<script>
+  // The counts in the note above are the renderer's own arithmetic, not a
+  // hand-typed number that can fall behind the deck.
+  var plan = PrintEdition.whisperSheetPlan();
+  document.querySelectorAll('[data-plan]').forEach(function (node) {
+    node.textContent = plan[node.dataset.plan];
+  });
+  PrintEdition.buildWhisperSheets(document.getElementById('sheets'));
+</script>
 </body>
 </html>

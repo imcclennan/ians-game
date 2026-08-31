@@ -73,7 +73,52 @@
     '</div>';
   }
 
-  /** Fronts laid nine to a sheet, then a matching sheet of backs. */
+  /**
+   * How the Whisper sheets come out, in words, so the page does not have to
+   * carry a hand-typed count. Three of them have gone stale here already.
+   */
+  function whisperSheetPlan() {
+    const UNITS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+      'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen',
+      'seventeen', 'eighteen', 'nineteen'];
+    const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty',
+      'ninety'];
+    const ORDINAL = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh',
+      'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth'];
+    function word(n) {
+      if (n < UNITS.length) return UNITS[n];
+      if (n < 100) {
+        const tens = TENS[Math.floor(n / 10)];
+        const unit = n % 10;
+        return unit ? tens + '-' + UNITS[unit] : tens;
+      }
+      return String(n);
+    }
+    const capital = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+    const total = Whispers.ALL.length;
+    const fronts = Math.ceil(total / CARDS_PER_SHEET);
+    const remainder = total % CARDS_PER_SHEET;
+
+    // One sheet of backs is printed onto the reverse of every front sheet, so
+    // there is no last-sheet remainder to account for on the back side.
+    const shape = remainder === 0
+      ? 'the ' + word(fronts) + ' front sheets'
+      : 'the ' + word(fronts) + ' front sheets (' + word(fronts - 1) + ' full, the ' +
+        (ORDINAL[fronts] || fronts + 'th') + ' holding ' + word(remainder) + ')';
+
+    return {
+      total: total,
+      perSheet: CARDS_PER_SHEET,
+      fronts: fronts,
+      totalWord: capital(word(total)),
+      perWord: word(CARDS_PER_SHEET),
+      doubleSided: 'To make them double-sided, print ' + shape +
+        ', then the single sheet of backs onto the reverse of each.'
+    };
+  }
+
+  /** Fronts laid four to a sheet, then a matching sheet of backs. */
   function buildWhisperSheets(host) {
     const all = Whispers.ALL;
     let html = '';
@@ -206,13 +251,27 @@
         '<ul class="ref-list">' +
           '<li>Errands are <b>out of play</b> — ' + Rules.TRICKS_PER_HAND +
             ' cards remain, so ' + Rules.TRICKS_PER_HAND + ' audiences are contested.</li>' +
-          '<li>Revealed only when the session <b>ends</b>.</li>' +
+          '<li>Revealed only when the night <b>ends</b>.</li>' +
           '<li>Four Assassins pledge <b>12</b>, which cannot be kept. Nothing forbids it.</li>' +
           '<li>The agents that make your promise are the ones you no longer get to play.</li>' +
         '</ul>' +
         '<div class="ref-foot">' + agentRow('3.6mm') + '</div>' +
       '</div>' +
     '</div>';
+  }
+
+  /** A favour figure with a real minus sign in front of it. */
+  function favour(points) {
+    return points < 0 ? '&minus;' + Math.abs(points) : '+' + points;
+  }
+
+  /**
+   * A worked example, scored by the game rather than typed out. Every hand-typed
+   * number on these cards has gone stale at least once.
+   */
+  function favourExample(bid, won) {
+    return 'Pledged ' + bid + ', won ' + won +
+      ' &rarr; <b>' + favour(Rules.scoreHand(bid, won, false)) + '</b>.';
   }
 
   function referenceBack() {
@@ -233,18 +292,25 @@
         '</div>' +
         flourish() +
         '<p class="ref-sub smallcaps">Who holds sway</p>' +
-        '<p class="ref-lede tight">Nobles who kept their pledge <b>exactly</b> last session:</p>' +
+        '<p class="ref-lede tight">Nobles who kept their pledge <b>exactly</b> last night:</p>' +
         '<table class="ref-table sway-table">' + sway + '</table>' +
-        '<p class="ref-fine">The first session of a season is always No Sway.</p>' +
+        '<p class="ref-fine">The first night of a season is always No Sway.</p>' +
         flourish() +
         '<p class="ref-sub smallcaps">Winning favour</p>' +
         '<table class="ref-table favour-table">' +
-          '<tr><td class="left">Pledge kept exactly</td><td class="score">2 each</td></tr>' +
-          '<tr><td class="left">Pledge missed</td><td class="score">1 each, &minus;2 per off</td></tr>' +
-          '<tr><td class="left">Pledged 0, won 0</td><td class="score">+10</td></tr>' +
-          '<tr><td class="left">Pledged 0, won any</td><td class="score">&minus;10</td></tr>' +
+          '<tr><td class="left">Pledge kept exactly</td>' +
+            '<td class="score">+' + Rules.FLAT_BONUS + ', then 2 each</td></tr>' +
+          '<tr><td class="left">Pledge missed</td>' +
+            '<td class="score">the pledge, &minus;2 per off</td></tr>' +
+          // Both kinds of nought on one row: a fifth row leaves the foot rule
+          //2px of clearance, and the card is laid out for four.
+          '<tr><td class="left">Pledged 0, won 0</td>' +
+            '<td class="score">+' + Rules.NIL_PAY + ' with ' + Rules.NIL_FOOLS +
+            ' Fools, else +' + Rules.FLAT_BONUS + '</td></tr>' +
+          '<tr><td class="left">Pledged 0, won any</td>' +
+            '<td class="score">&minus;2 each</td></tr>' +
         '</table>' +
-        '<p class="ref-fine">Pledged 5, won 4 &rarr; <b>2</b>. Pledged 3, won 6 &rarr; <b>0</b>. ' +
+        '<p class="ref-fine">' + favourExample(3, 3) + ' ' + favourExample(5, 4) + ' ' +
           'Most favour after ' + Rules.SEASON_LENGTH + ' nights wins.</p>' +
         '<div class="ref-foot">' + agentRow('3.6mm') + '</div>' +
       '</div>' +
@@ -265,6 +331,7 @@
     seal: seal,
     flourish: flourish,
     agentRow: agentRow,
+    whisperSheetPlan: whisperSheetPlan,
     buildWhisperSheets: buildWhisperSheets,
     buildRulesSheets: buildRulesSheets,
     buildReferenceSheets: buildReferenceSheets

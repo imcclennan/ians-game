@@ -123,7 +123,7 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
 <section>
   <div class="sechead"><div class="eyebrow">Start here</div><h2>Three orders, not one</h2></div>
   <div class="prose">
-    <p>PrinterStudio prints one back image across a whole deck. The 60 numbered agents, the 15
+    <p>PrinterStudio prints one back image across a whole deck. The 60 numbered agents, the 22
     Whispers and the reference cards each carry a different back, so they are ordered separately and
     shuffled together at home. Pick the smallest deck-size tier that fits each count.</p>
   </div>
@@ -263,45 +263,32 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
 </section>
 
 <section>
-  <div class="sechead"><div class="eyebrow">Read this before printing</div><h2>One thing the repo
-  disagrees with itself about</h2></div>
-  <div class="callout">
-    <p><b>Pledging nothing.</b> <code>js/rules.js</code> scores a pledge of nothing as
-    <b>+8 for taking no audiences and &minus;8 for taking any</b>, however many &mdash; and
-    <code>test/rules.test.js</code> asserts exactly that. The prose in <code>js/rulebook.js</code>
-    still describes the older ladder (+5, then &minus;5 for the first and &minus;2 for each after).
-    The cards and the rulesheet follow the <b>code</b>, since that is what the game actually does.
-    If the prose is the version you want, say so and it is a two-line change here.</p>
-  </div>
+  <div class="sechead"><div class="eyebrow">Changed this round</div><h2>What moved, third
+  edition</h2></div>
   <div class="prose">
-    <p>Two smaller staleness notes, for when you next touch the repo:
-    <code>print/whispers.html</code> still says &ldquo;Fifteen Whisper cards&rdquo;, and
-    <code>bidCardValue</code> in <code>rules.js</code> is commented as summing
-    &ldquo;three&rdquo; bid cards when it sums four.</p>
+    <p>The Whisper deck was rebuilt. Six words were cut, six written to replace them, and fifteen
+    of the sixteen survivors reworded or repriced &mdash; <b>The Watched</b> alone is unchanged.
+    The count holds at 22, seven of them burdens.</p>
   </div>
-</section>
-
-<section>
-  <div class="sechead"><div class="eyebrow">Changed this round</div><h2>What moved</h2></div>
   <div class="tablewrap">
     <table>
-      <tr><th>What</th><th>Was</th><th>Now</th></tr>
-      <tr><td>Whisper cards</td><td class="v">15</td><td class="v">22, seven of them burdens</td></tr>
-      <tr><td>A hand is called</td><td class="v">a session</td><td class="v">a night</td></tr>
-      <tr><td>Season ends</td><td class="v">first past 50 favour</td><td class="v">after 12 nights, on Twelfth Night</td></tr>
-      <tr><td>Pledged nothing</td><td class="v">+5 / &minus;5 then &minus;2 each</td><td class="v">+8 / &minus;8 flat</td></tr>
-      <tr><td>Taking a Whisper</td><td class="v">dealt to everyone</td><td class="v">optional, unread, only if behind</td></tr>
-      <tr><td>Blackmailed</td><td class="v">+5</td><td class="v">+6</td></tr>
-      <tr><td>The Bold</td><td class="v">+5</td><td class="v">+6</td></tr>
-      <tr><td>The Meek</td><td class="v">&minus;4</td><td class="v">&minus;3</td></tr>
-      <tr><td>The Cautious Clerk</td><td class="v">caps at 6</td><td class="v">caps at 7</td></tr>
-      <tr><td>The Understudy</td><td class="v">the noble on your left</td><td class="v">the noble on your right</td></tr>
+      <tr><th>&nbsp;</th><th>Words</th></tr>
+      <tr><td>Cut</td><td class="v">The Cautious Clerk, The Meek, The Contrarian, The Condemned,
+        The Scapegoat, In Disgrace</td></tr>
+      <tr><td>Added</td><td class="v">Sworn to the Ledger, The Twin, The Modest, The Saboteur,
+        The Optimist, The Beggar&rsquo;s Bargain</td></tr>
+      <tr><td>Reworded or repriced</td><td class="v">Every survivor but The Watched</td></tr>
+      <tr><td>Agent deck</td><td class="v">Each kind now keeps to its own stretch of the ranks,
+        with its own crowding &mdash; all 60 faces redrawn</td></tr>
+      <tr><td>Reference cards</td><td class="v">Both sides rescored against the current favour
+        table</td></tr>
     </table>
   </div>
   <div class="prose">
-    <p>The 60 agent faces and both card backs are untouched &mdash; nothing in the rules changed what
-    is printed on them. Everything is still vector until the last step, so colour, rule weights, type
-    sizes and wording are one edit and one re-render.</p>
+    <p><b>21 of the 22 Whisper faces, all 60 agent faces and both reference cards need
+    re-rendering.</b> Only <b>The Watched</b> and the three card backs come through untouched.
+    Everything is still vector until the last step, so colour, rule weights, type sizes and
+    wording are one edit and one re-render.</p>
   </div>
 </section>
 

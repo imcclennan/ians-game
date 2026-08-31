@@ -222,6 +222,39 @@ for (const whisper of Whispers.ALL) {
     !whisper.demand === (!whisper.allows && !whisper.permits));
 }
 
+// --- the printed edition says the same thing --------------------------------
+// print/fools-court-card-source/whispers-data.js is a hand transcription of the
+// array above, and the card renderer reads it rather than the game. It has gone
+// an edition stale once already, which is twenty-two wrong cards at the printer
+// before anybody notices. The transcription sets `--` as a real em dash and a
+// leading minus as U+2212, so compare through that.
+
+const PRINTED = require('../print/fools-court-card-source/whispers-data.js');
+
+function asPrinted(text) {
+  return String(text)
+    .replace(/--/g, '\u2014')
+    .replace(/(^|\s)-(?=\d)/g, '$1\u2212');
+}
+
+check('the printed edition carries every whisper, in the order they are dealt',
+  PRINTED.map((w) => w.id), Whispers.ALL.map((w) => w.id));
+check('and seven of them are burdens there too',
+  PRINTED.filter((w) => w.burden).length, 7);
+for (let i = 0; i < Math.min(PRINTED.length, Whispers.ALL.length); i++) {
+  const word = Whispers.ALL[i];
+  const printed = PRINTED[i];
+  if (word.id !== printed.id) continue;   // the order check above has it
+  check('the printed ' + word.name + ' is named as the game names it',
+    printed.name, word.name);
+  check('the printed ' + word.name + ' rules as the game rules',
+    printed.line, asPrinted(word.line));
+  check('the printed ' + word.name + ' reads as the game reads',
+    printed.detail, asPrinted(word.detail));
+  check('the printed ' + word.name + ' is framed as the game frames it',
+    !!printed.burden, !!word.burden);
+}
+
 // --- the rulebook renders ---------------------------------------------------
 // The prose is built from the game's own data, so a rename in the deck or the
 // deck or the constants can break it without any assertion above noticing.

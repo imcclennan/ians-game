@@ -6,12 +6,24 @@
  * the app's Rules panel agree section for section. Text is condensed to fit;
  * every rule is present, the flavour notes are not.
  *
- * Scoring for a pledge of nothing follows js/rules.js scoreHand (+8 / -8),
- * NOT the prose in rulebook.js, which still describes the older -5/-2 ladder.
+ * Scoring for a pledge of nothing follows js/rules.js scoreHand.
  */
 const fs = require('fs');
 const { EMBLEM } = require('./art');
 const WHISPERS = require('./whispers-data');
+
+// The favour table and its worked examples are scored by the game itself. Every
+// one of these numbers has been wrong on a printed sheet at least once.
+require('../../js/cards.js');
+require('../../js/rules.js');
+const { Rules } = globalThis;
+
+const favour = (n) => (n < 0 ? '&minus;' + Math.abs(n) : '+' + n);
+const example = (bid, won) =>
+  `<div>Pledged ${bid}, won ${won}</div><div class="r">${favour(Rules.scoreHand(bid, won, false))}</div>`;
+const nilExample = (won) =>
+  `<div>${Rules.NIL_FOOLS} Fools out, won ${won}</div>` +
+  `<div class="r">${favour(Rules.scoreHand(0, won, true))}</div>`;
 
 const OX = '#4a1524', GOLD = '#8d6a2a', INK = '#20161a', DIM = '#5d4a4f';
 const AGENT_INK = { C: '#492851', D: '#684d0e', H: '#7c241e', S: '#1e2530' };
@@ -213,7 +225,7 @@ const side1 = `
     identical face down, and a player who took one need not say which.`)}
     ${P(`A Whisper bends how that player&rsquo;s favour is counted, or restricts which agents they
     may send, or both, and stays <b>private</b> until the night ends. A restriction is binding, but
-    a demand a hand cannot obey &mdash; an Assassin required while holding none &mdash; is
+    a demand a hand cannot obey &mdash; two Assassins required while holding one &mdash; is
     <b>waived</b>. No two players hold the same word on the same night, and a Whisper never changes
     the rules of play in 6. All 22 are listed in 10.`)}
 
@@ -264,23 +276,27 @@ const side2 = `
     made.`, 'first')}
     <table>
       <tr><th>Result</th><th>Favour</th></tr>
-      <tr><td>Pledge kept exactly</td><td>2 for every audience won</td></tr>
-      <tr><td>Pledge missed, high or low</td><td>1 for every audience won, less 2 for every audience off the pledge</td></tr>
-      <tr><td>Pledged nothing, won nothing</td><td>8</td></tr>
-      <tr><td>Pledged nothing, won any</td><td>&minus;8, however many</td></tr>
+      <tr><td>Pledge kept exactly</td><td>${Rules.FLAT_BONUS}, plus 2 for every audience won</td></tr>
+      <tr><td>Pledge missed, high or low</td><td>the pledge itself, less 2 for every audience off it</td></tr>
+      <tr><td>Pledged nothing by sending ${Rules.NIL_FOOLS} Fools, won nothing</td><td>${Rules.NIL_PAY}</td></tr>
+      <tr><td>Pledged nothing any other way, won nothing</td><td>${Rules.FLAT_BONUS}</td></tr>
+      <tr><td>Pledged nothing, won any</td><td>&minus;2 for every audience</td></tr>
     </table>
     <p><b>Examples.</b></p>
     <div class="ex">
-      <div>Pledged 4, won 4</div><div class="r">+8</div>
-      <div>Pledged 5, won 4</div><div class="r">+2</div>
-      <div>Pledged 3, won 6</div><div class="r">0</div>
-      <div>Pledged 2, won 0</div><div class="r">&minus;4</div>
-      <div>Pledged 0, won 0</div><div class="r">+8</div>
-      <div>Pledged 0, won 3</div><div class="r">&minus;8</div>
-      <div>Pledged 11, won 11</div><div class="r">+22</div>
+      ${example(2, 2)}
+      ${example(4, 3)}
+      ${example(2, 4)}
+      ${example(5, 4)}
+      ${nilExample(0)}
+      ${nilExample(2)}
+      ${example(11, 11)}
     </div>
     ${P(`Being wrong costs 2 favour per audience in <i>either</i> direction, so there is no
-    advantage in under-promising and overshooting. The only good outcome is the exact one.`, 'note')}
+    advantage in under-promising and overshooting. The only good outcome is the exact one. A nil is
+    worth reaching for only when it can be made honestly: ${Rules.NIL_FOOLS} Fools pays
+    ${Rules.NIL_PAY}, while a set that merely adds up to nought pays ${Rules.FLAT_BONUS} &mdash;
+    less than the smallest kept promise.`, 'note')}
 
     ${H(8, 'Who holds sway')}
     ${P(`One kind may <b>hold sway</b> for a night, outranking every other kind when audiences are
