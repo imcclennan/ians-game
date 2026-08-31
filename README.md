@@ -21,16 +21,34 @@ Then visit <http://localhost:8080>.
 
 ## The court
 
-Sixty cards. Four kinds of **agent**, each ranked **1 to 15** by their standing at court — 15 is
-the most influential, 1 the least. The familiar pips are gone: each kind is known by its own mark,
-printed on its own face, in its own ink.
+Sixty cards, fifteen to a kind. Agents are ranked **1 to 15** by their standing at court — 15 is
+the most influential, 1 the least — but **the four kinds do not share a ladder**. Each keeps to its
+own stretch of the ranks and crowds it in its own way. The familiar pips are gone: each kind is
+known by its own mark, printed on its own face, in its own ink.
 
 | Agent | Mark | Audiences promised | Face | Ink |
 | --- | --- | --- | --- | --- |
 | Assassin | a dagger | 3 | pale slate | graphite |
 | Lover | a rose | 2 | pale rose | crimson |
 | Merchant | a balance | 1 | pale gold | antique gold |
-| Fool | a cap and bells | 0 | pale lilac | plum |
+| Fool | a cap and bells | −1 | pale lilac | plum |
+
+| Agent | Ranks held |
+| --- | --- |
+| Assassin | one 11, two 12s, three 13s, four 14s, five 15s |
+| Lover | a single 1, then a pair at every even rank to 14 |
+| Merchant | 1 to 15, one of each |
+| Fool | five 1s, four 2s, three 3s, two 4s, one 5 |
+
+The Assassins sit at the top of the ladder and the Fools at the bottom; the Merchants alone run the
+whole range. Cards of the same kind and rank are **identical in play** and carry only a count of how
+many the deck holds, printed beside the rank. Because a rank can be struck as many as five times,
+two agents can meet on the same rank — and then the audience goes to **whichever was played later**,
+which settles about one audience in five.
+
+A **Fool costs you a promise** rather than making none, so a set of errands can come to nothing at
+all. Four Fools is a **true nil**; anything else adding up to nought or less is merely an arithmetic
+nought, and the two are paid very differently.
 
 A hand is fanned by what each kind promises — Assassins, then Lovers, Merchants and Fools, high to
 low within each — with whichever kind holds sway pulled to the front of all of them, wearing gold.
@@ -84,15 +102,20 @@ much means spending Assassins; promising nothing is cheap only if your Fools wer
 
 | Result | Favour |
 | --- | --- |
-| Pledge kept exactly | 2 per audience won |
-| Pledge broken | 1 per audience won, less 2 for every audience off the pledge |
-| Pledged nothing, took nothing | **+8** |
-| Pledged nothing, took audiences | **−8**, however many |
+| Pledge kept exactly | **+1**, plus 2 per audience won |
+| Pledge missed, high or low | the pledge itself, less 2 for every audience off it |
+| Pledged nothing by sending four Fools, took nothing | **+8** |
+| Pledged nothing any other way, took nothing | **+1** |
+| Pledged nothing, took audiences | **−2** per audience |
 
-Pledge 5, win 4 → 4 − 2 = **2**. Pledge 3, win 6 → 6 − 6 = **0**. Pledge 0, win 3 → **−8**.
+Pledge 2, win 2 → 1 + 4 = **5**. Pledge 4, win 3 → 4 − 2 = **2**. Pledge 2, win 4 → 2 − 4 = **−2**.
 
-Promising the court nothing is the biggest swing in the game — sixteen favour between keeping it
-and breaking it — and it needs four Fools to reach.
+Being wrong costs **2 favour per audience in either direction**, so there is nothing to be had by
+under-promising on purpose. The only good outcome is the exact one.
+
+A true nil is the biggest swing in the game — eight for keeping it, and two an audience against you
+for breaking it — and it needs all four errands to be Fools. A set that merely adds up to nothing
+pays **+1**, less than the smallest kept promise, so it is never worth sending on purpose.
 
 ### The Whispers — optional
 
@@ -111,44 +134,45 @@ Twenty-two of them: **fifteen boons** that pay, and **seven burdens** that cost.
 
 | Whisper | The monarch’s word |
 | --- | --- |
-| **Blackmailed** | At least one Assassin must go out. Keep your pledge for **+6**. |
-| **Sworn to Silence** | No Assassin may go out. Keep your pledge for **+3**. |
-| **The Smitten** | No Lover may go out. Keep your pledge for **+3**. |
-| **The Audited** | Send two Merchants and two Fools, which pledges exactly 2. Keep it for **+4**. |
-| **The Debtor** | A kept pledge of 2 or fewer earns nothing; keep 3 or more for **+3**. |
-| **All or Nothing** | Keep your pledge for **double favour**. Break it and lose 3, whatever else you did. |
-| **The Cautious Clerk** | You cannot lose favour this night, nor gain more than 7. |
-| **The Bold** | **+6** if your pledge is the highest at the table, outright. |
-| **The Meek** | **−3** if your pledge is the lowest or tied for lowest. Keep it for **+4**. |
-| **The Kingmaker** | Keep your pledge and take **+2** for every other noble who broke theirs. |
-| **The Favourite** | **+6** if you win more audiences than any other noble, outright. |
-| **The Wallflower** | **+6** if you win fewer audiences than any other noble, outright. |
-| **Sworn to the Fool** | **+3** favour for every audience you take with a Fool. |
-| **The Contrarian** | Your pledge counts the audiences you will NOT win. Keep it for **+2**. |
-| **The Understudy** | You are scored against the pledge of the noble on your right, not your own. Take **+3** for the trouble, and **+5** more if you match it. |
+| **Blackmailed** | At least two Assassins must go out. Keep your pledge for **+6**. |
+| **Sworn to Silence** | No Assassin may go out. Keep your pledge for **+4**. |
+| **The Smitten** | No Lover may go out. Keep your pledge for **+5**. |
+| **Sworn to the Ledger** | No Merchant may go out. Keep your pledge for **+5**. |
+| **The Audited** | Send three Merchants and one Fool, which pledges exactly 2. Keep it for **+6**. |
+| **The Debtor** | A kept pledge of 2 or fewer earns nothing; keep 3 or more for **+5**. |
+| **All or Nothing** | Keep your pledge for **double favour**. Break it and the night is worth **−1** for every audience off it, whatever else you did. |
+| **The Bold** | **+4** if no noble pledges more than you. |
+| **The Kingmaker** | Keep your pledge and take **+3** for every other noble who broke theirs. |
+| **The Favourite** | **+6** if no noble wins more audiences than you. |
+| **The Wallflower** | **+5** if no noble wins fewer audiences than you. |
+| **Sworn to the Fool** | Your pledge is not scored. **+2** for every Fool in the audiences you win. |
+| **The Twin** | **+2** for every pair of agents of the same kind and rank you take in one audience. |
+| **The Modest** | **+3** for every audience you win with an agent of rank 5 or lower. |
+| **The Understudy** | You are scored against the pledge of the noble on your right, not your own. Take **+2** for the trouble, and **+5** more if you match it. |
 
 ### The burdens
 
 | Burden | The monarch’s word |
 | --- | --- |
-| **The Condemned** | Break your pledge and lose a further 3. |
-| **The Scapegoat** | **−2** for every other noble who keeps their pledge, to a limit of 4. |
-| **In Disgrace** | Favour you gain tonight is halved. Favour you lose is not. |
+| **The Saboteur** | Your pledge is not scored. **+5**, less 3 for every other noble who keeps theirs. |
 | **The Watched** | Your errands are laid face up as soon as they are sent. |
-| **Marked for the Blade** | **−2** for every audience you take with an Assassin. |
-| **Out of Favour** | A kept pledge of 4 or more earns you nothing. |
-| **Called Out** | **−5** if you win more audiences than the noble on your right. |
+| **Marked for the Blade** | **−2** for every audience you win with an Assassin. |
+| **Out of Favour** | **−2** unless no noble wins fewer audiences than you. |
+| **The Optimist** | **−3** for every audience you take short of your pledge. |
+| **The Beggar’s Bargain** | Favour you gain is halved unless you win an audience with a Fool in it. |
+| **Called Out** | **−3** if you win more audiences than the noble on your right. |
 
-**A demand is a request, not a rule.** Four Whispers ask something of your errands — an Assassin
-sent, or kept back, or two Merchants and two Fools. You may always pledge exactly as you please and
+**A demand is a request, not a rule.** Five Whispers ask something of your errands — two Assassins
+sent, a whole kind held back, or an exact count of Merchants and Fools. You may always pledge exactly as you please and
 ignore the word entirely. But a Whisper that was not heeded **pays nothing at all**: its rewards are
 forfeit and you score the night as though you had gone without one. Agents the word asked you to
 keep back are marked in crimson while you choose, so the choice is never made by accident.
 
-Two of them are worth understanding before you meet them. **The Contrarian** scores exactly as a
-noble who had openly promised the complement, so the inversion itself is free; what it really buys
-is a table that sees a bold pledge of eight where the real promise was three. **The Understudy** is
-aiming at a number nobody has shown them, which is why it pays whether or not it lands.
+Three of them set your own pledge aside altogether and score the night some other way. **Sworn to
+the Fool** counts Fools inside the audiences you win, whoever played them. **The Saboteur** is paid
+for the promises the *rest* of the table breaks, which makes its holder the one noble at court with
+no reason to want a quiet evening. **The Understudy** keeps a pledge, but not its own — it is aiming
+at a number nobody has shown it, which is why it pays a little whether or not it lands.
 
 ### Who holds sway
 
@@ -182,7 +206,6 @@ and the logic files also load under Node, which is how the tests run.
 
 | File | What is in it |
 | --- | --- |
-| [`js/ruleset.js`](js/ruleset.js) | Which of the two rulesets the court is playing under, and everything that differs between them |
 | [`js/cards.js`](js/cards.js) | The sixty-card deck, the four agents, shuffling and sorting |
 | [`js/rules.js`](js/rules.js) | Pure rules: legal plays, who takes the audience, favour, the sway ladder |
 | [`js/whispers.js`](js/whispers.js) | The twenty-two Whispers, declared in one table |
@@ -218,46 +241,32 @@ a coronet in a beaded ring — on anything the monarch is responsible for, a loz
 breaking each rule, and the four agent marks as a footer device. Card backs are plum with a woven
 diagonal and a gold border.
 
-Still to make: the sixty playing cards themselves. The printed edition is **Ruleset A**; a
-physical deck can only carry one ruleset, and that decision has not been made.
+Still to make: the sixty playing cards themselves. The printed sheets under
+`print/fools-court-card-source/` still carry the flat 1–15 deck the game was first written around,
+and have not been redrawn for the deck below.
 
-## Ruleset B
+## The deck
 
-The game above is **Ruleset A**, and it is what the app plays by default. Ticking **Use Ruleset B**
-in the top bar plays an alternate set of rules instead. It is a variant, not a replacement: nothing
-about A changes, and switching begins a fresh season.
+The four kinds do not share a ladder. Each holds fifteen cards, but over its own stretch of the
+ranks and with its own crowding:
 
-| | Ruleset A | Ruleset B |
-| --- | --- | --- |
-| Ranks | 1–15, one card each | each kind keeps to its own stretch of 1–15 |
-| Equal ranks | cannot happen | the audience goes to whoever played second |
-| A Fool on an errand | promises 0 | costs 1, and a set coming to nought pledges nothing |
-| Pledge kept | 2 an audience | 1, plus 2 an audience |
-| Pledge missed | 1 an audience, less 2 for every one off | the pledge, less 2 for every one off |
-| Promising nothing | 8 kept, −8 broken | 8 for four Fools, 1 for any other nought, −2 an audience broken |
+| Agent | Ranks held | Cards |
+| --- | --- | ---: |
+| **Assassins** | 11, **2×**12, **3×**13, **4×**14, **5×**15 | 15 |
+| **Lovers** | 1, then **2×** every even rank to 14 | 15 |
+| **Merchants** | 1–15, one of each | 15 |
+| **Fools** | **5×**1, **4×**2, **3×**3, **2×**4, 5 | 15 |
 
-Under B the monarch keeps a different book. Five words are **withdrawn** — The Cautious Clerk, The
-Meek, In Disgrace, The Contrarian and The Condemned — and five are dealt **only** under B:
+Every Assassin outranks every Fool, and a Fool is worth **−1** on an errand, so the cheapest kind to
+promise with is also the one that wins nothing. The Merchants are the only kind that can meet any
+other on its own ground.
 
-| Whisper | The monarch’s word |
-| --- | --- |
-| **Sworn to the Ledger** | No Merchant may go out. Keep your pledge for **+4**. |
-| **The Twin** | **+3** for every pair of agents of the same kind and rank you take in one audience. |
-| **The Modest** | **+2** for every audience you win with an agent of rank 5 or lower. |
-| **The Optimist** *(burden)* | **−1** for every audience you take short of your pledge. |
-| **The Beggar’s Bargain** *(burden)* | Your favour is halved unless you win an audience with a Fool in it. |
-
-Four more read differently: **Blackmailed** asks for two Assassins rather than one, **The Audited**
-sends three Merchants and one Fool, and **The Scapegoat** and **Sworn to the Fool** are rewritten to
-set the pledge aside altogether. The other seventeen are word for word the same, and every point
-value on them is unchanged.
-
-Either way twenty-two words go into the pool, seven of them burdens, and the rulebook behind
-**Rules** rewrites itself to match whichever ruleset is in force. The deck is sixty cards either way.
-
-The Twin is the one that could only exist under B: two agents of a kind can only meet on a rank
-where the deck strikes it twice, and when they do, the tie rule hands the audience to whoever played
-second.
+Because a rank can be struck as many as five times, two agents of the same kind can meet on the same
+rank. **The audience then goes to whoever played it second** — the later word is the one the court
+remembers. That settles about one audience in five, and it makes a card nothing can beat much
+rarer: holding an Assassin 15 proves nothing while four more of them are unaccounted for. Cards of
+one rank and kind are identical in play, and carry a row of pips beside the rank saying how many of
+them the deck holds.
 
 Under B the four kinds do not share a ladder. Each still holds fifteen cards, but over its own
 stretch of the ranks and with its own crowding:
@@ -284,15 +293,20 @@ for.
 npm test
 ```
 
-Around 5,500 assertions, most pinned explicitly to Ruleset A and the rest covering B: the favour table, who takes an audience under every sway, answering in
-kind, the sway ladder, the tie-breakers, all twenty-two Whispers in isolation, a full season played
+Around 5,600 assertions: the deck's shape and its unique card names, the favour table row by row,
+ties to the second card, the pledge clamp and the two kinds of nought, who takes an audience under
+every sway, answering in kind, the sway ladder, the tie-breakers, all twenty-two Whispers in
+isolation, the rulebook prose rendering with no unresolved cross-references, a full season played
 with Whispers switched off, plus twenty complete seasons played end to end against invariants
 (every night is eleven audiences and four different Whispers, every deal is sixty agents, every
 pledge obeys the Whisper that was given, every favour follows pledge → counted → kept → base →
-Whisper). Ruleset B adds its own block — deck shape and unique card names, ties to the second card,
-the pledge clamp and the two kinds of nought, every row of the favour table, the four Whispers that
-change, and a refusal to swap rulesets in the middle of a season — and puts the court back on A
-when it is done, so nothing after it is scored under the wrong rules.
+Whisper).
+
+The run ends with a list of **known issues**: expectations that are correct but that the game does
+not meet yet, recorded rather than asserted so a real regression cannot hide behind a red suite.
+There is one — the rival nobles collectively aim at about 16 audiences of the 11 on offer, because
+`estimateTricks` reads an honour as "do you hold the kind's top rank", which is nearly free on a
+deck that strikes a rank up to five times.
 
 Whole seasons are measured separately, which is where the interaction bugs live:
 

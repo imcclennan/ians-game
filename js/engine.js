@@ -7,7 +7,6 @@
 
   const Cards = global.Cards;
   const Rules = global.Rules;
-  const Ruleset = global.Ruleset;
   const AI = global.AI;
   const Whispers = global.Whispers;
 
@@ -42,10 +41,6 @@
         score: 0
       })),
       human: HUMAN,
-      // Which rules this season was played under. A season scored under one
-      // ruleset must never be reopened under the other, so the answer travels
-      // with the state and with every night in its history.
-      ruleset: Ruleset.currentId(),
       dealer: settings.dealer === undefined
         ? Math.floor(Math.random() * Rules.PLAYER_COUNT)
         : settings.dealer,
@@ -73,12 +68,6 @@
 
   /** Shuffle, deal fifteen to each noble, and open the pledging. */
   function startHand(state) {
-    if (state.ruleset !== Ruleset.currentId()) {
-      throw new Error('This season was dealt under Ruleset ' + state.ruleset);
-    }
-    // From the first card dealt until the season ends, the rules are settled:
-    // the deck now on the table has ranks the other ruleset may not know.
-    Ruleset.beginSeason(state);
     const deck = Cards.shuffle(Cards.makeDeck(), state.rng);
 
     // The Whispers are shuffled but not handed out. A noble takes one only if
@@ -378,7 +367,6 @@
     state.nextTrump = Rules.trumpForNextHand(madeCount);
     state.handSummary = {
       handNumber: state.handNumber,
-      ruleset: state.ruleset,
       trump: state.trump,
       whispersOn: state.whispersOn,
       madeCount: madeCount,
@@ -392,9 +380,6 @@
       state.winners = decision.winners;
       state.winReason = decision.wasTied ? decision.reason : null;
       state.phase = 'gameOver';
-      // The season is closed and the accounts settled; the court is free to
-      // change its rules again.
-      Ruleset.endSeason(state);
     } else {
       state.winners = [];
       state.winReason = null;
@@ -403,20 +388,10 @@
     return state;
   }
 
-  /**
-   * Walk away from a season before Twelfth Night. Nothing is scored; the point
-   * is to release the ruleset so the court may change it.
-   */
-  function abandonSeason(state) {
-    Ruleset.endSeason(state);
-    return state;
-  }
-
   global.Engine = {
     SEATS: SEATS,
     HUMAN: HUMAN,
     createGame: createGame,
-    abandonSeason: abandonSeason,
     startHand: startHand,
     mayTakeWhisper: mayTakeWhisper,
     takeWhisper: takeWhisper,

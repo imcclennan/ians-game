@@ -12,7 +12,6 @@
   const Cards = global.Cards;
   const Rules = global.Rules;
   const Whispers = global.Whispers;
-  const Ruleset = global.Ruleset;
 
   const INK = { S: 'graphite', H: 'crimson', D: 'antique gold', C: 'plum' };
   const FACE = { S: 'pale slate', H: 'pale rose', D: 'pale gold', C: 'pale lilac' };
@@ -74,26 +73,16 @@
       '</table>';
   }
 
-  /** What each result is worth, as the ruleset in force pays it. */
+  /** What each result is worth. */
   function favourTable() {
-    const r = Ruleset.current();
-    const bonus = r.flatBonus;
-    const rows = bonus > 0
-      ? [
-        ['Pledge kept exactly', bonus + ', plus 2 for every audience won'],
-        ['Pledge missed, high or low',
-          'the pledge itself, less 2 for every audience off it'],
-        ['Pledged nothing by sending four Fools, won nothing', String(r.nilPay)],
-        ['Pledged nothing any other way, won nothing', String(bonus)],
-        ['Pledged nothing, won audiences', '−2 for every audience won']
-      ]
-      : [
-        ['Pledge kept exactly', '2 for every audience won'],
-        ['Pledge missed, high or low',
-          '1 for every audience won, less 2 for every audience off the pledge'],
-        ['Pledged nothing, won nothing', String(r.nilPay)],
-        ['Pledged nothing, won audiences', '−' + r.nilPay + ', however many']
-      ];
+    const rows = [
+      ['Pledge kept exactly', Rules.FLAT_BONUS + ', plus 2 for every audience won'],
+      ['Pledge missed, high or low',
+        'the pledge itself, less 2 for every audience off it'],
+      ['Pledged nothing by sending four Fools, won nothing', String(Rules.NIL_PAY)],
+      ['Pledged nothing any other way, won nothing', String(Rules.FLAT_BONUS)],
+      ['Pledged nothing, won audiences', '−2 for every audience won']
+    ];
     return '<table class="rule-table">' +
       '<tr><th class="left">Result</th><th class="left">Favour</th></tr>' +
       rows.map(([result, favour]) => '<tr><td class="left">' + result +
@@ -114,16 +103,10 @@
 
   /**
    * The rules as they stand tonight. Built afresh on every call rather than
-   * once at load: the court may change which ruleset it plays under between
-   * seasons, and the written rules must follow it.
+   * once at load, so the prose and the code cannot drift apart.
    */
   function buildSections() {
   const T = Rules.TRICKS_PER_HAND;
-  const R = Ruleset.current();
-  const crowded = R.hasDuplicates;
-  // Whether every kind runs the same ranks, or each keeps to its own stretch.
-  const sharedLadder = Cards.SUITS.every((suit) =>
-    Cards.ranksOf(suit).length === Cards.ranksOf(Cards.SUITS[0]).length);
   const SECTIONS = [
     {
       id: 'rule-overview',
@@ -151,20 +134,17 @@
         '<strong>15 of each kind</strong>, ranked from <strong>1 to ' + Cards.HIGHEST_VALUE +
         '</strong>. Rank ' + Cards.HIGHEST_VALUE + ' is the most influential and rank 1 the least.</p>' +
         agentTable() +
-        (sharedLadder && !crowded ? '' :
-          (sharedLadder
-            ? '<p>Each kind holds fifteen cards, and some ranks are struck more than once.</p>'
-            : '<p>The four kinds <strong>do not share a ladder</strong>. Each holds fifteen ' +
-              'cards, but over its own stretch of the ranks and with its own crowding: the ' +
-              'Assassins sit at the top and the Fools at the bottom, the Merchants alone run ' +
-              'the whole range, and the Lovers take every other rung in pairs. A kind holds ' +
-              'nothing at all at the ranks not listed for it.</p>') +
-          compositionTable() +
-          '<p>Cards of the same kind and rank are <strong>identical in play</strong>. They ' +
-          'carry no distinguishing mark beyond a count of how many the deck holds, and none is ' +
-          'needed: the only rule that can tell them apart is the one that settles an audience ' +
-          'between them, and that rule turns on the order they were played rather than on the ' +
-          'cards themselves (section {{rule-play}}).</p>') +
+        '<p>The four kinds <strong>do not share a ladder</strong>. Each holds fifteen ' +
+        'cards, but over its own stretch of the ranks and with its own crowding: the ' +
+        'Assassins sit at the top and the Fools at the bottom, the Merchants alone run ' +
+        'the whole range, and the Lovers take every other rung in pairs. A kind holds ' +
+        'nothing at all at the ranks not listed for it.</p>' +
+        compositionTable() +
+        '<p>Cards of the same kind and rank are <strong>identical in play</strong>. They ' +
+        'carry no distinguishing mark beyond a count of how many the deck holds, and none is ' +
+        'needed: the only rule that can tell them apart is the one that settles an audience ' +
+        'between them, and that rule turns on the order they were played rather than on the ' +
+        'cards themselves (section {{rule-play}}).</p>' +
         '<p>An agent’s <em>kind</em> determines what it is worth when sent out on an errand ' +
         '(section {{rule-pledge}}). An agent’s <em>rank</em> determines whether it wins an audience ' +
         '(section {{rule-play}}). The two are used at different times and never interact.</p>'
@@ -294,19 +274,17 @@
         '(section {{rule-sway}}) were played, in which case the highest-ranked of those wins instead.</p>' +
         '<p>A card of neither the opening kind nor the ruling kind can never ' +
         'win an audience, whatever its rank.</p>' +
-        (R.tieToSecond
-          ? '<p><strong>Equal ranks.</strong> Because the deck strikes some ranks more than ' +
-            'once (section {{rule-deck}}), two agents of the same kind can meet on the same ' +
-            'rank. The audience then goes to <strong>whichever of them was played ' +
-            'later</strong>. The later word is the one the court remembers.</p>' +
-            '<p>This settles roughly <strong>one audience in five</strong>, so it is worth ' +
-            'knowing before you lead: a card that could not be beaten can still be matched, and ' +
-            'a player sitting after you needs only to equal it. Where a rank is struck ' +
-            Ruleset.current().mostCopies + ' times, holding one of them proves very little.</p>' +
-            '<p>The rule applies <em>within a single kind</em> and nowhere else. A card of the ' +
-            'ruling kind beats one of any other kind whatever the two ranks are, so an equal ' +
-            'rank in a different kind settles nothing.</p>'
-          : '') +
+        '<p><strong>Equal ranks.</strong> Because the deck strikes some ranks more than ' +
+        'once (section {{rule-deck}}), two agents of the same kind can meet on the same ' +
+        'rank. The audience then goes to <strong>whichever of them was played ' +
+        'later</strong>. The later word is the one the court remembers.</p>' +
+        '<p>This settles roughly <strong>one audience in five</strong>, so it is worth ' +
+        'knowing before you lead: a card that could not be beaten can still be matched, and ' +
+        'a player sitting after you needs only to equal it. Where a rank is struck ' +
+        Cards.MOST_COPIES + ' times, holding one of them proves very little.</p>' +
+        '<p>The rule applies <em>within a single kind</em> and nowhere else. A card of the ' +
+        'ruling kind beats one of any other kind whatever the two ranks are, so an equal ' +
+        'rank in a different kind settles nothing.</p>' +
         '<p>The winner of an audience opens the next. ' + T + ' audiences are ' +
         'played, exhausting every hand.</p>'
     },
@@ -318,37 +296,21 @@
         'pledge they made, and scores as follows.</p>' +
         favourTable() +
         '<p><strong>Examples.</strong></p>' +
-        (R.flatBonus > 0
-          ? '<ul class="rule-examples">' +
-            '<li>Pledged 2, won 2. The pledge is kept: 1 + 4 = <b>5 favour</b>.</li>' +
-            '<li>Pledged 1, won 1. Kept: 1 + 2 = <b>3 favour</b>.</li>' +
-            '<li>Pledged 4, won 3. One short: 4 − 2 = <b>2 favour</b>.</li>' +
-            '<li>Pledged 2, won 4. Two over: 2 − 4 = <b>−2 favour</b>.</li>' +
-            '<li>Sent four Fools, won nothing. A true nil kept: <b>8 favour</b>.</li>' +
-            '<li>Sent four Fools, won 2. The nil is broken: <b>−4 favour</b>.</li>' +
-            '<li>Sent errands adding up to nothing some other way, won nothing. Nothing ' +
-            'promised and nothing taken, but no nil: <b>1 favour</b>.</li>' +
-            '</ul>' +
-            '<p class="rule-note">Being wrong costs 2 favour per audience in <em>either</em> ' +
-            'direction, so there is no advantage in deliberately under-promising and ' +
-            'overshooting. The only good outcome is the exact one. Note too that a nil is worth ' +
-            'reaching for only when it can be made honestly: four Fools pays eight, while a set ' +
-            'that merely adds up to nought pays less than the smallest kept promise.</p>'
-          : '<ul class="rule-examples">' +
-            '<li>Pledged 4, won 4. The pledge is kept: <b>8 favour</b>.</li>' +
-            '<li>Pledged 5, won 4. One short: 4 − 2 = <b>2 favour</b>.</li>' +
-            '<li>Pledged 3, won 6. Three over: 6 − 6 = <b>0 favour</b>.</li>' +
-            '<li>Pledged 2, won 0. Two short: 0 − 4 = <b>−4 favour</b>.</li>' +
-            '<li>Pledged 0, won 0. The pledge is kept: <b>8 favour</b>.</li>' +
-            '<li>Pledged 0, won 3. Broken, and the count does not matter: ' +
-            '<b>−8 favour</b>.</li>' +
-            '</ul>' +
-            '<p class="rule-note">The two directions do not cost the same. Once you are past ' +
-            'your pledge each further audience costs only 1, while each audience you fall short ' +
-            'by costs 3. A player torn between two numbers should promise the higher of them ' +
-            'and try to fall on it; a player who deliberately promises low and overshoots still ' +
-            'ends up worse off than one who simply promised right. The only good outcome is the ' +
-            'exact one.</p>')
+        '<ul class="rule-examples">' +
+        '<li>Pledged 2, won 2. The pledge is kept: 1 + 4 = <b>5 favour</b>.</li>' +
+        '<li>Pledged 1, won 1. Kept: 1 + 2 = <b>3 favour</b>.</li>' +
+        '<li>Pledged 4, won 3. One short: 4 − 2 = <b>2 favour</b>.</li>' +
+        '<li>Pledged 2, won 4. Two over: 2 − 4 = <b>−2 favour</b>.</li>' +
+        '<li>Sent four Fools, won nothing. A true nil kept: <b>8 favour</b>.</li>' +
+        '<li>Sent four Fools, won 2. The nil is broken: <b>−4 favour</b>.</li>' +
+        '<li>Sent errands adding up to nothing some other way, won nothing. Nothing ' +
+        'promised and nothing taken, but no nil: <b>1 favour</b>.</li>' +
+        '</ul>' +
+        '<p class="rule-note">Being wrong costs 2 favour per audience in <em>either</em> ' +
+        'direction, so there is no advantage in deliberately under-promising and ' +
+        'overshooting. The only good outcome is the exact one. Note too that a nil is worth ' +
+        'reaching for only when it can be made honestly: four Fools pays eight, while a set ' +
+        'that merely adds up to nought pays less than the smallest kept promise.</p>'
     },
     {
       id: 'rule-sway',

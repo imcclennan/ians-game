@@ -6,19 +6,18 @@
  * kind of agent has fallen out of holding sway, because nothing about either is
  * wrong in a way an assertion can see. This measures whole seasons instead.
  *
- *   node test/selfplay.js [seasons] [rulesetId...]
+ *   node test/selfplay.js [seasons]
  *
- * Defaults to 300 seasons of each ruleset. Every figure is deterministic for a
- * given season count: the seeds are fixed.
+ * Defaults to 300 seasons. Every figure is deterministic for a given season
+ * count: the seeds are fixed.
  */
-require('../js/ruleset.js');
 require('../js/cards.js');
 require('../js/rules.js');
 require('../js/whispers.js');
 require('../js/ai.js');
 require('../js/engine.js');
 
-const { Cards, Rules, AI, Engine, Whispers, Ruleset } = globalThis;
+const { Cards, Rules, AI, Engine, Whispers } = globalThis;
 
 function seededRandom(seed) {
   let value = seed >>> 0;
@@ -181,16 +180,13 @@ function playSeason(tally, seed) {
   if (beforeLast !== atEnd) tally.wireFinishes += 1;
 }
 
-function measure(id, seasons) {
-  Ruleset.reset();
-  Ruleset.use(id);
+function measure(seasons) {
   const tally = blankTally();
   for (let season = 0; season < seasons; season++) playSeason(tally, 0x5eed + season * 7919);
-  Ruleset.reset();
   return tally;
 }
 
-function report(tallies, ids) {
+function report(tally) {
   const rows = [
     ['Exact-pledge rate', (t) => pct(t.exact, t.playerNights).toFixed(1) + '%'],
     ['Mean pledge', (t) => mean(t.pledges).toFixed(2)],
@@ -217,15 +213,11 @@ function report(tallies, ids) {
   ];
 
   const label = (s, n) => s + ' '.repeat(Math.max(1, n - s.length));
-  console.log(label('', 36) + ids.map((id) => label('Ruleset ' + id, 22)).join(''));
   for (const [name, render] of rows) {
-    console.log(label(name, 36) + ids.map((id) => label(render(tallies[id]), 22)).join(''));
+    console.log(label(name, 36) + render(tally));
   }
 }
 
 const seasons = Number(process.argv[2]) || 300;
-const ids = process.argv.slice(3).length ? process.argv.slice(3) : ['A', 'B'];
-const tallies = {};
-for (const id of ids) tallies[id] = measure(id, seasons);
-console.log(seasons + ' seasons per ruleset, four computer nobles, Whispers on.\n');
-report(tallies, ids);
+console.log(seasons + ' seasons, four computer nobles, Whispers on.\n');
+report(measure(seasons));

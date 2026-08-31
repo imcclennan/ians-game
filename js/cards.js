@@ -2,10 +2,10 @@
  * cards.js - the deck and its primitives.
  *
  * Sixty cards: four agents, fifteen apiece, each ranked by their standing at
- * court. Which ranks a kind runs to, and how many of each it holds, is the
- * business of the active ruleset -- one card at every rank from 1 to 15 under
- * A, four kinds with ladders of their own under B. Either way the deck comes
- * to sixty.
+ * court. The four kinds do not share a ladder. Each keeps to its own stretch
+ * of the ranks and crowds it in its own way -- the Assassins at the top, the
+ * Fools at the bottom, the Merchants alone running the whole range, and the
+ * Lovers taking every other rung in pairs.
  *
  * The classic pips are kept because they already read as the four agents --
  * the blade, the heart, the coin, the jester's bauble.
@@ -15,8 +15,6 @@
  */
 (function (global) {
   'use strict';
-
-  const Ruleset = global.Ruleset;
 
   const SUITS = ['C', 'D', 'H', 'S'];
 
@@ -65,18 +63,56 @@
   // with whoever holds sway pulled to the front of all of them.
   const DISPLAY_ORDER = ['S', 'H', 'D', 'C'];
 
+  // Audiences promised when an agent is sent out on an errand. A Fool costs a
+  // promise rather than making none, which is what lets a set of errands come
+  // to nothing at all.
+  const BID_VALUE = { C: -1, D: 1, H: 2, S: 3 };
+
+  /** A kind holding one card at every rank from 1 up to the given rank. */
+  function oneEach(highest) {
+    const copies = {};
+    for (let rank = 1; rank <= highest; rank++) copies[rank] = 1;
+    return copies;
+  }
+
+  const HIGHEST_VALUE = 15;
+
+  // Every rank the deck holds anywhere. Only the Merchants run all of them.
+  const RANKS = Object.keys(oneEach(HIGHEST_VALUE));
+
   /**
-   * How many cards of this rank the active deck holds in this kind. Zero where
-   * the kind does not run to that rank at all -- the kinds need not share a
-   * ladder, and under Ruleset B they do not.
+   * How many of each rank each kind holds. Fifteen cards apiece, sixty in all.
+   * A rank a kind does not appear at is simply absent, and cards of one rank
+   * and kind are identical in play.
+   */
+  const COPIES = {
+    // One 5 down to five 1s: the Fools are worthless and there are hordes of
+    // them, which is the point of a kind that costs you a promise.
+    C: { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 },
+    // The only kind that runs the whole ladder, one of each.
+    D: oneEach(HIGHEST_VALUE),
+    // A single 1, then a pair at every even rank up to 14.
+    H: { 1: 1, 2: 2, 4: 2, 6: 2, 8: 2, 10: 2, 12: 2, 14: 2 },
+    // Five 15s down to a single 11. Every Assassin outranks every Fool, every
+    // Lover but the 12s and 14s, and all but the top four Merchants.
+    S: { 11: 1, 12: 2, 13: 3, 14: 4, 15: 5 }
+  };
+
+  // The most of any one rank the deck holds, which is how many marks a card
+  // may have to carry.
+  const MOST_COPIES = 5;
+
+  /**
+   * How many cards of this rank the deck holds in this kind. Zero where the
+   * kind does not run to that rank at all.
    */
   function copiesOf(suit, rank) {
-    return Ruleset.current().copies[suit][String(rank)] || 0;
+    return COPIES[suit][String(rank)] || 0;
   }
 
   /** The ranks this kind actually holds, lowest first. */
   function ranksOf(suit) {
-    return Object.keys(Ruleset.current().copies[suit]).sort((a, b) => Number(a) - Number(b));
+    return Object.keys(COPIES[suit]).sort((a, b) => Number(a) - Number(b));
   }
 
   /**
@@ -84,9 +120,6 @@
    * play and carry no distinguishing face, but they must still be told apart
    * here: a shared id would let removeCards strip every copy at once, and
    * would make every Set of cards already seen quietly undercount.
-   *
-   * The copy number is always present, in both rulesets, so that no code
-   * anywhere has to know which ruleset it is building an id for.
    */
   function idFor(suit, rank, copy) {
     return String(rank) + suit + (copy || 0);
@@ -136,13 +169,11 @@
   }
 
   /**
-   * What a set of agents promises, before any ruleset has had its say about
-   * what to do with a total of nothing or less. Rules.bidFromCards is the one
-   * that turns this into a pledge.
+   * What a set of agents promises, before anything is done about a total of
+   * nothing or less. Rules.bidFromCards turns this into a pledge.
    */
   function bidValueOf(cards) {
-    const bidValue = Ruleset.current().bidValue;
-    return cards.reduce((total, card) => total + bidValue[card.suit], 0);
+    return cards.reduce((total, card) => total + BID_VALUE[card.suit], 0);
   }
 
   function cardsOfSuit(cards, suit) {
@@ -185,6 +216,11 @@
     SUIT_EMBLEM: SUIT_EMBLEM,
     emblem: emblem,
     SUIT_COLOR: SUIT_COLOR,
+    BID_VALUE: BID_VALUE,
+    RANKS: RANKS,
+    HIGHEST_VALUE: HIGHEST_VALUE,
+    COPIES: COPIES,
+    MOST_COPIES: MOST_COPIES,
     copiesOf: copiesOf,
     ranksOf: ranksOf,
     idFor: idFor,
@@ -200,15 +236,4 @@
     removeCards: removeCards,
     describe: describe
   };
-
-  // The shape of the deck belongs to the ruleset in force, and the ruleset can
-  // change between seasons, so these are read through rather than copied out.
-  // Anything that captures one of them at load time will be wrong the moment
-  // the court changes its rules.
-  Object.defineProperties(global.Cards, {
-    RANKS: { enumerable: true, get: () => Ruleset.current().ranks },
-    HIGHEST_VALUE: { enumerable: true, get: () => Ruleset.current().highestValue },
-    // Audiences promised when an agent is sent out on an errand.
-    BID_VALUE: { enumerable: true, get: () => Ruleset.current().bidValue }
-  });
 })(typeof globalThis !== 'undefined' ? globalThis : this);

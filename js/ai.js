@@ -8,30 +8,79 @@
 
   const Cards = global.Cards;
   const Rules = global.Rules;
-  const Ruleset = global.Ruleset;
   const Whispers = global.Whispers;
 
   /**
-   * Roughly how many audiences a hand is worth. Calibrated for eleven-card
-   * hands with sixteen agents away on errands, so the four nobles' estimates
-   * sum to about eleven.
-   *
-   * The weights were fitted against a fifteen-rank deck. On a shorter ladder
-   * the top four honours come up far more often and the estimate runs high;
-   * retuning them is a separate, measurable change.
-   */
-  /**
    * The four most influential ranks a kind actually holds, highest first. The
-   * kinds need not share a ladder -- under Ruleset B the Fools stop at 5 and
-   * the Assassins start at 11 -- so an honour has to be read against its own
-   * kind. Where every kind runs the same range this is the top four of the
-   * deck, exactly as it always was.
+   * kinds do not share a ladder -- the Fools stop at 5 and the Assassins start
+   * at 11 -- so an honour has to be read against its own kind.
+   *
+   * Kept for the rulebook and the tests; the estimate itself no longer asks
+   * which ranks a hand holds, but what can still beat them.
    */
   function honours(suit) {
     const ranks = Cards.ranksOf(suit).map(Number);
     return ranks.slice(-4).reverse();
   }
 
+  /**
+   * How many agents of a card's own kind, held by somebody else, could take an
+   * audience from it.
+   *
+   * An equal rank counts as a threat, not merely a higher one: an audience
+   * between two of a kind goes to whoever played second, so a matching card
+   * played after this one beats it. Cards of that rank in our own hand are not
+   * threats, since we choose when they are played.
+   *
+   * This is what a rank position cannot tell you on this deck. The top rank of
+   * the Assassins is struck five times, so holding one leaves four outstanding
+   * and proves almost nothing; the top rank of the Fools is struck once, and
+   * holding it settles the kind outright.
+   */
+  function threatsTo(card, hand) {
+    let inKind = 0;
+    for (const rank of Cards.ranksOf(card.suit)) {
+      if (Number(rank) >= card.value) inKind += Cards.copiesOf(card.suit, rank);
+    }
+    const ours = hand.filter(
+      (held) => held.suit === card.suit && held.value >= card.value).length;
+    return inKind - ours;
+  }
+
+  /**
+   * Fitted by test/selfplay.js against whole seasons: the four nobles'
+   * estimates should sum to about the eleven audiences on offer, and the
+   * exact-pledge rate should be as high as the heuristic can make it.
+   */
+  const TUNING = {
+    // How fast a card's promise falls away as more of its kind outrank it.
+    // At 0.65 a card with nothing above it is a whole audience, one threat
+    // leaves 0.61 of it, and an Assassin 15 with its four twins unaccounted
+    // for is worth 0.28 -- which is about what one is worth when led.
+    commandDecay: 0.65,
+    // Applied to the whole estimate once the suits are added up.
+    scale: 0.86
+  };
+
+  /** Roughly the chance a card takes the audience it is played into. */
+  function command(threats) {
+    return 1 / (1 + TUNING.commandDecay * threats);
+  }
+
+  // What the best, second-best, third and fourth-best agent of a kind are worth
+  // in hand. These are the weights the game has always used; what has changed
+  // is that each is now discounted by how much of the kind is still out there
+  // above it, which is the job the old rank-position test did badly.
+  const SLOT = {
+    trump: [1.10, 1.00, 0.74, 0.40],
+    side: [1.05, 0.76, 0.45, 0.20]
+  };
+
+  /**
+   * Roughly how many audiences a hand is worth. Calibrated for eleven-card
+   * hands with sixteen agents away on errands, so the four nobles' estimates
+   * sum to about eleven.
+   */
   function estimateTricks(hand, trump) {
     const trumpLength = trump ? Cards.cardsOfSuit(hand, trump).length : 0;
     let total = 0;
@@ -39,36 +88,30 @@
     for (const suit of Cards.SUITS) {
       const cards = Cards.cardsOfSuit(hand, suit);
       const length = cards.length;
-      const has = (value) => cards.some((card) => card.value === value);
-      const [FIRST, SECOND, THIRD, FOURTH] = honours(suit);
-
-      if (trump && suit === trump) {
-        if (has(FIRST)) total += 1.10;
-        if (has(SECOND)) total += length >= 2 ? 1.00 : 0.53;
-        if (has(THIRD)) total += length >= 3 ? 0.74 : 0.27;
-        if (has(FOURTH)) total += length >= 4 ? 0.40 : 0.11;
-        total += Math.max(0, length - 4) * 0.63; // a long suit of sway runs at the end
-        continue;
-      }
 
       if (length === 0) {
         // Being void only helps if we hold agents of the ruling suit.
-        total += Math.min(trumpLength, 3) * 0.48;
+        if (trump && suit !== trump) total += Math.min(trumpLength, 3) * 0.48;
         continue;
       }
 
-      if (has(FIRST)) total += 1.05;
-      if (has(SECOND)) total += length >= 2 ? 0.76 : 0.32;
-      if (has(THIRD)) total += length >= 3 ? 0.45 : 0.11;
-      if (has(FOURTH)) total += length >= 4 ? 0.20 : 0.03;
+      const isTrump = !!trump && suit === trump;
+      const slot = isTrump ? SLOT.trump : SLOT.side;
+      const ranked = cards.slice().sort(Cards.byValueDesc);
 
-      if (trump) {
+      for (let i = 0; i < Math.min(4, length); i++) {
+        total += slot[i] * command(threatsTo(ranked[i], hand));
+      }
+
+      if (isTrump) {
+        total += Math.max(0, length - 4) * 0.63; // a long suit of sway runs at the end
+      } else if (trump) {
         if (length === 1) total += Math.min(trumpLength, 2) * 0.32;
       } else {
         total += Math.max(0, length - 4) * 0.34; // a long suit runs when nobody holds sway
       }
     }
-    return total;
+    return total * TUNING.scale;
   }
 
   /** Every combination of the hand that could be sent out as a pledge. */
@@ -152,9 +195,7 @@
       // Promising nothing and meaning it pays far more than the two a single
       // audience is otherwise worth, so it is worth reaching a little for. A
       // set that merely adds up to nought pays less than the smallest kept
-      // pledge, so it is worth reaching slightly away from. Where the ruleset
-      // does not tell the two apart, a pledge of nothing is always the true
-      // kind and only the pull applies.
+      // pledge, so it is worth reaching slightly away from.
       const nilPull = bid === 0 ? (Rules.isTrueNil(combo) ? -0.55 : 0.45) : 0;
 
       const cost = Math.abs(bid - wanted) + overreach + nilPull +
@@ -185,17 +226,15 @@
   /**
    * Nothing unseen can beat this card in its own suit.
    *
-   * Where an audience is settled in favour of whoever played second, an unseen
-   * agent of the *same* rank beats this one as surely as a higher one does, so
-   * the scan has to start at the card's own rank and account for every copy of
-   * every rank -- the card itself excepted, which is in hand and therefore
-   * beats nothing but itself.
+   * An audience is settled in favour of whoever played second, so an unseen
+   * agent of the *same* rank beats this one as surely as a higher one does.
+   * The scan therefore starts at the card's own rank and accounts for every
+   * copy of every rank at or above it -- the card itself excepted, which is in
+   * hand and therefore beats nothing but itself.
    */
   function isTopOutstanding(card, seen) {
-    const tieToSecond = Ruleset.current().tieToSecond;
     for (const rank of Cards.ranksOf(card.suit)) {
-      const value = Number(rank);
-      if (tieToSecond ? value < card.value : value <= card.value) continue;
+      if (Number(rank) < card.value) continue;
       for (const id of Cards.idsFor(card.suit, rank)) {
         if (id === card.id) continue;
         if (!seen.has(id)) return false;
@@ -329,7 +368,9 @@
   }
 
   global.AI = {
+    TUNING: TUNING,
     honours: honours,
+    threatsTo: threatsTo,
     estimateTricks: estimateTricks,
     bidCombos: bidCombos,
     wantsWhisper: wantsWhisper,
