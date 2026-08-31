@@ -32,15 +32,15 @@
   }
 
   /** Fools required in an errand before a pledge of nothing counts as meant. */
-  const NIL_FOOLS = BID_CARDS;
+  const FOOLS_ERRAND_SIZE = BID_CARDS;
 
   /**
-   * Whether an errand of nothing is a true nil -- the whole errand given over
-   * to Fools -- rather than a set that merely adds up to nought. The two pay
-   * very differently.
+   * Whether an errand of nothing is a Fool's errand -- the whole errand given
+   * over to Fools -- rather than a hollow promise, which is any other set that
+   * merely happens to add up to nought or below. The two pay very differently.
    */
-  function isTrueNil(cards) {
-    return cards.filter((card) => card.suit === 'C').length >= NIL_FOOLS;
+  function isFoolsErrand(cards) {
+    return cards.filter((card) => card.suit === 'C').length >= FOOLS_ERRAND_SIZE;
   }
 
   /** The largest pledge that can actually be kept. */
@@ -84,25 +84,25 @@
   }
 
   // Added to a pledge kept exactly, on top of 2 an audience, and paid on its
-  // own to a nought that was merely arithmetic.
+  // own to a hollow promise.
   const FLAT_BONUS = 1;
-  // A true nil kept: four Fools sent out and not one audience taken.
-  const NIL_PAY = 8;
+  // A Fool's errand kept: four Fools sent out and not one audience taken.
+  const FOOLS_ERRAND_PAY = 8;
 
   /**
    * Favour for one noble at the end of a night.
    *
-   *   true nil kept: NIL_PAY.
-   *   arithmetic nought kept: FLAT_BONUS, and no more.
-   *   either nought broken: 2 lost for every audience taken.
+   *   Fool's errand kept: FOOLS_ERRAND_PAY.
+   *   hollow promise kept: FLAT_BONUS, and no more.
+   *   either of them broken: 2 lost for every audience taken.
    *   pledge kept exactly: FLAT_BONUS, plus 2 an audience.
    *   pledge missed: the pledge itself, less 2 for every audience off it -- so
    *          falling short and overshooting cost the same, and there is nothing
    *          to be had by under-promising on purpose.
    */
-  function scoreHand(bid, tricksWon, isTrueNilErrand) {
+  function scoreHand(bid, tricksWon, isFoolsErrand) {
     if (bid === 0) {
-      if (tricksWon === 0) return isTrueNilErrand ? NIL_PAY : FLAT_BONUS;
+      if (tricksWon === 0) return isFoolsErrand ? FOOLS_ERRAND_PAY : FLAT_BONUS;
       return -2 * tricksWon;
     }
     if (tricksWon === bid) return FLAT_BONUS + 2 * tricksWon;
@@ -187,13 +187,13 @@
     BID_CARDS: BID_CARDS,
     TRICKS_PER_HAND: TRICKS_PER_HAND,
     KEEPABLE_MAX: KEEPABLE_MAX,
-    NIL_FOOLS: NIL_FOOLS,
+    FOOLS_ERRAND_SIZE: FOOLS_ERRAND_SIZE,
     FLAT_BONUS: FLAT_BONUS,
-    NIL_PAY: NIL_PAY,
+    FOOLS_ERRAND_PAY: FOOLS_ERRAND_PAY,
     SEASON_LENGTH: SEASON_LENGTH,
     SWAY_LADDER: SWAY_LADDER,
     bidFromCards: bidFromCards,
-    isTrueNil: isTrueNil,
+    isFoolsErrand: isFoolsErrand,
     legalPlays: legalPlays,
     trickWinner: trickWinner,
     scoreHand: scoreHand,

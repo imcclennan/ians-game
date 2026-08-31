@@ -1,13 +1,27 @@
 /*
- * text-cards.js — the cards whose content is mostly words: the fifteen Whisper
- * faces and the two sides of the quick reference card. These are laid out in
- * HTML so the browser does the line breaking, over an SVG ornament layer.
+ * text-cards.js — the cards whose content is mostly words: the twenty-two
+ * Whisper faces and the two sides of the quick reference card. These are laid
+ * out in HTML so the browser does the line breaking, over an SVG ornament layer.
  */
 const A = require('./art');
 const { EMBLEM, emblem, crown, fleuron, r } = A;
 const C = require('./cards');
 const WM = require('./watermark');
 const { W, H, CX, doc, sheet } = C;
+
+// What an errand promises, the favour table and its worked examples are all
+// taken from the game itself. Every one of these numbers has been wrong on a
+// printed card at least once.
+require('../../js/cards.js');
+require('../../js/rules.js');
+const { Cards: GameCards, Rules } = globalThis;
+
+/** A favour figure with a real minus sign in front of it. */
+const fav = (n) => (n < 0 ? '&minus;' + Math.abs(n) : '+' + n);
+/** A worked example, scored rather than typed. */
+const ex = (bid, won, foolsErrand) =>
+  `<span>${foolsErrand ? `${Rules.FOOLS_ERRAND_SIZE} Fools out` : `Pledged ${bid}`}, won ${won} ` +
+  `&rarr; <b>${fav(Rules.scoreHand(bid, won, !!foolsErrand))}</b></span>`;
 
 // 300 DPI page: 3" x 5" = 900 x 1500 px, 1/8" bleed, 1/8" safe zone inside trim.
 const PXW = 900, PXH = 1500;
@@ -164,12 +178,14 @@ function whisperFace(w, n, total) {
   .stack { left:${X(74)}px; top:${Y(232)}px; width:${S(552)}px; height:${S(770)}px;
            display:flex; flex-direction:column; align-items:center; justify-content:center;
            gap:${S(38)}px; }
-  .group { font-size:${S(21)}px; letter-spacing:${S(5)}px; text-transform:uppercase;
-           color:${accent}; font-weight:600; }
   .name  { font-size:${S(nameSize)}px; line-height:1.1; font-weight:600; }
   .rule  { width:${S(512)}px; font-size:${S(ruleSize)}px; line-height:1.4; }
   .flav  { width:${S(496)}px; font-size:${S(flavSize)}px; line-height:1.5; font-style:italic;
            color:${flavInk}; }
+  /* Who the word came from, set as a sign-off under the fiction. Nested inside
+     .flav rather than added to .stack so it does not take a full stack gap. */
+  .sign  { display:block; margin-top:${S(16)}px; font-size:${S(21)}px; font-style:italic;
+           color:${flavInk}; opacity:.85; }
   .div   { display:flex; align-items:center; justify-content:center; gap:${S(14)}px;
            width:${S(380)}px; }
   .div i { display:block; height:${S(1.6)}px; background:${accent}; flex:1; opacity:.9; }
@@ -184,11 +200,12 @@ function whisperFace(w, n, total) {
   const body =
     `<div class="art">${whisperArt(burden)}</div>` +
     `<div class="t wf stack">` +
-    `<div class="group">${esc(w.group)}</div>` +
     `<div class="name">${esc(w.name)}</div>` +
     `<div class="rule">${esc(w.line)}</div>` +
     divider +
-    `<div class="flav">${esc(w.detail)}</div>` +
+    `<div class="flav">${esc(w.detail)}` +
+      `<div class="sign">&mdash; ${esc(w.signed)}</div>` +
+    `</div>` +
     `</div>` +
     `<div class="t wf foot">${burden ? 'A Burden' : 'A Whisper'} &middot; ${n} of ${total}</div>`;
   return page(body, css);
@@ -279,8 +296,12 @@ function refFront() {
     `<li><b class="n">6</b><span>The stewardship passes one seat left.</span></li>` +
     `</ol>` +
     h3('What an errand promises') +
-    `<div class="vals">${val('C', 'Fool', 0)}${val('D', 'Merchant', 1)}${val('H', 'Lover', 2)}${val('S', 'Assassin', 3)}</div>` +
-    `<div class="note">Your pledge is the sum of the four you send. Four Assassins pledge 12 &mdash; more than the court can give.</div>` +
+    `<div class="vals">` +
+      GameCards.SUITS.slice().reverse()
+        .map((suit) => val(suit, GameCards.SUIT_ROLE[suit],
+          fav(GameCards.BID_VALUE[suit]))).join('') +
+    `</div>` +
+    `<div class="note">Your pledge is the sum of the four you send, and never less than nothing. Four Assassins pledge ${4 * GameCards.BID_VALUE.S} &mdash; more than the court can give.</div>` +
     h3('Winning an audience') +
     `<ul>` +
     `<li><span class="dot">&#9670;</span><span>Answer in kind if you can; otherwise play anything.</span></li>` +
@@ -304,15 +325,16 @@ function refBack() {
     refHead('Favour and sway', 'Scoring') +
     h3('Favour') +
     `<div class="rows">` +
-    `<div class="row2"><span class="k">Kept exactly</span><span class="v">2 &times; audiences won</span></div>` +
-    `<div class="row2"><span class="k">Missed, high or low</span><span class="v">1 &times; won, &minus;2 per off</span></div>` +
-    `<div class="row2"><span class="k">Pledged 0, won 0</span><span class="v">+8</span></div>` +
-    `<div class="row2"><span class="k">Pledged 0, won any</span><span class="v">&minus;8</span></div>` +
+    `<div class="row2"><span class="k">Kept exactly</span><span class="v">${fav(Rules.FLAT_BONUS)}, then 2 &times; won</span></div>` +
+    `<div class="row2"><span class="k">Missed, high or low</span><span class="v">the pledge, &minus;2 per off</span></div>` +
+    `<div class="row2"><span class="k">Fool&rsquo;s errand kept</span><span class="v">${fav(Rules.FOOLS_ERRAND_PAY)}</span></div>` +
+    `<div class="row2"><span class="k">Hollow promise kept</span><span class="v">${fav(Rules.FLAT_BONUS)}</span></div>` +
+    `<div class="row2"><span class="k">Pledged 0, won any</span><span class="v">&minus;2 each</span></div>` +
     `</div>` +
     `<div class="examples">` +
-    `<span>Pledged 4, won 4 &rarr; <b>+8</b></span><span>Pledged 5, won 4 &rarr; <b>+2</b></span>` +
-    `<span>Pledged 3, won 6 &rarr; <b>0</b></span><span>Pledged 2, won 0 &rarr; <b>&minus;4</b></span>` +
-    `<span>Pledged 0, won 3 &rarr; <b>&minus;8</b></span><span>Pledged 11, won 11 &rarr; <b>+22</b></span>` +
+    ex(4, 4) + ex(5, 4) +
+    ex(3, 6) + ex(2, 0) +
+    ex(0, 3, true) + ex(Rules.TRICKS_PER_HAND, Rules.TRICKS_PER_HAND) +
     `</div>` +
     h3('Who holds sway next night') +
     `<div class="ladder">${rung(0, 'Fools', 'C')}${rung(1, 'Merchants', 'D')}${rung(2, 'Lovers', 'H')}${rung(3, 'Assassins', 'S')}${rung(4, 'No sway', null)}</div>` +
@@ -320,7 +342,7 @@ function refBack() {
     h3('The season') +
     `<ul>` +
     `<li><span class="dot">&#9670;</span><span>Twelve nights, the last of them <b>Twelfth Night</b>. No target score: most favour at the end wins.</span></li>` +
-    `<li><span class="dot">&#9670;</span><span>Level totals break on Twelfth Night: more favour, then higher pledge, then higher combined rank of errands.</span></li>` +
+    `<li><span class="dot">&#9670;</span><span>Level totals break on Twelfth Night: more favour, then higher pledge, then higher errand ranks.</span></li>` +
     `</ul>` +
     h3('The Whispers') +
     `<ul>` +

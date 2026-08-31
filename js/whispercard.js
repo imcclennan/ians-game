@@ -80,6 +80,9 @@
         '<p class="wcard-rule">' + whisper.line + '</p>' +
         flourish() +
         '<p class="wcard-flavour">' + whisper.detail + '</p>' +
+        (whisper.signed
+          ? '<p class="wcard-sign">— ' + whisper.signed + '</p>'
+          : '') +
         '<div class="wcard-foot"><span class="wcard-mark">' +
           (burden ? 'A Burden' : 'A Whisper') + '</span></div>' +
       '</div>' +

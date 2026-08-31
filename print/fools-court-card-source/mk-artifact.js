@@ -275,8 +275,8 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
       <tr><th>&nbsp;</th><th>Words</th></tr>
       <tr><td>Cut</td><td class="v">The Cautious Clerk, The Meek, The Contrarian, The Condemned,
         The Scapegoat, In Disgrace</td></tr>
-      <tr><td>Added</td><td class="v">Sworn to the Ledger, The Twin, The Modest, The Saboteur,
-        The Optimist, The Beggar&rsquo;s Bargain</td></tr>
+      <tr><td>Added</td><td class="v">Sworn to the Ledger, The Twin, The Modest, In Another&rsquo;s
+        Pay, More Was Expected, The Beggar&rsquo;s Bargain</td></tr>
       <tr><td>Reworded or repriced</td><td class="v">Every survivor but The Watched</td></tr>
       <tr><td>Agent deck</td><td class="v">Each kind now keeps to its own stretch of the ranks,
         with its own crowding &mdash; all 60 faces redrawn</td></tr>

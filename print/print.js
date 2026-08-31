@@ -67,7 +67,7 @@
       '<div class="pcard-back-frame">' +
         seal('lg') +
         '<div class="back-title">The Fool’s Court</div>' +
-        '<div class="back-sub">A word from the monarch</div>' +
+        '<div class="back-sub">A word from the court</div>' +
         agentRow('5.5mm') +
       '</div>' +
     '</div>';
@@ -302,10 +302,10 @@
             '<td class="score">+' + Rules.FLAT_BONUS + ', then 2 each</td></tr>' +
           '<tr><td class="left">Pledge missed</td>' +
             '<td class="score">the pledge, &minus;2 per off</td></tr>' +
-          // Both kinds of nought on one row: a fifth row leaves the foot rule
-          //2px of clearance, and the card is laid out for four.
+          // Both ways of promising nothing on one row: a fifth row leaves the
+          // foot rule 2px of clearance, and the card is laid out for four.
           '<tr><td class="left">Pledged 0, won 0</td>' +
-            '<td class="score">+' + Rules.NIL_PAY + ' with ' + Rules.NIL_FOOLS +
+            '<td class="score">+' + Rules.FOOLS_ERRAND_PAY + ' with ' + Rules.FOOLS_ERRAND_SIZE +
             ' Fools, else +' + Rules.FLAT_BONUS + '</td></tr>' +
           '<tr><td class="left">Pledged 0, won any</td>' +
             '<td class="score">&minus;2 each</td></tr>' +

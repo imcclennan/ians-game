@@ -21,8 +21,8 @@ const { Rules } = globalThis;
 const favour = (n) => (n < 0 ? '&minus;' + Math.abs(n) : '+' + n);
 const example = (bid, won) =>
   `<div>Pledged ${bid}, won ${won}</div><div class="r">${favour(Rules.scoreHand(bid, won, false))}</div>`;
-const nilExample = (won) =>
-  `<div>${Rules.NIL_FOOLS} Fools out, won ${won}</div>` +
+const foolsErrandExample = (won) =>
+  `<div>${Rules.FOOLS_ERRAND_SIZE} Fools out, won ${won}</div>` +
   `<div class="r">${favour(Rules.scoreHand(0, won, true))}</div>`;
 
 const OX = '#4a1524', GOLD = '#8d6a2a', INK = '#20161a', DIM = '#5d4a4f';
@@ -216,13 +216,15 @@ const side1 = `
     ${P(`The <b>22</b> Whispers are shuffled face down each night. After the deal and <b>before any
     pledge is made</b>, each eligible player may look at their own hand and then take one Whisper
     or go without.`)}
-    ${P(`<b>The monarch does not confide in whoever is winning.</b> Only a player whose favour is
+    ${P(`<b>The court does not confide in whoever is winning.</b> Only a player whose favour is
     <i>strictly less</i> than the highest at the table may take one, so on the first night nobody
     is offered a word.`)}
     ${P(`Taking one <b>costs nothing</b>, but it is taken <b>unread</b>. <b>7 of the 22 are
     burdens</b>, which cost rather than pay, so a word is a gamble rather than a formality. A
     burden is framed in oxblood under a broken seal and signed as one; but every Whisper is
     identical face down, and a player who took one need not say which.`)}
+    ${P(`A Whisper is whatever reaches you before the night begins &mdash; from the throne, from the treasury, from someone with no business at court at all. Each card is <b>signed by whoever sent it</b>.`)}
+    ${P(`Some words count <b>the agent that took the audience for you</b>; others count <b>every agent in an audience you took</b>, whoever played it. The card says which.`)}
     ${P(`A Whisper bends how that player&rsquo;s favour is counted, or restricts which agents they
     may send, or both, and stays <b>private</b> until the night ends. A restriction is binding, but
     a demand a hand cannot obey &mdash; two Assassins required while holding one &mdash; is
@@ -278,8 +280,8 @@ const side2 = `
       <tr><th>Result</th><th>Favour</th></tr>
       <tr><td>Pledge kept exactly</td><td>${Rules.FLAT_BONUS}, plus 2 for every audience won</td></tr>
       <tr><td>Pledge missed, high or low</td><td>the pledge itself, less 2 for every audience off it</td></tr>
-      <tr><td>Pledged nothing by sending ${Rules.NIL_FOOLS} Fools, won nothing</td><td>${Rules.NIL_PAY}</td></tr>
-      <tr><td>Pledged nothing any other way, won nothing</td><td>${Rules.FLAT_BONUS}</td></tr>
+      <tr><td>A Fool&rsquo;s errand kept &mdash; ${Rules.FOOLS_ERRAND_SIZE} Fools out, no audience taken</td><td>${Rules.FOOLS_ERRAND_PAY}</td></tr>
+      <tr><td>A hollow promise kept &mdash; nothing pledged, but only by adding up</td><td>${Rules.FLAT_BONUS}</td></tr>
       <tr><td>Pledged nothing, won any</td><td>&minus;2 for every audience</td></tr>
     </table>
     <p><b>Examples.</b></p>
@@ -288,15 +290,15 @@ const side2 = `
       ${example(4, 3)}
       ${example(2, 4)}
       ${example(5, 4)}
-      ${nilExample(0)}
-      ${nilExample(2)}
+      ${foolsErrandExample(0)}
+      ${foolsErrandExample(2)}
       ${example(11, 11)}
     </div>
     ${P(`Being wrong costs 2 favour per audience in <i>either</i> direction, so there is no
-    advantage in under-promising and overshooting. The only good outcome is the exact one. A nil is
-    worth reaching for only when it can be made honestly: ${Rules.NIL_FOOLS} Fools pays
-    ${Rules.NIL_PAY}, while a set that merely adds up to nought pays ${Rules.FLAT_BONUS} &mdash;
-    less than the smallest kept promise.`, 'note')}
+    advantage in under-promising and overshooting. The only good outcome is the exact one. A
+    Fool&rsquo;s errand is worth sending only when it can be made honestly:
+    ${Rules.FOOLS_ERRAND_SIZE} Fools pays ${Rules.FOOLS_ERRAND_PAY}, while a hollow promise pays
+    ${Rules.FLAT_BONUS} &mdash; less than the smallest kept promise.`, 'note')}
 
     ${H(8, 'Who holds sway')}
     ${P(`One kind may <b>hold sway</b> for a night, outranking every other kind when audiences are

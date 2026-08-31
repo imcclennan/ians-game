@@ -369,9 +369,10 @@
       // amounts. Say which is which rather than leaving the sum to look like an
       // arithmetic mistake.
       const nought = complete && total === 0
-        ? (Rules.isTrueNil(chosen)
-          ? ' <span class="sum">&middot; four Fools: a <b>true nil</b></span>'
-          : ' <span class="sum">&middot; this promises <b>nothing</b>, but it is not a nil</span>')
+        ? (Rules.isFoolsErrand(chosen)
+          ? ' <span class="sum">&middot; four Fools: a <b>Fool\u2019s errand</b></span>'
+          : ' <span class="sum">&middot; promises nothing, but only by adding up: ' +
+            'a <b>hollow promise</b></span>')
         : '';
       const heeded = Whispers.permitsSet(player.whisper, chosen, player.hand);
       const aim = Whispers.aimFor(player.whisper, total);

@@ -116,6 +116,14 @@
   color: var(--w-ink-soft);
 }
 
+/* Who the word came from. Most of the deck is not the monarch speaking. */
+.wcard-sign {
+  margin: 1.6mm 0 0;
+  font-size: 8.4pt;
+  font-style: italic;
+  color: var(--w-ink-faint);
+}
+
 .wcard-foot { margin-top: auto; padding-top: 3mm; }
 
 .wcard-mark {
@@ -147,5 +155,6 @@
 .wcard-sm .wcard-burden .wflourish i, .wcard-sm.wcard-burden .wflourish i { width: 9px; height: 2px; }
 .wcard-sm .wcard-rule { font-size: 11.5px; line-height: 1.4; }
 .wcard-sm .wcard-flavour { font-size: 10px; line-height: 1.45; }
+.wcard-sm .wcard-sign { font-size: 8.5px; margin-top: 4px; }
 .wcard-sm .wcard-foot { padding-top: 4px; }
 .wcard-sm .wcard-mark { font-size: 8px; }

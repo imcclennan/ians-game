@@ -79,8 +79,10 @@
       ['Pledge kept exactly', Rules.FLAT_BONUS + ', plus 2 for every audience won'],
       ['Pledge missed, high or low',
         'the pledge itself, less 2 for every audience off it'],
-      ['Pledged nothing by sending four Fools, won nothing', String(Rules.NIL_PAY)],
-      ['Pledged nothing any other way, won nothing', String(Rules.FLAT_BONUS)],
+      ['A Fool\u2019s errand kept \u2014 four Fools sent, no audience taken',
+        String(Rules.FOOLS_ERRAND_PAY)],
+      ['A hollow promise kept \u2014 nothing pledged, but only by adding up',
+        String(Rules.FLAT_BONUS)],
       ['Pledged nothing, won audiences', '−2 for every audience won']
     ];
     return '<table class="rule-table">' +
@@ -188,11 +190,14 @@
       html:
         '<p>The Whispers are an optional component. A season played without them is a complete ' +
         'game.</p>' +
+        '<p>A Whisper is whatever reaches you before the night begins — from the throne, from ' +
+        'the treasury, from someone who has no business being at court at all. Each card is ' +
+        '<strong>signed by whoever sent it</strong>.</p>' +
         '<p>The ' + Whispers.ALL.length + ' Whispers are shuffled face down ' +
         'at the start of each night. After the deal, and <strong>before any pledge is made</strong>, ' +
         'each eligible player may look at their own hand and then choose to <strong>take one ' +
         'Whisper</strong> or to go without.</p>' +
-        '<p><strong>The monarch does not confide in whoever is winning.</strong> Only a player ' +
+        '<p><strong>The court does not confide in whoever is winning.</strong> Only a player ' +
         'whose favour is <em>strictly less</em> than the highest at the table may take one. On ' +
         'the first night of a season the whole court is level on nothing, so nobody is offered a ' +
         'word at all.</p>' +
@@ -202,10 +207,16 @@
         Whispers.ALL.filter((w) => w.burden).length + ' are burdens</strong> that cost rather ' +
         'than pay, so a word is a gamble taken by a player who needs one — which is the ' +
         'only sort of player who is offered it.</p>' +
+        '<p>Some words count <strong>the agent that took the audience for you</strong> — the ' +
+        'one that beat the rest. Others count <strong>every agent in an audience you took</strong>, ' +
+        'whoever played it. The card says which.</p>' +
         '<p>A Whisper alters how that player\u2019s favour is counted, or ' +
         'restricts which agents they may send out on errands, or both. Its <strong>contents are ' +
         'private</strong> and are revealed only when the night ends, alongside the errands. That ' +
-        'a player took one is plain for the table to see; <em>which</em> one is not.</p>' +
+        'a player took one is plain for the table to see; <em>which</em> one is not — unless the ' +
+        'word itself says otherwise. A word that lays a player\u2019s errands face up puts both ' +
+        'their pledge and the four agents they sent into the open from the moment they are sent, ' +
+        'and the rest of the table will play into that number for the whole night.</p>' +
         '<p>Not every word is a favour. ' + Whispers.ALL.filter((w) => w.burden).length +
         ' of the ' + Whispers.ALL.length + ' are <strong>burdens</strong>, which cost rather ' +
         'than pay. A burden is framed in oxblood under a broken seal and signed as a burden, so ' +
@@ -242,9 +253,10 @@
             'or less pledges nothing</strong> — there is no promising the court a negative ' +
             'number of audiences — but how it came to nothing matters when favour is counted.</p>' +
             '<p>A pledge of nothing made by sending <strong>all four errands as Fools</strong> ' +
-            'is a <strong>true nil</strong>, and pays as one. A set that merely happens to add ' +
-            'up to nought or below — two Fools and two Merchants, say — pledges nothing just ' +
-            'the same, but is <strong>not a nil</strong> and is not paid as one ' +
+            'is a <strong>Fool\u2019s errand</strong>, and pays as one. A set that merely ' +
+            'happens to add up to nought or below — two Fools and two Merchants, say — pledges ' +
+            'nothing just the same, but is only a <strong>hollow promise</strong>, and is paid ' +
+            'as one ' +
             '(section {{rule-favour}}).</p>'
           : '') +
         '<p>Errands remain face down and <strong>out of play</strong> for the ' +
@@ -301,16 +313,16 @@
         '<li>Pledged 1, won 1. Kept: 1 + 2 = <b>3 favour</b>.</li>' +
         '<li>Pledged 4, won 3. One short: 4 − 2 = <b>2 favour</b>.</li>' +
         '<li>Pledged 2, won 4. Two over: 2 − 4 = <b>−2 favour</b>.</li>' +
-        '<li>Sent four Fools, won nothing. A true nil kept: <b>8 favour</b>.</li>' +
-        '<li>Sent four Fools, won 2. The nil is broken: <b>−4 favour</b>.</li>' +
+        '<li>Sent four Fools, won nothing. A Fool\u2019s errand kept: <b>8 favour</b>.</li>' +
+        '<li>Sent four Fools, won 2. The Fool\u2019s errand is broken: <b>−4 favour</b>.</li>' +
         '<li>Sent errands adding up to nothing some other way, won nothing. Nothing ' +
-        'promised and nothing taken, but no nil: <b>1 favour</b>.</li>' +
+        'promised and nothing taken, but only a hollow promise: <b>1 favour</b>.</li>' +
         '</ul>' +
         '<p class="rule-note">Being wrong costs 2 favour per audience in <em>either</em> ' +
         'direction, so there is no advantage in deliberately under-promising and ' +
-        'overshooting. The only good outcome is the exact one. Note too that a nil is worth ' +
-        'reaching for only when it can be made honestly: four Fools pays eight, while a set ' +
-        'that merely adds up to nought pays less than the smallest kept promise.</p>'
+        'overshooting. The only good outcome is the exact one. Note too that a Fool\u2019s ' +
+        'errand is worth sending only when it can be made honestly: four Fools pays eight, ' +
+        'while a hollow promise pays less than the smallest kept promise.</p>'
     },
     {
       id: 'rule-sway',

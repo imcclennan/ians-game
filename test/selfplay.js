@@ -60,8 +60,8 @@ function blankTally() {
     ruffs: 0,
     leads: 0,
     leadsWithWinner: 0,
-    trueNils: 0,
-    trueNilsKept: 0,
+    foolsErrands: 0,
+    foolsErrandsKept: 0,
     nightFavour: [],
     withWord: [],
     withoutWord: [],
@@ -107,7 +107,7 @@ function playSeason(tally, seed) {
 
     state.players.forEach((player) => {
       tally.pledges.push(player.bid);
-      if (Rules.isTrueNil(player.bidCards)) tally.trueNils += 1;
+      if (Rules.isFoolsErrand(player.bidCards)) tally.foolsErrands += 1;
       if (Whispers.restrictsErrands(player.whisper) &&
           Whispers.canSatisfy(player.whisper, player.hand.concat(player.bidCards))) {
         tally.demands += 1;
@@ -147,7 +147,7 @@ function playSeason(tally, seed) {
     summary.rows.forEach((row) => {
       tally.playerNights += 1;
       if (row.made) tally.exact += 1;
-      if (row.trueNil && row.made) tally.trueNilsKept += 1;
+      if (row.foolsErrand && row.made) tally.foolsErrandsKept += 1;
       tally.nightFavour.push(row.points);
       (row.whisper ? tally.withWord : tally.withoutWord).push(row.points);
     });
@@ -192,8 +192,8 @@ function report(tally) {
     ['Mean pledge', (t) => mean(t.pledges).toFixed(2)],
     ['Audiences settled by a tie', (t) => pct(t.tiedTricks, t.tricks).toFixed(1) + '%'],
     ['Leads holding a provable winner', (t) => pct(t.leadsWithWinner, t.leads).toFixed(1) + '%'],
-    ['True nil rate', (t) => pct(t.trueNils, t.playerNights).toFixed(2) + '%'],
-    ['True nil success', (t) => pct(t.trueNilsKept, t.trueNils).toFixed(1) + '%'],
+    ['Fool\u2019s errand rate', (t) => pct(t.foolsErrands, t.playerNights).toFixed(2) + '%'],
+    ['Fool\u2019s errand success', (t) => pct(t.foolsErrandsKept, t.foolsErrands).toFixed(1) + '%'],
     ['Ruff wins', (t) => pct(t.ruffs, t.tricks).toFixed(1) + '%'],
     ['Mean night', (t) => mean(t.nightFavour).toFixed(2)],
     ['Season winner', (t) => mean(t.winnerTotals).toFixed(1)],

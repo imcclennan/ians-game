@@ -337,8 +337,8 @@
         wonAudiences: player.wonAudiences.map((audience) => audience.slice()),
         wonCards: player.wonAudiences.reduce((all, audience) => all.concat(audience), []),
         // Four Fools sent out is a pledge of nothing meant; any other set that
-        // comes to nought is a pledge of nothing that happens to add up.
-        trueNil: Rules.isTrueNil(player.bidCards),
+        // comes to nought is a hollow promise: nothing meant, only added up.
+        foolsErrand: Rules.isFoolsErrand(player.bidCards),
         whisper: player.whisper,
         obeyed: player.obeyed,
         bidCards: player.bidCards.slice(),
@@ -353,7 +353,7 @@
     // against a promise that is not their own, so this needs the whole table.
     for (const row of rows) {
       row.made = Whispers.wasKept(row.whisper, row, rows);
-      row.base = Rules.scoreHand(row.bid, row.counted, row.trueNil);
+      row.base = Rules.scoreHand(row.bid, row.counted, row.foolsErrand);
     }
 
     // Pass three: Whispers that read the whole table can only settle up now.

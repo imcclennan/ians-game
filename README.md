@@ -48,8 +48,8 @@ two agents can meet on the same rank — and then the audience goes to **whichev
 which settles about one audience in five.
 
 A **Fool costs you a promise** rather than making none, so a set of errands can come to nothing at
-all. Four Fools is a **true nil**; anything else adding up to nought or less is merely an arithmetic
-nought, and the two are paid very differently.
+all. Four Fools sent out is a **Fool’s errand**; anything else adding up to nought or less is a
+**hollow promise**, and the two are paid very differently.
 
 A hand is fanned by what each kind promises — Assassins, then Lovers, Merchants and Fools, high to
 low within each — with whichever kind holds sway pulled to the front of all of them, wearing gold.
@@ -114,9 +114,10 @@ Pledge 2, win 2 → 1 + 4 = **5**. Pledge 4, win 3 → 4 − 2 = **2**. Pledge 2
 Being wrong costs **2 favour per audience in either direction**, so there is nothing to be had by
 under-promising on purpose. The only good outcome is the exact one.
 
-A true nil is the biggest swing in the game — eight for keeping it, and two an audience against you
-for breaking it — and it needs all four errands to be Fools. A set that merely adds up to nothing
-pays **+1**, less than the smallest kept promise, so it is never worth sending on purpose.
+A **Fool’s errand** is the biggest swing in the game — eight for keeping it, and two an audience
+against you for breaking it — and it needs all four errands to be Fools. A **hollow promise**, which
+is any other set that merely adds up to nothing, pays **+1**: less than the smallest kept promise,
+so it is never worth sending on purpose.
 
 ### The Whispers — optional
 
@@ -133,7 +134,7 @@ and a season without them is a complete game of its own.
 
 Twenty-two of them: **fifteen boons** that pay, and **seven burdens** that cost. A burden is framed in oxblood under a broken seal, but every Whisper is identical face down, so one cannot be spotted in a rival’s hand.
 
-| Whisper | The monarch’s word |
+| Whisper | The word, and who sent it |
 | --- | --- |
 | **Blackmailed** | At least two Assassins must go out. Keep your pledge for **+6**. |
 | **Sworn to Silence** | No Assassin may go out. Keep your pledge for **+4**. |
@@ -143,7 +144,7 @@ Twenty-two of them: **fifteen boons** that pay, and **seven burdens** that cost.
 | **The Debtor** | A kept pledge of 2 or fewer earns nothing; keep 3 or more for **+5**. |
 | **All or Nothing** | Keep your pledge for **double favour**. Break it and the night is worth **−1** for every audience off it. |
 | **The Bold** | **+4** if no noble pledges more than you. |
-| **The Kingmaker** | Keep your pledge and take **+3** for every other noble who broke theirs. |
+| **Never in Doubt** | Keep your pledge and take **+3** for every other noble who broke theirs. |
 | **The Favourite** | **+6** if no noble wins more audiences than you. |
 | **The Wallflower** | **+5** if no noble wins fewer audiences than you. |
 | **Sworn to the Fool** | Your pledge is not scored. **+2** for every Fool in the audiences you win. |
@@ -153,13 +154,13 @@ Twenty-two of them: **fifteen boons** that pay, and **seven burdens** that cost.
 
 ### The burdens
 
-| Burden | The monarch’s word |
+| Burden | The word, and who sent it |
 | --- | --- |
-| **The Saboteur** | Your pledge is not scored. **+5**, less 3 for every other noble who keeps theirs. |
+| **In Another’s Pay** | Your pledge is not scored. **+5**, less 3 for every other noble who keeps theirs. |
 | **The Watched** | Your errands are laid face up as soon as they are sent. |
 | **Marked for the Blade** | **−2** for every audience you win with an Assassin. |
 | **Out of Favour** | **−2** unless no noble wins fewer audiences than you. |
-| **The Optimist** | **−3** for every audience you take short of your pledge. |
+| **More Was Expected** | **−3** for every audience you take short of your pledge. |
 | **The Beggar’s Bargain** | Favour you gain is halved unless you win an audience with a Fool in it. |
 | **Called Out** | **−3** if you win more audiences than the noble on your right. |
 
@@ -170,7 +171,8 @@ forfeit and you score the night as though you had gone without one. Agents the w
 keep back are marked in crimson while you choose, so the choice is never made by accident.
 
 Three of them set your own pledge aside altogether and score the night some other way. **Sworn to
-the Fool** counts Fools inside the audiences you win, whoever played them. **The Saboteur** is paid
+the Fool** counts Fools inside the audiences you win, whoever played them. **In Another’s Pay**
+is paid
 for the promises the *rest* of the table breaks, which makes its holder the one noble at court with
 no reason to want a quiet evening. **The Understudy** keeps a pledge, but not its own — it is aiming
 at a number nobody has shown it, which is why it pays a little whether or not it lands.
@@ -282,7 +284,8 @@ npm test
 ```
 
 Around 5,600 assertions: the deck's shape and its unique card names, the favour table row by row,
-ties to the second card, the pledge clamp and the two kinds of nought, who takes an audience under
+ties to the second card, the pledge clamp, the Fool’s errand against the hollow promise, who takes
+an audience under
 every sway, answering in kind, the sway ladder, the tie-breakers, all twenty-two Whispers in
 isolation, the rulebook prose rendering with no unresolved cross-references, a full season played
 with Whispers switched off, plus twenty complete seasons played end to end against invariants

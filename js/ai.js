@@ -133,7 +133,7 @@
   }
 
   /**
-   * Would this noble rather have a word from the monarch, or go without?
+   * Would this noble rather have a word from the court, or go without?
    *
    * Taking one is free but blind, and a Whisper can bind as easily as it can
    * pay. A hand that already promises something exact has more to lose from a
@@ -194,11 +194,11 @@
 
       // Promising nothing and meaning it pays far more than the two a single
       // audience is otherwise worth, so it is worth reaching a little for. A
-      // set that merely adds up to nought pays less than the smallest kept
+      // hollow promise pays less than the smallest kept
       // pledge, so it is worth reaching slightly away from.
-      const nilPull = bid === 0 ? (Rules.isTrueNil(combo) ? -0.55 : 0.45) : 0;
+      const noughtPull = bid === 0 ? (Rules.isFoolsErrand(combo) ? -0.55 : 0.45) : 0;
 
-      const cost = Math.abs(bid - wanted) + overreach + nilPull +
+      const cost = Math.abs(bid - wanted) + overreach + noughtPull +
         Whispers.pledgeCost(whisper, bid) + discardCost * 0.002;
 
       const disobeys = bound && !Whispers.permitsSet(whisper, combo, hand);

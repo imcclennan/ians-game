@@ -14,9 +14,8 @@ const FACE = { S: '#ccd3de', H: '#f0cdc6', D: '#eeddb0', C: '#ded0e7' };
 const INK = { S: '#1e2530', H: '#7c241e', D: '#684d0e', C: '#492851' };
 
 const TITLE = 'THE FOOL’S COURT';
-const SUBTITLE = 'A WORD FROM THE MONARCH';
+const SUBTITLE = 'A WORD FROM THE COURT';
 const W_TITLE = 'WHISPER';
-const W_SUB = 'A WORD FOR YOU ALONE';
 
 // PrinterStudio tarot spec, in tenths of a millimetre:
 //   layout with bleed  3.00" x 5.00"   = 762   x 1270
@@ -128,7 +127,7 @@ const BUILD = {
         `<line x1="140" y1="268" x2="310" y2="268" stroke="${g}" stroke-width="1.8" opacity="0.8"/>` +
         `<line x1="390" y1="268" x2="560" y2="268" stroke="${g}" stroke-width="1.8" opacity="0.8"/>` +
         fleuron(CX, 268, 32, g, 1) +
-        text(isW ? W_SUB : SUBTITLE, CX, 308, { font: S.font, size: 19, fill: S.ink, spacing: 5.5, opacity: 0.8 })
+        text(SUBTITLE, CX, 308, { font: S.font, size: 19, fill: S.ink, spacing: 5.5, opacity: 0.8 })
       );
 
       // medallion
@@ -200,7 +199,7 @@ const BUILD = {
 
       s += mirrored(
         text(isW ? W_TITLE : TITLE, CX, 250, { font: S.font, size: isW ? 62 : 45, fill: g, spacing: isW ? 14 : 3, weight: 600 }) +
-        text(isW ? W_SUB : SUBTITLE, CX, 294, { font: S.font, size: 18, fill: S.ink, spacing: 5.5, opacity: 0.7 })
+        text(SUBTITLE, CX, 294, { font: S.font, size: 18, fill: S.ink, spacing: 5.5, opacity: 0.7 })
       );
 
       s += `<circle cx="${CX}" cy="${CY}" r="200" fill="#0e1231" opacity="0.78"/>`;
@@ -265,7 +264,7 @@ const BUILD = {
         `<line x1="150" y1="266" x2="322" y2="266" stroke="${g}" stroke-width="2.6"/>` +
         `<line x1="378" y1="266" x2="550" y2="266" stroke="${g}" stroke-width="2.6"/>` +
         `<rect x="${CX - 13}" y="253" width="26" height="26" transform="rotate(45 ${CX} 266)" fill="${g}"/>` +
-        text(isW ? W_SUB : SUBTITLE, CX, 306, { font: S.font, size: 16, fill: S.ink, spacing: 6, opacity: 0.72 })
+        text(SUBTITLE, CX, 306, { font: S.font, size: 16, fill: S.ink, spacing: 6, opacity: 0.72 })
       );
 
       // stepped lozenge stack
@@ -322,7 +321,7 @@ const BUILD = {
         text(isW ? W_TITLE : TITLE, CX, 244, { font: S.font, size: isW ? 64 : 46, fill: ink, spacing: isW ? 12 : 1.5, weight: 700 }) +
         `<rect x="140" y="268" width="420" height="6" fill="${ink}"/>` +
         `<rect x="140" y="282" width="420" height="2.4" fill="${ink}"/>` +
-        text(isW ? W_SUB : SUBTITLE, CX, 320, { font: S.font, size: 18, fill: ink, spacing: 5, opacity: 0.85 })
+        text(SUBTITLE, CX, 320, { font: S.font, size: 18, fill: ink, spacing: 5, opacity: 0.85 })
       );
 
       // sunburst of cut rays behind the disc

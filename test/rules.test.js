@@ -247,6 +247,8 @@ for (let i = 0; i < Math.min(PRINTED.length, Whispers.ALL.length); i++) {
   if (word.id !== printed.id) continue;   // the order check above has it
   check('the printed ' + word.name + ' is named as the game names it',
     printed.name, word.name);
+  check('the printed ' + word.name + ' is signed as the game signs it',
+    printed.signed, word.signed);
   check('the printed ' + word.name + ' rules as the game rules',
     printed.line, asPrinted(word.line));
   check('the printed ' + word.name + ' reads as the game reads',
@@ -923,12 +925,13 @@ ok('overreaching cannot pay as well as promising the lot',
   'twelve at best pays ' + Rules.scoreHand(12, 11) +
   ', eleven kept pays ' + Rules.scoreHand(11, 11));
 
-ok('four Fools is a true nil', Rules.isTrueNil(hand('1C', '2C', '3C', '4C')));
+ok('four Fools is a Fool\u2019s errand', Rules.isFoolsErrand(hand('1C', '2C', '3C', '4C')));
 ok('a set that merely adds up to nothing is not',
-  !Rules.isTrueNil(hand('1C', '2C', '3C', '1H')));
+  !Rules.isFoolsErrand(hand('1C', '2C', '3C', '1H')));
 ok('nor is one that adds up to less than nothing',
-  !Rules.isTrueNil(hand('1C', '2C', '3C', '1D')));
-ok('a pledge of something is never a nil', !Rules.isTrueNil(hand('1C', '2C', '3C', '2S')));
+  !Rules.isFoolsErrand(hand('1C', '2C', '3C', '1D')));
+ok('a pledge of something is never a Fool\u2019s errand',
+  !Rules.isFoolsErrand(hand('1C', '2C', '3C', '2S')));
 
 // --- ties ------------------------------------------------------------------
 
@@ -953,14 +956,15 @@ check('a pledge of two kept pays five', Rules.scoreHand(2, 2, false), 5);
 check('a pledge of one kept pays three', Rules.scoreHand(1, 1, false), 3);
 check('three audiences on a pledge of four pays two', Rules.scoreHand(4, 3, false), 2);
 check('four audiences on a pledge of two costs two', Rules.scoreHand(2, 4, false), -2);
-check('a true nil kept pays eight', Rules.scoreHand(0, 0, true), 8);
-check('a true nil broken on two audiences costs four', Rules.scoreHand(0, 2, true), -4);
-check('an arithmetic nought kept pays one', Rules.scoreHand(0, 0, false), 1);
-ok('the two kinds of nought pay differently',
+check('a Fool\u2019s errand kept pays eight', Rules.scoreHand(0, 0, true), 8);
+check('a Fool\u2019s errand broken on two audiences costs four',
+  Rules.scoreHand(0, 2, true), -4);
+check('a hollow promise kept pays one', Rules.scoreHand(0, 0, false), 1);
+ok('the two ways of promising nothing pay differently',
   Rules.scoreHand(0, 0, true) !== Rules.scoreHand(0, 0, false));
-check('a broken nought scales with the damage',
+check('a broken promise of nothing scales with the damage',
   [1, 2, 3].map((won) => Rules.scoreHand(0, won, true)), [-2, -4, -6]);
-check('and scales the same however the nought was made',
+check('and scales the same however the nothing was arrived at',
   [1, 2, 3].map((won) => Rules.scoreHand(0, won, false)), [-2, -4, -6]);
 check('missing by one costs the same high as low',
   Rules.scoreHand(4, 3, false), Rules.scoreHand(4, 5, false));
@@ -1081,9 +1085,9 @@ check('nothing for one taken with a high agent',
 check('and counts each of them',
   Whispers.adjust(modest, 5, row({ takenWith: hand('1C', '5H', '6D', '10S') }), []), 11);
 
-// -- The Optimist
+// -- More Was Expected
 const optimist = Whispers.BY_ID.optimist;
-ok('The Optimist is a burden', Whispers.isBurden(optimist));
+ok('More Was Expected is a burden', Whispers.isBurden(optimist));
 check('it costs three for every audience short of the pledge',
   Whispers.adjust(optimist, 5, row({ bid: 5, tricksWon: 2 }), []), -4);
 check('nothing when the pledge is kept',
@@ -1102,7 +1106,7 @@ function goatTable(keepers) {
 const SABOTEUR_BASE = 5;
 for (const keepers of [0, 1, 2, 3]) {
   const table = goatTable(keepers);
-  check('The Saboteur pays ' + SABOTEUR_BASE + ' less 3 a head, with ' + keepers + ' keeping',
+  check('In Another’s Pay pays ' + SABOTEUR_BASE + ' less 3 a head, with ' + keepers + ' keeping',
     Whispers.adjust(saboteur, 99, table[0], table), SABOTEUR_BASE - 3 * keepers);
 }
 const goatBest = goatTable(0);
