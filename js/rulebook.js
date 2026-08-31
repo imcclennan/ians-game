@@ -16,6 +16,15 @@
   const INK = { S: 'graphite', H: 'crimson', D: 'antique gold', C: 'plum' };
   const FACE = { S: 'pale slate', H: 'pale rose', D: 'pale gold', C: 'pale lilac' };
   const MARK = { S: 'a dagger', H: 'a rose', D: 'a balance', C: 'a cap and bells' };
+  const BACKGROUND = { S: 'The trade admits nobody without a name already made. ' +
+    'Above that, standing is reputation, and reputation is shared: five of them ' +
+    'claim to be the best, and not one can prove the claim.', H: 'They arrive in ' +
+    'pairs. Only one comes to court unattached, and stands at the bottom alone.', 
+    D: 'The ledger settles it. Every station is held by exactly one merchant, nobody ' +
+    'shares a rung, and each of them knows to the penny who stands above', C: 'Anyone ' +
+    'may call themselves a fool, and most of the court does, so the low rungs are ' +
+    'packed and the ladder is short. At the top of it there is one — the single fool ' +
+    'the monarch actually listens to.' };
   const AGENT_ORDER = ['S', 'H', 'D', 'C'];
 
   /** An agent's mark and name, in that agent's ink. */
@@ -62,13 +71,13 @@
       return copies === 1 ? rank : '<b>' + copies + '&times;' + rank + '</b>';
     }).join(', ');
     return '<table class="rule-table">' +
-      '<tr><th class="left">Agent</th><th class="left">Ranks held</th>' +
+      '<tr><th class="left">Agent</th><th class="left">How the kind is arranged</th>' +
       '<th>Cards</th></tr>' +
       AGENT_ORDER.map((suit) => '<tr>' +
         '<td class="left"><span class="agent agent-' + suit + '"><b>' +
           Cards.SUIT_ROLE_PLURAL[suit] + '</b></span></td>' +
         '<td class="left">' + composition(suit) + '</td>' +
-        '<td>15</td>' +
+        '<td>' + BACKGROUND[suit] + '</td>' +
         '</tr>').join('') +
       '</table>';
   }
@@ -114,7 +123,11 @@
       id: 'rule-overview',
       title: 'Overview',
       html:
-        '<p>Four nobles compete for the ear of the monarch over a series of <strong>nights</strong>. ' +
+        '<p>The court is a busy, hostile place. After a century of josling and intrigue, four groups ' +
+        'compete for the ear of the monarch over a series of <strong>nights</strong>, and none is arranged ' +
+        'the same way. The Merchants keep a ledger, the Assassins keep a reputation, the Lovers keep each other, and ' +
+        'none of them would accept another\u2019s measure as worth anything. For some, their rank is disputed even amongst ' +
+        'themselves. The court settles opinion the way it settles everything else: the later word is the one it remembers.' +
         'At the start of each night every noble privately promises how many <strong>audiences</strong> ' +
         'they will win, and then plays to reach that number exactly.</p>' +
         '<p>Favour is awarded for precision rather than for ambition. Winning more audiences than ' +
