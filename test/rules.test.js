@@ -981,15 +981,85 @@ ok('it is waived on a hand holding too few Merchants',
     hand('1D', '3D', '1C', '2C', '3C', '1S', '2S', '3S',
       '4H', '5H', '6H', '7H', '8H', '9H', '10H')));
 
-const meekB = Whispers.BY_ID.meek;
-const meekTied = [row({ seat: 0, bid: 2 }), row({ seat: 1, bid: 2 }),
-  row({ seat: 2, bid: 5 }), row({ seat: 3, bid: 6 })];
-check('The Meek does not fire when the lowest pledge is tied',
-  Whispers.adjust(meekB, 5, meekTied[0], meekTied), 5 + 4);
-const meekAlone = [row({ seat: 0, bid: 1 }), row({ seat: 1, bid: 2 }),
-  row({ seat: 2, bid: 5 }), row({ seat: 3, bid: 6 })];
-check('and does fire when it is lowest outright',
-  Whispers.adjust(meekB, 5, meekAlone[0], meekAlone), 5 - 3 + 4);
+// -- the roster B is dealt from
+const WITHDRAWN_UNDER_B = ['clerk', 'meek', 'disgrace', 'contrarian', 'condemned'];
+const ADDED_UNDER_B = ['ledger', 'twin', 'modest', 'optimist', 'beggar'];
+const dealtUnderB = new Set(Whispers.ALL.map((whisper) => whisper.id));
+for (const id of WITHDRAWN_UNDER_B) {
+  ok(Whispers.BY_ID[id].name + ' is not dealt under B', !dealtUnderB.has(id));
+}
+for (const id of ADDED_UNDER_B) {
+  ok(Whispers.BY_ID[id].name + ' is dealt under B', dealtUnderB.has(id));
+}
+check('five words out and five in leaves the same count', Whispers.ALL.length, 22);
+check('and the same number of them are burdens',
+  Whispers.ALL.filter((w) => w.burden).length, 7);
+ok('the burdens are still the last of them, as the rulebook says',
+  Whispers.ALL.slice(Whispers.ALL.length - 7).every((w) => w.burden));
+ok('no withdrawn word can be drawn from the pool',
+  Whispers.deal(Whispers.ALL.length).every((whisper) => !WITHDRAWN_UNDER_B.includes(whisper.id)));
+
+// -- Blackmailed asks for two blades
+const blackmailedB = Whispers.BY_ID.blackmailed;
+ok('Blackmailed wants two Assassins under B',
+  Whispers.permitsSet(blackmailedB, hand('6S', '7S', '1C', '2C')));
+ok('and one is no longer enough',
+  !Whispers.permitsSet(blackmailedB, hand('6S', '1H', '1C', '2C')));
+ok('a hand holding a single blade cannot obey it',
+  !Whispers.canSatisfy(blackmailedB, hand('6S', '1H', '2H', '3H')));
+ok('a hand holding two can', Whispers.canSatisfy(blackmailedB, hand('6S', '7S', '2H', '3H')));
+check('its demand says so', blackmailedB.demand, 'at least two Assassins must go out');
+
+// -- Sworn to the Ledger
+const ledger = Whispers.BY_ID.ledger;
+ok('Sworn to the Ledger lets a Fool go', Whispers.allowsCard(ledger, card('1C')));
+ok('but holds every Merchant back', !Whispers.allowsCard(ledger, card('1D')));
+ok('it refuses a set with a Merchant in it',
+  !Whispers.permitsSet(ledger, hand('1D', '2H', '3H', '1C')));
+ok('and accepts one without',
+  Whispers.permitsSet(ledger, hand('2H', '3H', '1C', '6S')));
+check('a kept pledge pays four', Whispers.adjust(ledger, 5, row({ made: true }), []), 9);
+check('a broken one pays nothing', Whispers.adjust(ledger, 5, row({ made: false }), []), 5);
+
+// -- The Twin
+const twin = Whispers.BY_ID.twin;
+const twinRow = (audiences) => row({
+  wonAudiences: audiences.map((ids) => ids.map((id) => {
+    const copy = Number(id.slice(-1));
+    const rest = id.slice(0, -1);
+    return Cards.makeCard(rest.slice(-1), rest.slice(0, -1), copy);
+  }))
+});
+check('The Twin pays nothing for an audience of four different agents',
+  Whispers.adjust(twin, 5, twinRow([['7S0', '7H0', '7D0', '7C0']]), []), 5);
+check('three for a matched pair taken together',
+  Whispers.adjust(twin, 5, twinRow([['7S0', '7S1', '7H0', '7C0']]), []), 8);
+check('six for two pairs in the one audience',
+  Whispers.adjust(twin, 5, twinRow([['7S0', '7S1', '6H0', '6H1']]), []), 11);
+check('and nothing for a matched pair split across two audiences',
+  Whispers.adjust(twin, 5, twinRow([['7S0', '1H0', '1D0', '1C0'],
+    ['7S1', '2H0', '2D0', '2C0']]), []), 5);
+check('same rank, different kind, is no pair at all',
+  Whispers.adjust(twin, 5, twinRow([['7S0', '7H0', '1D0', '1C0']]), []), 5);
+
+// -- The Modest
+const modest = Whispers.BY_ID.modest;
+check('The Modest pays two for an audience taken with a low agent',
+  Whispers.adjust(modest, 5, row({ takenWith: hand('5S') }), []), 7);
+check('nothing for one taken with a high agent',
+  Whispers.adjust(modest, 5, row({ takenWith: hand('6S') }), []), 5);
+check('and counts each of them',
+  Whispers.adjust(modest, 5, row({ takenWith: hand('1C', '5H', '6D', '10S') }), []), 9);
+
+// -- The Optimist
+const optimist = Whispers.BY_ID.optimist;
+ok('The Optimist is a burden', Whispers.isBurden(optimist));
+check('it costs one for every audience short of the pledge',
+  Whispers.adjust(optimist, 5, row({ bid: 5, tricksWon: 2 }), []), 2);
+check('nothing when the pledge is kept',
+  Whispers.adjust(optimist, 5, row({ bid: 5, tricksWon: 5 }), []), 5);
+check('and nothing for overshooting it',
+  Whispers.adjust(optimist, 5, row({ bid: 5, tricksWon: 8 }), []), 5);
 
 const scapegoatB = Whispers.BY_ID.scapegoat;
 function goatTable(keepers) {
@@ -999,11 +1069,20 @@ function goatTable(keepers) {
   }
   return table;
 }
+const GOAT_BASE = 5;
+check('the Scapegoat base is the one the ruleset carries',
+  Ruleset.current().scapegoatBase, GOAT_BASE);
 for (const keepers of [0, 1, 2, 3]) {
   const table = goatTable(keepers);
-  check('The Scapegoat pays 7 less 3 a head, with ' + keepers + ' keeping',
-    Whispers.adjust(scapegoatB, 99, table[0], table), 7 - 3 * keepers);
+  check('The Scapegoat pays ' + GOAT_BASE + ' less 3 a head, with ' + keepers + ' keeping',
+    Whispers.adjust(scapegoatB, 99, table[0], table), GOAT_BASE - 3 * keepers);
 }
+const goatBest = goatTable(0);
+const goatWorst = goatTable(3);
+check('so its best night is +' + GOAT_BASE,
+  Whispers.adjust(scapegoatB, 99, goatBest[0], goatBest), 5);
+check('and its worst is -4',
+  Whispers.adjust(scapegoatB, 99, goatWorst[0], goatWorst), -4);
 const goatOne = goatTable(1);
 ok('its own pledge is not scored at all',
   Whispers.adjust(scapegoatB, 22, goatOne[0], goatOne) ===
@@ -1031,6 +1110,16 @@ ok('its own pledge is not scored either',
   Whispers.adjust(swornB, 22, wonRow(['1C', '2C']), []) ===
   Whispers.adjust(swornB, -8, wonRow(['1C', '2C']), []));
 check('and it chases every audience there is', Whispers.aimFor(swornB, 2), Rules.TRICKS_PER_HAND);
+
+// -- The Beggar's Bargain
+const beggar = Whispers.BY_ID.beggar;
+ok("The Beggar's Bargain is a burden", Whispers.isBurden(beggar));
+check('it leaves favour alone where a Fool was in an audience won',
+  Whispers.adjust(beggar, 7, wonRow(['1C', '2S', '3H', '4D']), []), 7);
+check('and halves it where none was',
+  Whispers.adjust(beggar, 7, wonRow(['1S', '2S', '3H', '4D']), []), 3);
+check('a noble who won nothing at all is halved too',
+  Whispers.adjust(beggar, 8, wonRow([]), []), 4);
 
 check('B hears the same twenty-two words', Whispers.ALL.length, 22);
 const idsUnderB = Whispers.ALL.map((whisper) => whisper.id);
@@ -1064,9 +1153,20 @@ ok('every night was recorded against the rules it was played under',
 Ruleset.reset();
 check('the court returns to Ruleset A', Ruleset.currentId(), 'A');
 check('and to a fifteen-rank deck', Cards.HIGHEST_VALUE, 15);
-check('every word survives the change of rules',
-  Whispers.ALL.map((whisper) => whisper.id), idsUnderB);
+const idsUnderA = Whispers.ALL.map((whisper) => whisper.id);
 check('A still hears twenty-two of them', Whispers.ALL.length, 22);
+check('and seven of them are still burdens',
+  Whispers.ALL.filter((w) => w.burden).length, 7);
+ok('the five words B withdraws are dealt again under A',
+  WITHDRAWN_UNDER_B.every((id) => idsUnderA.includes(id)));
+ok('and the five B adds are not',
+  ADDED_UNDER_B.every((id) => !idsUnderA.includes(id)));
+check('the two rulesets share seventeen words',
+  idsUnderA.filter((id) => idsUnderB.includes(id)).length, 17);
+check('and the book of every word ever written holds twenty-seven',
+  Whispers.CATALOGUE.length, 27);
+ok('every word in play under either ruleset is in that book',
+  idsUnderA.concat(idsUnderB).every((id) => Whispers.CATALOGUE.some((w) => w.id === id)));
 check('four Assassins pledge twelve under A as well',
   Rules.bidFromCards(hand('4S', '5S', '6S', '7S')), 12);
 ok('and overreaching cannot pay under A either',

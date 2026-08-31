@@ -35,12 +35,47 @@
   const kept = (row) => row.made;
 
   /**
-   * The rules in force. Four of the twenty-two words below read differently
-   * under Ruleset B, and each of them branches inside its own definition rather
-   * than being listed twice -- the id, name, frame and place in the order are
+   * The rules in force. Several of the words below read differently under
+   * Ruleset B, and each of them branches inside its own definition rather than
+   * being listed twice -- the id, name, frame and place in the order are
    * written once and cannot drift apart.
    */
   const rules = () => global.Ruleset.current();
+
+  /**
+   * A word marked onlyIn is dealt under that ruleset and no other. Five of A's
+   * words are withdrawn under B and five are dealt only under B, so both
+   * rulesets put the same twenty-two into the pool -- but they are not the same
+   * twenty-two. Everything unmarked is dealt under both.
+   */
+  function inPlay(whisper) {
+    return !whisper.onlyIn || whisper.onlyIn === global.Ruleset.currentId();
+  }
+
+  /** The lowest ranks in B's deck of ten, which The Modest is paid for. */
+  const MODEST_RANK = 5;
+
+  /**
+   * Agents of the same kind and rank taken together in one audience. Only B's
+   * deck strikes a rank twice, so only there can this come to anything.
+   */
+  function matchedPairs(audiences) {
+    let pairs = 0;
+    for (const audience of audiences) {
+      const counts = {};
+      for (const card of audience) {
+        const key = card.suit + card.rank;
+        counts[key] = (counts[key] || 0) + 1;
+      }
+      for (const key of Object.keys(counts)) pairs += Math.floor(counts[key] / 2);
+    }
+    return pairs;
+  }
+
+  /** "one Assassin" against "two Assassins", for a word that counts them. */
+  function blades(count) {
+    return count === 1 ? 'one Assassin' : 'two Assassins';
+  }
 
   function rightOf(table, row) {
     return table[global.Rules.rightOf(row.seat)];
@@ -53,12 +88,21 @@
     {
       id: 'blackmailed',
       name: 'Blackmailed',
-      line: 'At least one Assassin must go out. Keep your pledge for +6.',
-      detail: 'Someone at court holds a letter in your hand. A blade goes out tonight, or it ' +
-        'reaches the monarch by morning.',
-      demand: 'at least one Assassin must go out',
-      permits: (cards) => cards.some((card) => card.suit === 'S'),
-      satisfiable: (hand) => hand.some((card) => card.suit === 'S'),
+      get line() {
+        return 'At least ' + blades(rules().blackmailAssassins) +
+          ' must go out. Keep your pledge for +6.';
+      },
+      get detail() {
+        return 'Someone at court holds a letter in your hand. ' +
+          (rules().blackmailAssassins === 1
+            ? 'A blade goes out tonight, or it reaches the monarch by morning.'
+            : 'Two blades go out tonight, or it reaches the monarch by morning.');
+      },
+      get demand() {
+        return 'at least ' + blades(rules().blackmailAssassins) + ' must go out';
+      },
+      permits: (cards) => suitOf(cards, 'S').length >= rules().blackmailAssassins,
+      satisfiable: (hand) => suitOf(hand, 'S').length >= rules().blackmailAssassins,
       adjust: (favour, row) => (kept(row) ? favour + 6 : favour)
     },
     {
@@ -82,6 +126,21 @@
       allows: (card) => card.suit !== 'H',
       satisfiable: (hand) => hand.length - suitOf(hand, 'H').length >= errands(),
       adjust: (favour, row) => (kept(row) ? favour + 3 : favour)
+    },
+    {
+      id: 'ledger',
+      name: 'Sworn to the Ledger',
+      onlyIn: 'B',
+      line: 'No Merchant may go out. Keep your pledge for +4.',
+      detail: 'The books must balance before the season turns, and not one purse of yours is ' +
+        'leaving this room until they do.',
+      demand: 'no Merchant may go out',
+      allows: (card) => card.suit !== 'D',
+      satisfiable: (hand) => hand.length - suitOf(hand, 'D').length >= errands(),
+      // Holding the Merchants back leaves only Fools, Lovers and Assassins to
+      // make a promise out of, and under B the Fools take a promise away, so
+      // this is a harder demand to land than the other two of its kind.
+      adjust: (favour, row) => (kept(row) ? favour + 4 : favour)
     },
     {
       id: 'audited',
@@ -154,6 +213,7 @@
     {
       id: 'clerk',
       name: 'The Cautious Clerk',
+      onlyIn: 'A',
       get line() {
         return 'You cannot lose favour this night, nor gain more than ' + rules().clerkCap + '.';
       },
@@ -179,6 +239,7 @@
     {
       id: 'meek',
       name: 'The Meek',
+      onlyIn: 'A',
       // Every other word that measures a noble against the table says outright.
       // With four seats and a narrow range of sensible pledges, a shared lowest
       // is common enough that counting it fires the penalty almost every night.
@@ -261,11 +322,35 @@
       }
     },
 
+    {
+      id: 'twin',
+      name: 'The Twin',
+      onlyIn: 'B',
+      line: '+3 for every pair of agents of the same kind and rank you take in one audience.',
+      detail: 'There is someone in this palace with your face. The monarch has not said which ' +
+        'of you was invited, and finds the question very funny indeed.',
+      // Only B's deck strikes a rank twice, so only there can two matched
+      // agents meet -- and when they do, the second one played takes the
+      // audience. This word pays for the collision the tie rule creates.
+      adjust: (favour, row) => favour + 3 * matchedPairs(row.wonAudiences || [])
+    },
+    {
+      id: 'modest',
+      name: 'The Modest',
+      onlyIn: 'B',
+      line: '+2 for every audience you win with an agent of rank ' + MODEST_RANK + ' or lower.',
+      detail: 'Anyone can carry a room with a blade at their back. The monarch would like to ' +
+        'see it done with a nobody.',
+      adjust: (favour, row) =>
+        favour + 2 * row.takenWith.filter((card) => card.value <= MODEST_RANK).length
+    },
+
     // --- inversion and misdirection -----------------------------------------
 
     {
       id: 'contrarian',
       name: 'The Contrarian',
+      onlyIn: 'A',
       line: 'Your pledge counts the audiences you will NOT win. Keep it for +2.',
       detail: 'Pledge eight and you have really promised three. You told the monarch what you ' +
         'would refuse, and it amused them enough to allow it.',
@@ -307,6 +392,7 @@
     {
       id: 'condemned',
       name: 'The Condemned',
+      onlyIn: 'A',
       burden: true,
       line: 'Break your pledge and lose a further 3.',
       detail: 'You are one failure from the block, and the court is watching to see which way ' +
@@ -317,26 +403,28 @@
       id: 'scapegoat',
       name: 'The Scapegoat',
       burden: true,
-      // Under B the pledge is not scored at all and the night is worth +7 less
-      // 3 a head, running from +7 down to -2. The pledge is still kept or
-      // broken as a matter of fact: the sway ladder counts it, and so does any
-      // other word that reads the table.
+      // Under B the pledge is not scored at all and the night is worth a flat
+      // base less 3 a head. The pledge is still kept or broken as a matter of
+      // fact: the sway ladder counts it, and so does any other word that reads
+      // the table.
       get line() {
         return rules().scapegoatScoresPledge
           ? '-2 for every other noble who keeps their pledge, to a limit of 4.'
-          : 'Your pledge is not scored. +7, less 3 for every other noble who keeps theirs.';
+          : 'Your pledge is not scored. +' + rules().scapegoatBase +
+            ', less 3 for every other noble who keeps theirs.';
       },
       detail: 'Someone must answer for last season. It has been decided that it will be you.',
       adjust: (favour, row, table) => {
         const keepers = table.filter((other) => other !== row && other.made).length;
         return rules().scapegoatScoresPledge
           ? favour - Math.min(4, 2 * keepers)
-          : 7 - 3 * keepers;
+          : rules().scapegoatBase - 3 * keepers;
       }
     },
     {
       id: 'disgrace',
       name: 'In Disgrace',
+      onlyIn: 'A',
       burden: true,
       line: 'Favour you gain tonight is halved. Favour you lose is not.',
       detail: 'You are still at court. You are no longer quite of it.',
@@ -373,6 +461,35 @@
       pledgeCost: (bid) => (bid >= 4 ? 1.4 : 0)
     },
     {
+      id: 'optimist',
+      name: 'The Optimist',
+      onlyIn: 'B',
+      burden: true,
+      line: '-1 for every audience you take short of your pledge.',
+      detail: 'You have always believed the night would go better than it did. The court has ' +
+        'stopped finding it charming.',
+      // Only falling short is counted. Overshooting is its own punishment
+      // already, and this word has nothing to add to it.
+      adjust: (favour, row) => favour - Math.max(0, row.bid - row.tricksWon)
+    },
+    {
+      id: 'beggar',
+      name: 'The Beggar’s Bargain',
+      onlyIn: 'B',
+      burden: true,
+      line: 'Your favour is halved unless you win an audience with a Fool in it.',
+      detail: 'You took coin from a man on the palace steps on your way up, and he asked only ' +
+        'that you remember him once, in front of the whole court.',
+      // A Fool anywhere in an audience you took will do -- yours or anyone
+      // else's. Winning one with a Fool is the surest way to be certain of it,
+      // which is what the rival nobles go looking for.
+      favouredSuit: 'C',
+      adjust: (favour, row) => {
+        const remembered = (row.wonCards || []).some((card) => card.suit === 'C');
+        return remembered ? favour : Math.floor(favour / 2);
+      }
+    },
+    {
       id: 'duellist',
       name: 'Called Out',
       burden: true,
@@ -386,12 +503,19 @@
     }
   ];
 
+  // Every word ever written, both rulesets' together, so a word can still be
+  // looked up by id when reading back a season played under the other rules.
   const BY_ID = {};
   for (const whisper of WHISPERS) BY_ID[whisper.id] = whisper;
 
+  /** The words the monarch may actually have for you under the rules in force. */
+  function all() {
+    return WHISPERS.filter(inPlay);
+  }
+
   /** One Whisper per noble, drawn without replacement so no two share a word. */
   function deal(count, rng) {
-    return global.Cards.shuffle(WHISPERS, rng).slice(0, count);
+    return global.Cards.shuffle(all(), rng).slice(0, count);
   }
 
   /** Can this agent be sent out at all under the given Whisper? */
@@ -481,8 +605,9 @@
   }
 
   global.Whispers = {
-    ALL: WHISPERS,
+    CATALOGUE: WHISPERS,
     BY_ID: BY_ID,
+    inPlay: inPlay,
     deal: deal,
     allowsCard: allowsCard,
     canSatisfy: canSatisfy,
@@ -499,4 +624,8 @@
     isBurden: isBurden,
     adjust: adjust
   };
+
+  // Which words are dealt depends on the ruleset in force, and that can change
+  // between seasons, so this is read through rather than copied out.
+  Object.defineProperty(global.Whispers, 'ALL', { enumerable: true, get: all });
 })(typeof globalThis !== 'undefined' ? globalThis : this);

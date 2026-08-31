@@ -76,8 +76,10 @@
     },
 
     // --- what the words ask -----------------------------------------------
+    // Every word in the book is dealt under A.
     clerkCap: 7,
     meekOutright: false,
+    blackmailAssassins: 1,
     auditedMerchants: 2,
     auditedFools: 2,
     auditedExact: false,
@@ -150,12 +152,18 @@
     },
 
     // --- what the words ask -----------------------------------------------
-    clerkCap: 10,
-    meekOutright: true,
+    // Five words are not dealt under B and five others are dealt only under it;
+    // each says so in its own definition in whispers.js. The Cautious Clerk and
+    // The Meek are among those withdrawn, so neither clerkCap nor meekOutright
+    // means anything here.
+    blackmailAssassins: 2,
     auditedMerchants: 3,
     auditedFools: 1,
     auditedExact: true,
     scapegoatScoresPledge: false,
+    // What a Scapegoat's night is worth before the other nobles are counted,
+    // three favour a head coming off it. At 5 the range runs +5 to -4.
+    scapegoatBase: 5,
     swornCountsInAudiences: true
   };
 

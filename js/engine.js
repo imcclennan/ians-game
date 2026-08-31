@@ -38,7 +38,7 @@
         tookWhisper: null,   // null until they decide; then true or false
         tricksWon: 0,
         takenWith: [],
-        wonCards: [],
+        wonAudiences: [],
         score: 0
       })),
       human: HUMAN,
@@ -100,7 +100,7 @@
       player.tookWhisper = state.whispersOn ? null : false;
       player.tricksWon = 0;
       player.takenWith = [];
-      player.wonCards = [];
+      player.wonAudiences = [];
     });
 
     state.phase = state.whispersOn ? 'whisperOffer' : 'bidding';
@@ -311,9 +311,10 @@
     const winner = state.trickResult.winner;
     state.players[winner].tricksWon += 1;
     state.players[winner].takenWith.push(state.trickResult.card);
-    // Every agent that was in the room, not only the one that took it. A word
-    // may care what the audience held rather than what won it.
-    for (const play of state.trick) state.players[winner].wonCards.push(play.card);
+    // Every agent that was in the room, not only the one that took it, kept
+    // audience by audience. A word may care what an audience held rather than
+    // what won it, and one of them cares which agents were held together.
+    state.players[winner].wonAudiences.push(state.trick.map((play) => play.card));
     state.lastTrick = { plays: state.trick.slice(), winner: winner, number: state.trickNumber };
     state.trick = [];
     state.trickResult = null;
@@ -342,8 +343,10 @@
         counted: counted,
         takenWith: player.takenWith.slice(),
         // Every agent inside the audiences this noble took, not merely the one
-        // that won each of them.
-        wonCards: player.wonCards.slice(),
+        // that won each of them: grouped by audience, and flattened for the
+        // words that only care how many there were in all.
+        wonAudiences: player.wonAudiences.map((audience) => audience.slice()),
+        wonCards: player.wonAudiences.reduce((all, audience) => all.concat(audience), []),
         // Four Fools sent out is a pledge of nothing meant; any other set that
         // comes to nought is a pledge of nothing that happens to add up.
         trueNil: Rules.isTrueNil(player.bidCards),

@@ -236,9 +236,28 @@ about A changes, and switching begins a fresh season.
 | Pledge missed | 1 an audience, less 2 for every one off | the pledge, less 2 for every one off |
 | Promising nothing | 8 kept, −8 broken | 8 for four Fools, 1 for any other nought, −2 an audience broken |
 
-Four of the twenty-two Whispers read differently under B — The Audited, The Meek, The Scapegoat and
-Sworn to the Fool — and the rulebook behind **Rules** rewrites itself to match whichever ruleset is
-in force. The deck is sixty cards either way.
+Under B the monarch keeps a different book. Five words are **withdrawn** — The Cautious Clerk, The
+Meek, In Disgrace, The Contrarian and The Condemned — and five are dealt **only** under B:
+
+| Whisper | The monarch’s word |
+| --- | --- |
+| **Sworn to the Ledger** | No Merchant may go out. Keep your pledge for **+4**. |
+| **The Twin** | **+3** for every pair of agents of the same kind and rank you take in one audience. |
+| **The Modest** | **+2** for every audience you win with an agent of rank 5 or lower. |
+| **The Optimist** *(burden)* | **−1** for every audience you take short of your pledge. |
+| **The Beggar’s Bargain** *(burden)* | Your favour is halved unless you win an audience with a Fool in it. |
+
+Four more read differently: **Blackmailed** asks for two Assassins rather than one, **The Audited**
+sends three Merchants and one Fool, and **The Scapegoat** and **Sworn to the Fool** are rewritten to
+set the pledge aside altogether. The other seventeen are word for word the same, and every point
+value on them is unchanged.
+
+Either way twenty-two words go into the pool, seven of them burdens, and the rulebook behind
+**Rules** rewrites itself to match whichever ruleset is in force. The deck is sixty cards either way.
+
+The Twin is the one that could only exist under B: two agents of a kind can only meet on a rank
+where the deck strikes it twice, and when they do, the tie rule hands the audience to whoever played
+second.
 
 The tie rule is what the doubled ranks buy: it settles about one audience in seven, and it makes a
 card that nothing can beat a great deal rarer — a noble leads holding a provable winner on 47% of
