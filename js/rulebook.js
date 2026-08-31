@@ -115,7 +115,7 @@
       title: 'Overview',
       html:
         '<p>Four nobles compete for the ear of the monarch over a series of <strong>nights</strong>. ' +
-        'At the start of each night every player privately promises how many <strong>audiences</strong> ' +
+        'At the start of each night every noble privately promises how many <strong>audiences</strong> ' +
         'they will win, and then plays to reach that number exactly.</p>' +
         '<p>Favour is awarded for precision rather than for ambition. Winning more audiences than ' +
         'you promised is penalised just as surely as winning fewer, so the difficulty of the game ' +
@@ -136,16 +136,14 @@
         '<strong>15 of each kind</strong>, ranked from <strong>1 to ' + Cards.HIGHEST_VALUE +
         '</strong>. Rank ' + Cards.HIGHEST_VALUE + ' is the most influential and rank 1 the least.</p>' +
         agentTable() +
-        '<p>The four kinds <strong>do not share a ladder</strong>. Each holds fifteen ' +
-        'cards, but over its own stretch of the ranks and with its own crowding: the ' +
+        '<p>The four kinds <strong>do not share a ranking ladder</strong>. Each holds fifteen ' +
+        'cards, but each has its own set of ranks: the ' +
         'Assassins sit at the top and the Fools at the bottom, the Merchants alone run ' +
-        'the whole range, and the Lovers take every other rung in pairs. A kind holds ' +
-        'nothing at all at the ranks not listed for it.</p>' +
+        'the whole range, and the Lovers exist in pairs.</p>' +
         compositionTable() +
         '<p>Cards of the same kind and rank are <strong>identical in play</strong>. They ' +
-        'carry no distinguishing mark beyond a count of how many the deck holds, and none is ' +
-        'needed: the only rule that can tell them apart is the one that settles an audience ' +
-        'between them, and that rule turns on the order they were played rather than on the ' +
+        'carry no distinguishing mark beyond a count of how many the deck holds. The only difference '+
+        'is that audiences are decided by the order they were played rather than on the ' +
         'cards themselves (section {{rule-play}}).</p>' +
         '<p>An agent’s <em>kind</em> determines what it is worth when sent out on an errand ' +
         '(section {{rule-pledge}}). An agent’s <em>rank</em> determines whether it wins an audience ' +
@@ -155,24 +153,25 @@
       id: 'rule-deal',
       title: 'Seating, the deal, and the course of a night',
       html:
-        '<p>Four players sit in a fixed order. Play and the deal both proceed ' +
-        '<strong>clockwise</strong>, which is to say to the left. One player is the ' +
+        '<p>Play and the deal both proceed <strong>clockwise</strong>. One noble is the ' +
         '<strong>steward</strong> for the night; the stewardship passes one seat to the left ' +
         'after every night.</p>' +
         '<p>A night runs as follows.</p>' +
         '<ol class="rule-summary">' +
         '<li>The steward deals <strong>' + Rules.HAND_SIZE + ' cards</strong> to each of the ' +
-        'four players, exhausting the deck.</li>' +
-        '<li>If Whispers are in use, each player looks at their own hand and chooses whether to ' +
-        'take one, unread and for nothing (section {{rule-whispers}}).</li>' +
-        '<li>Each player sends <strong>' + Rules.BID_CARDS + ' agents</strong> out on errands, ' +
-        'face down. Their kinds are that player\u2019s pledge; their ranks are irrelevant ' +
-        '(section {{rule-pledge}}).</li>' +
-        '<li>The player to the steward\u2019s left opens the first of <strong>' + T +
+        'four nobles.</li>' +
+        '<li>If Whispers are in use, each noble looks at their own hand and chooses whether to ' +
+        'take one (section {{rule-whispers}}).</li>' +
+        '<li>Each noble sends <strong>' + Rules.BID_CARDS + ' agents</strong> out on errands, ' +
+        'face down (unless The Watched is in play). Their kinds are that noble\u2019s pledge; ' +
+        'their ranks are irrelevant (section {{rule-pledge}}).</li>' +
+        '<li>The noble to the steward\u2019s left opens the first of <strong>' + T +
         ' audiences</strong>.</li>' +
-        '<li>Players answer in kind where they can. The highest of the opening kind takes the ' +
+        'Nobles answer in kind where they can. The highest of the opening kind takes the ' +
         'audience, unless the ruling kind was played, in which case the highest of those does ' +
         '(section {{rule-play}}).</li>' +
+        '<li>If more than one card of the same kind and rank is played, the latest one takes ' +
+        'precedence (section {{rule-play}}).</li>' +
         '<li>The winner of each audience opens the next, until every hand is empty.</li>' +
         '<li>Errands and Whispers are revealed. Favour is scored on the exactness of each ' +
         'pledge (section {{rule-favour}}).</li>' +
@@ -181,7 +180,7 @@
         '<li>The stewardship passes one seat to the left, and a new night begins.</li>' +
         '</ol>' +
         '<p>After <strong>' + Rules.SEASON_LENGTH + ' nights</strong> the season ends and the ' +
-        'most favour wins, as set out in section {{rule-season}}.</p>'
+        'noble with the most favour wins, as set out in section {{rule-season}}.</p>'
     },
     {
       id: 'rule-whispers',
@@ -195,41 +194,34 @@
         '<strong>signed by whoever sent it</strong>.</p>' +
         '<p>The ' + Whispers.ALL.length + ' Whispers are shuffled face down ' +
         'at the start of each night. After the deal, and <strong>before any pledge is made</strong>, ' +
-        'each eligible player may look at their own hand and then choose to <strong>take one ' +
+        'each eligible noble may look at their own hand and then choose to <strong>take one ' +
         'Whisper</strong> or to go without.</p>' +
-        '<p><strong>The court does not confide in whoever is winning.</strong> Only a player ' +
+        '<p><strong>The court does not confide in whoever is winning.</strong> Only a noble ' +
         'whose favour is <em>strictly less</em> than the highest at the table may take one. On ' +
-        'the first night of a season the whole court is level on nothing, so nobody is offered a ' +
+        'the first night of a season the whole court is level, so nobody is offered a ' +
         'word at all.</p>' +
         '<p>Taking one <strong>costs nothing</strong>, but it is taken ' +
-        '<strong>unread</strong>: a player decides on the strength of their hand alone, not on ' +
-        'the word they are about to receive. Of the ' + Whispers.ALL.length + ' words, <strong>' +
-        Whispers.ALL.filter((w) => w.burden).length + ' are burdens</strong> that cost rather ' +
-        'than pay, so a word is a gamble taken by a player who needs one — which is the ' +
-        'only sort of player who is offered it.</p>' +
+        '<strong>unread</strong>: a noble decides on the strength of their hand alone, not on ' +
+        'the word they are about to receive.</p>' +
         '<p>Some words count <strong>the agent that took the audience for you</strong> — the ' +
         'one that beat the rest. Others count <strong>every agent in an audience you took</strong>, ' +
         'whoever played it. The card says which.</p>' +
-        '<p>A Whisper alters how that player\u2019s favour is counted, or ' +
+        '<p>A Whisper alters how that noble\u2019s favour is counted, or ' +
         'restricts which agents they may send out on errands, or both. Its <strong>contents are ' +
         'private</strong> and are revealed only when the night ends, alongside the errands. That ' +
-        'a player took one is plain for the table to see; <em>which</em> one is not — unless the ' +
-        'word itself says otherwise. A word that lays a player\u2019s errands face up puts both ' +
-        'their pledge and the four agents they sent into the open from the moment they are sent, ' +
-        'and the rest of the table will play into that number for the whole night.</p>' +
+        'a noble took one is plain for the table to see; <em>which</em> one is not — unless the ' +
+        'word itself says otherwise.</p>' +
         '<p>Not every word is a favour. ' + Whispers.ALL.filter((w) => w.burden).length +
         ' of the ' + Whispers.ALL.length + ' are <strong>burdens</strong>, which cost rather ' +
         'than pay. A burden is framed in oxblood under a broken seal and signed as a burden, so ' +
         'there is no mistaking one once it is in your hand — but every Whisper is identical ' +
-        'face down, and a player who has drawn one is under no obligation to say so.</p>' +
+        'face down, and a noble who has drawn one is under no obligation to say so.</p>' +
         '<p>Where a Whisper asks something of the errands, the demand is ' +
-        '<strong>never binding</strong>. A player may always pledge exactly as they please. But ' +
+        '<strong>never binding</strong>. A noble may always pledge exactly as they please. But ' +
         'a Whisper that was not heeded <strong>pays nothing at all</strong>: its rewards are ' +
-        'forfeit, and the player scores the night as though they had gone without a word.</p>' +
-        '<p>No two players hold the same Whisper on the same night, and a ' +
-        'Whisper never changes the rules of play in section {{rule-play}}.</p>' +
+        'forfeit, and the noble scores the night as though they had gone without a word.</p>' +
         '<p>Every Whisper in the deck is set out in section {{rule-whisperlist}}.</p>' +
-        '<p class="rule-note">Because a burden is as likely as a favour, taking a word is a ' +
+        '<p class="rule-note">Because burden are mixed in with favours, taking a word is a ' +
         'gamble rather than a formality: worth reaching for when a season is slipping away, and ' +
         'worth refusing when it is not. A rival who ' +
         'pledges strangely, or who ducks an audience they could plainly have won, is telling you ' +
@@ -240,71 +232,63 @@
       id: 'rule-pledge',
       title: 'Making a pledge',
       html:
-        '<p>Before any card is played, each player selects <strong>' +
+        '<p>Before any card is played, each noble selects <strong>' +
         Rules.BID_CARDS + ' cards</strong> from their hand and places them face down in front of ' +
-        'them. These are that player’s <strong>errands</strong>.</p>' +
-        '<p>A player’s <strong>pledge</strong> is the sum of the errand ' +
+        'them. These are that noble <strong>errands</strong>.</p>' +
+        '<p>A noble’s <strong>pledge</strong> is the sum of the errand ' +
         'values of the four cards sent, by kind. <strong>Rank is disregarded entirely</strong>: a ' +
         'Fool of ' + Cards.ranksOf('C').slice(-1)[0] + ' counts for exactly what a Fool of 1 ' +
         'does, and the highest Assassin in the deck promises no more than the lowest.</p>' +
         (Cards.BID_VALUE.C < 0
           ? '<p>A <strong>Fool is worth −1</strong>: sending one out does not merely promise ' +
             'nothing, it takes a promise back. A set of errands that comes to <strong>nothing ' +
-            'or less pledges nothing</strong> — there is no promising the court a negative ' +
+            'or less pledges nothing</strong>: there is no promising the court a negative ' +
             'number of audiences — but how it came to nothing matters when favour is counted.</p>' +
             '<p>A pledge of nothing made by sending <strong>all four errands as Fools</strong> ' +
-            'is a <strong>Fool\u2019s errand</strong>, and pays as one. A set that merely ' +
+            'is a <strong>Fool\u2019s errand</strong>. A set that merely ' +
             'happens to add up to nought or below — two Fools and two Merchants, say — pledges ' +
-            'nothing just the same, but is only a <strong>hollow promise</strong>, and is paid ' +
-            'as one ' +
+            'nothing just the same, but is only a <strong>hollow promise</strong> ' +
             '(section {{rule-favour}}).</p>'
           : '') +
         '<p>Errands remain face down and <strong>out of play</strong> for the ' +
         'remainder of the night. ' + T + ' cards therefore remain in each hand, and <strong>' +
         T + ' audiences</strong> are contested.</p>' +
-        '<p>A pledge is <strong>not capped</strong>. Four Assassins constitute ' +
-        'a pledge of twelve, which exceeds the ' + T + ' audiences available and cannot be kept ' +
-        'under any circumstances. Nothing in the rules forbids it.</p>' +
         '<p>All errands are revealed simultaneously when the night ends. ' +
-        'Until then, no player knows another’s pledge, nor which cards have left another’s ' +
+        'Until then, no noble knows another’s pledge, nor which cards have left another’s ' +
         'hand.</p>' +
         '<p class="rule-note">The cards that make your promise are the cards you no longer get to ' +
         'play. Promising a great deal costs you Assassins; promising nothing is cheap only if your ' +
-        'Fools were worthless to begin with. This tension is the heart of the game.</p>'
+        'Fools were worthless to begin with.</p>'
     },
     {
       id: 'rule-play',
       title: 'Playing the night',
       html:
-        '<p>The player to the steward’s left <strong>opens</strong> the ' +
+        '<p>The noble to the steward’s left <strong>opens</strong> the ' +
         'first audience by playing any card from their hand, including one of the ruling kind.</p>' +
-        '<p>Play continues clockwise. Each player in turn must <strong>answer ' +
+        '<p>Play continues clockwise. Each noble in turn must <strong>answer ' +
         'in kind</strong> — that is, play a card of the same kind as the one that opened the ' +
-        'audience — if they hold one. A player holding none may play any card at all.</p>' +
+        'audience — if they hold one. A noble holding none may play any card at all.</p>' +
         '<p>The audience is won by the <strong>highest-ranked card of the kind ' +
         'that opened it</strong>, unless one or more cards of the <strong>ruling kind</strong> ' +
         '(section {{rule-sway}}) were played, in which case the highest-ranked of those wins instead.</p>' +
         '<p>A card of neither the opening kind nor the ruling kind can never ' +
         'win an audience, whatever its rank.</p>' +
-        '<p><strong>Equal ranks.</strong> Because the deck strikes some ranks more than ' +
+        '<p><strong>Equal ranks.</strong> Because the deck contains some ranks more than ' +
         'once (section {{rule-deck}}), two agents of the same kind can meet on the same ' +
         'rank. The audience then goes to <strong>whichever of them was played ' +
-        'later</strong>. The later word is the one the court remembers.</p>' +
-        '<p>This settles roughly <strong>one audience in five</strong>, so it is worth ' +
-        'knowing before you lead: a card that could not be beaten can still be matched, and ' +
-        'a player sitting after you needs only to equal it. Where a rank is struck ' +
-        Cards.MOST_COPIES + ' times, holding one of them proves very little.</p>' +
-        '<p>The rule applies <em>within a single kind</em> and nowhere else. A card of the ' +
-        'ruling kind beats one of any other kind whatever the two ranks are, so an equal ' +
-        'rank in a different kind settles nothing.</p>' +
-        '<p>The winner of an audience opens the next. ' + T + ' audiences are ' +
-        'played, exhausting every hand.</p>'
+        'last</strong>. The later word is the one the court remembers.</p>' +
+        '<p class="rule-note">A card that could not be beaten can still be matched, and ' +
+        'a noble sitting after you needs only to equal it. Where a rank is struck ' +
+        Cards.MOST_COPIES + ' times, holding one of them proves very little for a noble.</p>' +
+        '<p>The winner of an audience opens the next until all ' + T + ' audiences are ' +
+        'played.</p>'
     },
     {
       id: 'rule-favour',
       title: 'Winning favour',
       html:
-        '<p>At the end of the night each player compares the audiences they won against the ' +
+        '<p>At the end of the night each noble compares the audiences they won against the ' +
         'pledge they made, and scores as follows.</p>' +
         favourTable() +
         '<p><strong>Examples.</strong></p>' +
@@ -313,10 +297,10 @@
         '<li>Pledged 1, won 1. Kept: 1 + 2 = <b>3 favour</b>.</li>' +
         '<li>Pledged 4, won 3. One short: 4 − 2 = <b>2 favour</b>.</li>' +
         '<li>Pledged 2, won 4. Two over: 2 − 4 = <b>−2 favour</b>.</li>' +
-        '<li>Sent four Fools, won nothing. A Fool\u2019s errand kept: <b>8 favour</b>.</li>' +
-        '<li>Sent four Fools, won 2. The Fool\u2019s errand is broken: <b>−4 favour</b>.</li>' +
+        '<li>Sent four Fools, won nothing. A <strong>Fool\u2019s errand</strong> kept: <b>8 favour</b>.</li>' +
+        '<li>Sent four Fools, won 2. The <strong>Fool\u2019s errand</strong> is broken: <b>−4 favour</b>.</li>' +
         '<li>Sent errands adding up to nothing some other way, won nothing. Nothing ' +
-        'promised and nothing taken, but only a hollow promise: <b>1 favour</b>.</li>' +
+        'promised and nothing taken, but only a <strong>hollow promise</strong>: <b>1 favour</b>.</li>' +
         '</ul>' +
         '<p class="rule-note">Being wrong costs 2 favour per audience in <em>either</em> ' +
         'direction, so there is no advantage in deliberately under-promising and ' +
@@ -329,7 +313,7 @@
       title: 'Who holds sway',
       html:
         '<p>One kind of agent may <strong>hold sway</strong> for a night, outranking every other ' +
-        'kind when audiences are decided (rule {{rule-play}}). Sway is not chosen by any player. It is ' +
+        'kind when audiences are decided (rule {{rule-play}}). Sway is not chosen by any noble. It is ' +
         'determined by how the <em>previous</em> night went.</p>' +
         '<p>The first night of a season is always played at <strong>No Sway</strong>, where no ' +
         'kind outranks any other. After that, sway passes according to how many of the four nobles ' +
@@ -337,7 +321,7 @@
         swayTable() +
         '<p class="rule-note">The ladder runs from the humblest agent to the most dangerous. When ' +
         'the whole court fails, the Fool rules it; when the whole court succeeds, nobody does. ' +
-        'Because sway is public knowledge before pledges are made, every player knows which kind is ' +
+        'Because sway is public knowledge before pledges are made, every noble knows which kind is ' +
         'dangerous while they are deciding what to promise.</p>'
     },
     {
@@ -349,9 +333,9 @@
         'twelve times and then rises.</p>' +
         '<p>The twelfth and final night is <strong>Twelfth Night</strong>, ' +
         'the feast of misrule. The stewardship will have passed three full times round the table ' +
-        'by then, so every player deals exactly three nights.</p>' +
-        '<p>The player with the most favour after Twelfth Night wins.</p>' +
-        '<p>Should two or more players finish level on favour, the season is ' +
+        'by then, so every noble will have been steward exactly three nights.</p>' +
+        '<p>The noble with the most favour after Twelfth Night wins.</p>' +
+        '<p>Should two or more nobles finish level on favour, the season is ' +
         'decided in favour of whichever of them, in order:</p>' +
         '<ol>' +
         '<li>won more favour on Twelfth Night;</li>' +
@@ -359,8 +343,8 @@
         '<li>sent out the four errands of the higher combined rank on Twelfth Night.</li>' +
         '</ol>' +
         '<p class="rule-note">Because the end is fixed and known, the last two or three nights ' +
-        'are played differently from the first: a player behind on favour must gamble, and a ' +
-        'player ahead can afford to promise nothing and simply survive.</p>'
+        'are played differently from the first: a noble behind on favour must gamble, and a ' +
+        'noble ahead can afford to promise nothing and simply survive.</p>'
     },
     {
       id: 'rule-whisperlist',
