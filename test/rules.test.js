@@ -1204,7 +1204,7 @@ ok('the rulebook prints the deck actually dealt',
   deckProse.indexOf('5&times;15') !== -1 && deckProse.indexOf('5&times;1') !== -1,
   'the composition table should show the crowded ranks');
 ok('and says the kinds do not share a ladder',
-  deckProse.indexOf('do not share a ladder') !== -1);
+  deckProse.indexOf('do not share a ranking ladder') !== -1);
 
 // --- report ----------------------------------------------------------------
 
