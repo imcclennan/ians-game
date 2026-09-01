@@ -15,7 +15,7 @@
 
   const INK = { S: 'graphite', H: 'crimson', D: 'antique gold', C: 'plum' };
   const FACE = { S: 'pale slate', H: 'pale rose', D: 'pale gold', C: 'pale lilac' };
-  const MARK = { S: 'a dagger', H: 'a rose', D: 'a balance', C: 'a cap and bells' };
+  const MARK = { S: 'a dagger', H: 'crossed hearts', D: 'a balance', C: 'a cap and bells' };
   // The politics of each kind's ladder. Lives in js/cards.js beside COPIES,
   // so the printed sheet sets the same words.
   const BACKGROUND = Cards.KIND_NOTE;

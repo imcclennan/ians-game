@@ -190,7 +190,7 @@ const side1 = `
       <tr><th>Agent</th><th>Mark</th><th class="n">Promises</th></tr>
       <tr><td>Fool</td><td>${em('C', 10, AGENT_INK.C)} cap and bells</td><td class="n">0</td></tr>
       <tr><td>Merchant</td><td>${em('D', 10, AGENT_INK.D)} a balance</td><td class="n">1</td></tr>
-      <tr><td>Lover</td><td>${em('H', 10, AGENT_INK.H)} a rose</td><td class="n">2</td></tr>
+      <tr><td>Lover</td><td>${em('H', 10, AGENT_INK.H)} crossed hearts</td><td class="n">2</td></tr>
       <tr><td>Assassin</td><td>${em('S', 10, AGENT_INK.S)} a dagger</td><td class="n">3</td></tr>
     </table>
     ${P(`An agent&rsquo;s <b>kind</b> decides what it promises on an errand (5); its <b>rank</b>
