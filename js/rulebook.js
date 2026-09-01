@@ -173,10 +173,8 @@
         '<ol class="rule-summary">' +
         '<li>The steward deals <strong>' + Rules.HAND_SIZE + ' cards</strong> to each of the ' +
         'four nobles.</li>' +
-        '<li>If Whispers are in use, each noble looks at their own hand and chooses whether to ' +
-        'take one (section {{rule-whispers}}).</li>' +
         '<li>Each noble sends <strong>' + Rules.BID_CARDS + ' agents</strong> out on errands, ' +
-        'face down (unless The Watched is in play). Their kinds are that noble\u2019s pledge; ' +
+        'face down. Their kinds are that noble\u2019s pledge; ' +
         'their ranks are irrelevant (section {{rule-pledge}}).</li>' +
         '<li>The noble to the steward\u2019s left opens the first of <strong>' + T +
         ' audiences</strong>.</li>' +
@@ -186,7 +184,7 @@
         '<li>If more than one card of the same kind and rank is played, the latest one takes ' +
         'precedence (section {{rule-play}}).</li>' +
         '<li>The winner of each audience opens the next, until every hand is empty.</li>' +
-        '<li>Errands and Whispers are revealed. Favour is scored on the exactness of each ' +
+        '<li>Errands are revealed. Favour is scored on the exactness of each ' +
         'pledge (section {{rule-favour}}).</li>' +
         '<li>The number of pledges kept sets the sway for the next night ' +
         '(section {{rule-sway}}).</li>' +
@@ -194,52 +192,6 @@
         '</ol>' +
         '<p>After <strong>' + Rules.SEASON_LENGTH + ' nights</strong> the season ends and the ' +
         'noble with the most favour wins, as set out in section {{rule-season}}.</p>'
-    },
-    {
-      id: 'rule-whispers',
-      title: 'The Whispers',
-      optional: true,
-      html:
-        '<p>The Whispers are an optional component. A season played without them is a complete ' +
-        'game.</p>' +
-        '<p>A Whisper is whatever reaches you before the night begins — from the throne, from ' +
-        'the treasury, from someone who has no business being at court at all. Each card is ' +
-        '<strong>signed by whoever sent it</strong>.</p>' +
-        '<p>The ' + Whispers.ALL.length + ' Whispers are shuffled face down ' +
-        'at the start of each night. After the deal, and <strong>before any pledge is made</strong>, ' +
-        'each eligible noble may look at their own hand and then choose to <strong>take one ' +
-        'Whisper</strong> or to go without.</p>' +
-        '<p><strong>The court does not confide in whoever is winning.</strong> Only a noble ' +
-        'whose favour is <em>strictly less</em> than the highest at the table may take one. On ' +
-        'the first night of a season the whole court is level, so nobody is offered a ' +
-        'word at all.</p>' +
-        '<p>Taking one <strong>costs nothing</strong>, but it is taken ' +
-        '<strong>unread</strong>: a noble decides on the strength of their hand alone, not on ' +
-        'the word they are about to receive.</p>' +
-        '<p>Some words count <strong>the agent that took the audience for you</strong> — the ' +
-        'one that beat the rest. Others count <strong>every agent in an audience you took</strong>, ' +
-        'whoever played it. The card says which.</p>' +
-        '<p>A Whisper alters how that noble\u2019s favour is counted, or ' +
-        'restricts which agents they may send out on errands, or both. Its <strong>contents are ' +
-        'private</strong> and are revealed only when the night ends, alongside the errands. That ' +
-        'a noble took one is plain for the table to see; <em>which</em> one is not — unless the ' +
-        'word itself says otherwise.</p>' +
-        '<p>Not every word is a favour. ' + Whispers.ALL.filter((w) => w.burden).length +
-        ' of the ' + Whispers.ALL.length + ' are <strong>burdens</strong>, which cost rather ' +
-        'than pay. A burden is framed in oxblood under a broken seal and signed as a burden, so ' +
-        'there is no mistaking one once it is in your hand — but every Whisper is identical ' +
-        'face down, and a noble who has drawn one is under no obligation to say so.</p>' +
-        '<p>Where a Whisper asks something of the errands, the demand is ' +
-        '<strong>never binding</strong>. A noble may always pledge exactly as they please. But ' +
-        'a Whisper that was not heeded <strong>pays nothing at all</strong>: its rewards are ' +
-        'forfeit, and the noble scores the night as though they had gone without a word.</p>' +
-        '<p>Every Whisper in the deck is set out in section {{rule-whisperlist}}.</p>' +
-        '<p class="rule-note">Because burden are mixed in with favours, taking a word is a ' +
-        'gamble rather than a formality: worth reaching for when a season is slipping away, and ' +
-        'worth refusing when it is not. A rival who ' +
-        'pledges strangely, or who ducks an audience they could plainly have won, is telling you ' +
-        'something about the word they were given \u2014 and a rival who refused a free word is ' +
-        'telling you their hand was already exactly what they wanted.</p>'
     },
     {
       id: 'rule-pledge',
@@ -358,6 +310,52 @@
         '<p class="rule-note">Because the end is fixed and known, the last two or three nights ' +
         'are played differently from the first: a noble behind on favour must gamble, and a ' +
         'noble ahead can afford to promise nothing and simply survive.</p>'
+    },
+    {
+      id: 'rule-whispers',
+      title: 'The Whispers',
+      optional: true,
+      html:
+        '<p>The Whispers are an optional component. A season played without them is a complete ' +
+        'game.</p>' +
+        '<p>A Whisper is whatever reaches you before the night begins — from the throne, from ' +
+        'the treasury, from someone who has no business being at court at all. Each card is ' +
+        '<strong>signed by whoever sent it</strong>.</p>' +
+        '<p>The ' + Whispers.ALL.length + ' Whispers are shuffled face down ' +
+        'at the start of each night. After the deal, and <strong>before any pledge is made</strong>, ' +
+        'each eligible noble may look at their own hand and then choose to <strong>take one ' +
+        'Whisper</strong> or to go without.</p>' +
+        '<p><strong>The court does not confide in whoever is winning.</strong> Only a noble ' +
+        'whose favour is <em>strictly less</em> than the highest at the table may take one. On ' +
+        'the first night of a season the whole court is level, so nobody is offered a ' +
+        'word at all.</p>' +
+        '<p>Taking one <strong>costs nothing</strong>, but it is taken ' +
+        '<strong>unread</strong>: a noble decides on the strength of their hand alone, not on ' +
+        'the word they are about to receive.</p>' +
+        '<p>Some words count <strong>the agent that took the audience for you</strong> — the ' +
+        'one that beat the rest. Others count <strong>every agent in an audience you took</strong>, ' +
+        'whoever played it. The card says which.</p>' +
+        '<p>A Whisper alters how that noble\u2019s favour is counted, or ' +
+        'restricts which agents they may send out on errands, or both. Its <strong>contents are ' +
+        'private</strong> and are revealed only when the night ends, alongside the errands. That ' +
+        'a noble took one is plain for the table to see; <em>which</em> one is not — unless the ' +
+        'word itself says otherwise.</p>' +
+        '<p>Not every word is a favour. ' + Whispers.ALL.filter((w) => w.burden).length +
+        ' of the ' + Whispers.ALL.length + ' are <strong>burdens</strong>, which cost rather ' +
+        'than pay. A burden is framed in oxblood under a broken seal and signed as a burden, so ' +
+        'there is no mistaking one once it is in your hand — but every Whisper is identical ' +
+        'face down, and a noble who has drawn one is under no obligation to say so.</p>' +
+        '<p>Where a Whisper asks something of the errands, the demand is ' +
+        '<strong>never binding</strong>. A noble may always pledge exactly as they please. But ' +
+        'a Whisper that was not heeded <strong>pays nothing at all</strong>: its rewards are ' +
+        'forfeit, and the noble scores the night as though they had gone without a word.</p>' +
+        '<p>Every Whisper in the deck is set out in section {{rule-whisperlist}}.</p>' +
+        '<p class="rule-note">Because burden are mixed in with favours, taking a word is a ' +
+        'gamble rather than a formality: worth reaching for when a season is slipping away, and ' +
+        'worth refusing when it is not. A rival who ' +
+        'pledges strangely, or who ducks an audience they could plainly have won, is telling you ' +
+        'something about the word they were given \u2014 and a rival who refused a free word is ' +
+        'telling you their hand was already exactly what they wanted.</p>'
     },
     {
       id: 'rule-whisperlist',
