@@ -38,7 +38,7 @@
        "<circle cx='50' cy='90' r='7'/>",
     H: "<circle cx='50' cy='26' r='14'/><circle cx='72' cy='42' r='14'/>" +
        "<circle cx='64' cy='66' r='14'/><circle cx='36' cy='66' r='14'/>" +
-       "<circle cx='28' cy='42' r='14'/><circle cx='50' cy='48' r='13'/>" +
+       "<circle cx='28' cy='42' r='14'/><circle cx='50' cy='48' r='18.5'/>" +
        "<rect x='46' y='66' width='8' height='28'/>",
     D: "<rect x='46' y='14' width='8' height='66'/>" +
        "<rect x='16' y='24' width='68' height='7' rx='3'/>" +
@@ -100,6 +100,26 @@
     // consequence: no Assassin can be an agent of rank 5 or lower, which is
     // what The Modest pays for.
     S: { 11: 1, 12: 2, 13: 3, 14: 4, 15: 5 }
+  };
+
+  /**
+   * Why each kind is arranged the way it is: the politics of the ladder, not a
+   * rule. Kept here beside COPIES because the two have to agree -- a note that
+   * says the Merchants share no rung is wrong the moment COPIES.D holds a pair
+   * -- and because both the app's rulebook and the printed sheet set it, and a
+   * second copy of a paragraph is a second copy to go stale.
+   */
+  const KIND_NOTE = {
+    S: 'The trade admits nobody without a name already made. Above that, standing is ' +
+       'reputation, and reputation is shared: five of them claim to be the best, and ' +
+       'not one can prove the claim.',
+    H: 'They arrive in pairs. Only one comes to court unattached, and stands at the ' +
+       'bottom alone.',
+    D: 'The ledger settles it. Every station is held by exactly one merchant, nobody ' +
+       'shares a rung, and each of them knows to the penny who stands above them.',
+    C: 'Anyone may call themselves a fool, and most of the court does, so the low rungs ' +
+       'are packed and the ladder is short. At the top of it there is one \u2014 the ' +
+       'single fool the monarch actually listens to.'
   };
 
   // The most of any one rank the deck holds, which is how many marks a card
@@ -224,6 +244,7 @@
     RANKS: RANKS,
     HIGHEST_VALUE: HIGHEST_VALUE,
     COPIES: COPIES,
+    KIND_NOTE: KIND_NOTE,
     MOST_COPIES: MOST_COPIES,
     copiesOf: copiesOf,
     ranksOf: ranksOf,

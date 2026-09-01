@@ -16,15 +16,10 @@
   const INK = { S: 'graphite', H: 'crimson', D: 'antique gold', C: 'plum' };
   const FACE = { S: 'pale slate', H: 'pale rose', D: 'pale gold', C: 'pale lilac' };
   const MARK = { S: 'a dagger', H: 'a rose', D: 'a balance', C: 'a cap and bells' };
-  const BACKGROUND = { S: 'The trade admits nobody without a name already made. ' +
-    'Above that, standing is reputation, and reputation is shared: five of them ' +
-    'claim to be the best, and not one can prove the claim.', H: 'They arrive in ' +
-    'pairs. Only one comes to court unattached, and stands at the bottom alone.', 
-    D: 'The ledger settles it. Every station is held by exactly one merchant, nobody ' +
-    'shares a rung, and each of them knows to the penny who stands above', C: 'Anyone ' +
-    'may call themselves a fool, and most of the court does, so the low rungs are ' +
-    'packed and the ladder is short. At the top of it there is one — the single fool ' +
-    'the monarch actually listens to.' };
+  // The politics of each kind's ladder. Lives in js/cards.js beside COPIES,
+  // so the printed sheet sets the same words.
+  const BACKGROUND = Cards.KIND_NOTE;
+
   const AGENT_ORDER = ['S', 'H', 'D', 'C'];
 
   /** An agent's mark and name, in that agent's ink. */
@@ -123,23 +118,19 @@
       id: 'rule-overview',
       title: 'Overview',
       html:
-        '<p>The court is a busy, hostile place. After a century of josling and intrigue, four groups ' +
-        'compete for the ear of the monarch over a series of <strong>nights</strong>, and none is arranged ' +
-        'the same way. The Merchants keep a ledger, the Assassins keep a reputation, the Lovers keep each other, and ' +
-        'none of them would accept another\u2019s measure as worth anything. For some, their rank is disputed even amongst ' +
-        'themselves. The court settles opinion the way it settles everything else: the later word is the one it remembers.' +
-        'At the start of each night every noble privately promises how many <strong>audiences</strong> ' +
-        'they will win, and then plays to reach that number exactly.</p>' +
-        '<p>Favour is awarded for precision rather than for ambition. Winning more audiences than ' +
-        'you promised is penalised just as surely as winning fewer, so the difficulty of the game ' +
-        'lies in judging a hand accurately and then steering it to land on the number.</p>' +
-        '<p>A season is <strong>' + Rules.SEASON_LENGTH + ' nights</strong> of court, the last of ' +
-        'them <strong>Twelfth Night</strong>. Whoever holds the most favour when it ends has the ' +
-        'monarch\u2019s ear for the year.</p>' +
-        '<p class="rule-note">A hand is called a <em>night</em>. A promise is called a ' +
-        '<em>pledge</em>. A trick is called an <em>audience</em>. The trump suit is called the ' +
-        '<em>sway</em>. Points are called <em>favour</em>. The dealer is called the ' +
-        '<em>steward</em>.</p>'
+        '<p>The court is a busy, hostile place, and four nobles are competing for the ear of ' +
+        'the monarch over a series of <strong>nights</strong>. At the start of each night every ' +
+        'noble privately promises how many <strong>audiences</strong> they will win, then plays ' +
+        'to reach that number exactly.</p>' +
+        '<p>Favour is awarded for precision, not ambition. Winning more audiences than you ' +
+        'promised costs you as surely as winning fewer, so the game is in judging a hand and ' +
+        'then steering it to land on the number.</p>' +
+        '<p>A season is <strong>' + Rules.SEASON_LENGTH + ' nights</strong> of court, the last ' +
+        'of them <strong>Twelfth Night</strong>. Whoever holds the most favour when it ends has ' +
+        'the monarch\u2019s ear for the year.</p>' +
+        '<p class="rule-note">A hand is a <em>night</em>. A promise is a <em>pledge</em>. A ' +
+        'trick is an <em>audience</em>. The trump suit is the <em>sway</em>. Points are ' +
+        '<em>favour</em>. The dealer is the <em>steward</em>.</p>'
     },
     {
       id: 'rule-deck',

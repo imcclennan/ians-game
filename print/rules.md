@@ -3,10 +3,10 @@ title: The Fool's Court
 subtitle: A trick-taking game of promises, for four players
 meta: Four players &middot; 45 minutes<br>Twelve nights to a season
 runner: The Fool's Court
-side1-runner: Sections 1&ndash;4 &middot; pledging, play and scoring overleaf
+side1-runner: Sections 1&ndash;3 &middot; pledging, play and scoring overleaf
 side2-title: The Fool's Court
-side2-subtitle: Play &middot; favour &middot; sway &middot; the season
-side2-runner: Sections 5&ndash;8 &middot; the Whispers on their own sheet
+side2-subtitle: Pledging &middot; play &middot; favour &middot; sway &middot; the season
+side2-runner: Sections 4&ndash;8 &middot; the Whispers on their own sheet
 ---
 
 ::: contents
@@ -59,6 +59,8 @@ Four players sit in a fixed order; play and the deal go **clockwise**. One playe
 
 After twelve nights the season ends and the most favour wins (8).
 
+--- side ---
+
 # 4. Making a pledge
 
 Before any card is played, each player selects **{{bidCardsWord}} cards** from their hand and places
@@ -71,8 +73,6 @@ contested.
 
 All errands are revealed together when the night ends; until then no player knows another's pledge, 
 nor what has left their hand.
-
---- side ---
 
 # 5. Playing the night
 

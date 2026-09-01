@@ -84,6 +84,15 @@ const SECTIONS = [
 // The rules leaf is set from one scale, as the Whispers leaf is. The Whispers
 // section left this leaf and took about a column with it, so the type was
 // raised rather than leave the sheet 70% full. This fails at 1.11.
+// The court, laid under both leaves. Embedded rather than linked because
+// mksheets loads the html from out/ and a relative path out of that directory
+// is one more thing to get wrong. This is by far the faintest plate in the
+// set: it sits under three columns of small text on both sides of a sheet, so
+// anything a reader can actually notice is already too much.
+const GROUND = 'data:image/jpeg;base64,' +
+  fs.readFileSync(require('path').join(__dirname, 'watermarks', 'rules-watermark.jpg'))
+    .toString('base64');
+
 const RSCALE = 1.10;
 const rpx = (n) => `${(n * RSCALE).toFixed(2)}px`;
 
@@ -93,7 +102,13 @@ const CSS = `
 html, body { margin: 0; padding: 0; background: #fff; }
 body { font-family: 'Lora', Georgia, serif; color: ${INK}; }
 .side { width: 8.5in; height: 5.5in; padding: 0.3in 0.34in 0.26in; position: relative;
-        page-break-after: always; overflow: hidden; }
+        page-break-after: always; overflow: hidden; background: #faf6ec; }
+/* The ground sits in a layer of its own so the second side can be flipped
+   without turning the text over with it. */
+.side::before { content: ''; position: absolute; inset: 0; z-index: 0;
+                background: url('${GROUND}') center / cover no-repeat; }
+.side.s2::before { transform: scaleX(-1); }
+.side > * { position: relative; z-index: 1; }
 .side:last-child { page-break-after: auto; }
 .cols { column-count: 3; column-gap: 0.2in; column-fill: auto; height: 4.34in; }
 .side.s2 .cols { height: 4.62in; }
@@ -179,6 +194,22 @@ tr:last-child td { border-bottom: 0; }
 .wgroup { font-family: 'Carlito', system-ui, sans-serif; font-size: 6.6px; letter-spacing: .11em;
           text-transform: uppercase; color: ${GOLD}; margin: 4px 0 1.5px; break-after: avoid; }
 .wgroup:first-child { margin-top: 1px; }
+
+/* The four kinds and the politics of each ladder. A kind is kept whole so its
+   name, its ranks and its note never separate across a column break. */
+.kinds { margin: ${rpx(2)} 0 ${rpx(3.4)}; }
+.kind { break-inside: avoid; margin-bottom: ${rpx(4)}; }
+.kh { display: flex; align-items: baseline; gap: ${rpx(6)}; font-size: ${rpx(8.1)};
+      border-bottom: 0.6px solid ${GOLD}; border-bottom-color: color-mix(in srgb, ${GOLD} 55%, transparent); padding-bottom: ${rpx(1.4)}; }
+/* The ranks are set smaller than the name beside them so the longest of the
+   four fits on one line. The Merchants set the size: theirs is the only kind
+   that runs all fifteen ranks, and at the row's own size it needs 203px next
+   to a 66px name in a 237px column. nowrap so a future change cannot wrap it
+   back to two lines quietly -- fit.js fails if any of them does. */
+.kh .kranks { margin-left: auto; text-align: right; font-variant-numeric: tabular-nums;
+           font-size: ${rpx(6.8)}; white-space: nowrap; }
+.kn { font-size: ${rpx(7.6)}; line-height: 1.3; color: ${DIM}; font-style: italic;
+      margin: ${rpx(1.6)} 0 0; }
 `;
 
 const P = (t, cls) => `<p${cls ? ` class="${cls}"` : ''}>${t}</p>`;
