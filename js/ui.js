@@ -9,7 +9,6 @@
   const Engine = globalThis.Engine;
   const Whispers = globalThis.Whispers;
   const Rulebook = globalThis.Rulebook;
-  const WhisperCard = globalThis.WhisperCard;
 
   const byId = (id) => document.getElementById(id);
 
@@ -30,7 +29,6 @@
     historyBox: byId('history-box'),
     trumpKey: byId('trump-key'),
     whisperBox: byId('whisper-box'),
-    tableWhisper: byId('table-whisper'),
     whispersToggle: byId('whispers-toggle'),
     rulebook: byId('rulebook'),
     targetNote: byId('target-note'),
@@ -507,9 +505,6 @@
   function renderWhisper() {
     const player = state.players[Engine.HUMAN];
     const whisper = player.whisper;
-
-    // The card as it exists in the deck, laid on the table in front of you.
-    dom.tableWhisper.innerHTML = whisper ? WhisperCard.html(whisper, 'wcard-sm') : '';
 
     if (!whisper) {
       dom.whisperBox.hidden = true;
