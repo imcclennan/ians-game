@@ -182,7 +182,7 @@ button, select { font: inherit; }
   border-radius: inherit;
   /* The mat is far wider than the picture, so cover crops it top and bottom.
      Sitting the crop a little high keeps the throne and the faces in view. */
-  background: url("../print/rectangular-back.PNG") center 28% / cover no-repeat;
+  background: url("../print/images/rectangular-back.PNG") center 28% / cover no-repeat;
   opacity: .3;
   mix-blend-mode: luminosity;
   pointer-events: none;
