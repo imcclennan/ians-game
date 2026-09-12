@@ -46,7 +46,7 @@ const ROLE_PLURAL = { C: 'Fools', D: 'Merchants', H: 'Lovers', S: 'Assassins' };
 // What each kind promises on an errand. Taken from the game rather than typed:
 // this table said the Fool promised 0 for an entire edition, when the rules
 // have it costing a promise (-1), and nothing here noticed.
-require('../../js/cards.js');
+require('./cards.js');
 const PLEDGE = globalThis.Cards.BID_VALUE;
 
 /** A promise with a real minus sign where the kind costs one. */
